@@ -6,9 +6,43 @@ class Exercise {
     + MuscleGroups : List<MuscleGroup>
 }
 
+class ExerciseSet{
+    + Repetitions: int
+    + Weight: double
+    + Id : int
+    + WorkoutExercise : WorkoutExercise?
+    + WorkoutExerciseId : int
+}
+
+class WorkoutExercise{
+    + Id : int
+    + ExerciseSets : List<ExerciseSet>
+    + Exercise : Exercise?
+    + ExerciseId : int
+    + WorkoutSessionId : int
+    + WorkoutSession : WorkoutSession?
+}
+
+class WorkoutSession{
+    +WorkoutExercises : List<WorkoutExercise>
+}
+
+class CardioSession{
+    +Distance : double
+    +ElevationGain : double
+    +Type : CardioType
+}
+
 enum ExerciseType {
     Strength
     Cardio
+}
+
+enum CardioType{
+    Run 
+    Walk
+    Swim 
+    Bike
 }
 
 enum MuscleGroup {
@@ -23,34 +57,19 @@ enum MuscleGroup {
     FullBody
 }
 
-class ExerciseSet{
-+ Repetitions: int
-+ Weight: double
-+ Id : int
-+ Exercise : Exercise?
-+ ExerciseId : int
+
+interface ISession {
+    Id : int
+    Name: string
+    Date : DateTime
+    Duration : TimeSpan
 }
 
-class WorkoutExercise
-{
-+ Id : int
-+ ExerciseSets : List<ExerciseSet>
-+ Exercise : Exercise?
-+ ExerciseId : int
-+ WorkoutSessionId : int
-+ WorkoutSession : WorkoutSession?
-}
-
-class WorkoutSession{
-+ Id : int
-+ WorkoutExercises : List<WorkoutExercise>
-+ Date : DateTime
-+ Name : string
-}
+WorkoutSession ..|>ISession
+CardioSession ..|>ISession
 Exercise o-- ExerciseType : contains
 Exercise o-- MuscleGroup : contains
-ExerciseSet *-- Exercise 
+CardioSession o-- CardioType : contains
 WorkoutExercise *--ExerciseSet
 WorkoutSession *--WorkoutExercise
-
 @enduml
