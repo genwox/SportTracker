@@ -1,0 +1,56 @@
+@startuml
+class Exercise {
+    + Id : int
+    + Name : string
+    + Type : ExerciseType
+    + MuscleGroups : List<MuscleGroup>
+}
+
+enum ExerciseType {
+    Strength
+    Cardio
+}
+
+enum MuscleGroup {
+    Chest
+    Back
+    Shoulders
+    Biceps
+    Triceps
+    Legs
+    Glutes
+    Abs
+    FullBody
+}
+
+class ExerciseSet{
++ Repetitions: int
++ Weight: double
++ Id : int
++ Exercise : Exercise?
++ ExerciseId : int
+}
+
+class WorkoutExercise
+{
++ Id : int
++ ExerciseSets : List<ExerciseSet>
++ Exercise : Exercise?
++ ExerciseId : int
++ WorkoutSessionId : int
++ WorkoutSession : WorkoutSession?
+}
+
+class WorkoutSession{
++ Id : int
++ WorkoutExercises : List<WorkoutExercise>
++ Date : DateTime
++ Name : string
+}
+Exercise o-- ExerciseType : contains
+Exercise o-- MuscleGroup : contains
+ExerciseSet *-- Exercise 
+WorkoutExercise *--ExerciseSet
+WorkoutSession *--WorkoutExercise
+
+@enduml
