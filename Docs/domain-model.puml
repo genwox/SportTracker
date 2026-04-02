@@ -70,6 +70,7 @@ CardioSession ..|>ISession
 Exercise o-- ExerciseType : contains
 Exercise o-- MuscleGroup : contains
 CardioSession o-- CardioType : contains
+WorkoutExercise o-- Exercise : contains
 WorkoutExercise *--ExerciseSet
 WorkoutSession *--WorkoutExercise
 @enduml
