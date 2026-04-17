@@ -1,0 +1,84 @@
+@startuml
+title Architecture — Core / Data / API
+
+skinparam class {
+    BackgroundColor #FDFEFE
+    BorderColor #2C3E50
+    ArrowColor #2C3E50
+    FontSize 12
+}
+
+skinparam package {
+    BackgroundColor #EBF5FB
+    BorderColor #2980B9
+}
+
+package "SportTracker.Core" #EBF5FB {
+    interface IRepository<T> {
+        + GetByIdAsync(id) : Task<T?>
+        + GetAllAsync() : Task<IEnumerable<T>>
+        + AddAsync(entity) : Task
+        + UpdateAsync(entity) : Task
+        + DeleteAsync(id) : Task
+    }
+
+    class WorkoutSession #D5F5E3
+    class CardioSession #D5F5E3
+    class Exercise #D5F5E3
+    class ExerciseSet #D5F5E3
+    class WorkoutExercise #D5F5E3
+}
+
+package "SportTracker.Data" #FEF9E7 {
+    class SportTrackerDbContext {
+        + WorkoutSessions : DbSet<WorkoutSession>
+        + CardioSessions : DbSet<CardioSession>
+        + Exercises : DbSet<Exercise>
+        + ExerciseSets : DbSet<ExerciseSet>
+        + WorkoutExercises : DbSet<WorkoutExercise>
+    }
+
+    class WorkoutSessionRepository implements IRepository
+    class CardioSessionRepository implements IRepository
+    class ExerciseRepository implements IRepository
+    class ExerciseSetRepository implements IRepository
+    class WorkoutExerciseRepository implements IRepository
+}
+
+' Dépendances vers DbContext (injection de dépendances)
+WorkoutSessionRepository --> SportTrackerDbContext : utilise
+CardioSessionRepository --> SportTrackerDbContext : utilise
+ExerciseRepository --> SportTrackerDbContext : utilise
+ExerciseSetRepository --> SportTrackerDbContext : utilise
+WorkoutExerciseRepository --> SportTrackerDbContext : utilise
+
+' DbContext expose les modèles
+SportTrackerDbContext --> WorkoutSession : DbSet<>
+SportTrackerDbContext --> CardioSession : DbSet<>
+SportTrackerDbContext --> Exercise : DbSet<>
+SportTrackerDbContext --> ExerciseSet : DbSet<>
+SportTrackerDbContext --> WorkoutExercise : DbSet<>
+
+package "SportTracker.Api" #FDEDEC {
+    class WorkoutSessionController #F5B7B1 {
+        + GetAllAsync() : Task<IActionResult>
+        + GetByIdAsync(id) : Task<IActionResult>
+        + CreateAsync(body) : Task<IActionResult>
+        + UpdateAsync(id, body) : Task<IActionResult>
+        + DeleteAsync(id) : Task<IActionResult>
+    }
+
+    class CardioSessionController #F5B7B1 {
+        + GetAllAsync() : Task<IActionResult>
+        + GetByIdAsync(id) : Task<IActionResult>
+        + CreateAsync(body) : Task<IActionResult>
+        + UpdateAsync(id, body) : Task<IActionResult>
+        + DeleteAsync(id) : Task<IActionResult>
+    }
+}
+
+' Controllers dépendent des repositories via IRepository
+WorkoutSessionController --> IRepository : IRepository<WorkoutSession>
+CardioSessionController --> IRepository : IRepository<CardioSession>
+
+@enduml

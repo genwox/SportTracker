@@ -1,0 +1,103 @@
+@startuml
+title Modèle de domaine — SportTracker
+
+skinparam class {
+    BackgroundColor #FDFEFE
+    BorderColor #2C3E50
+    ArrowColor #2C3E50
+    FontSize 12
+}
+
+skinparam interface {
+    BackgroundColor #D6EAF8
+    BorderColor #2980B9
+}
+
+skinparam enum {
+    BackgroundColor #FEF9E7
+    BorderColor #F39C12
+}
+
+package "Sessions" #EBF5FB {
+    interface ISession {
+        + Id : int
+        + Name : string
+        + Date : DateTime
+        + Duration : TimeSpan
+    }
+
+    class WorkoutSession #D5F5E3 {
+        + WorkoutExercises : List<WorkoutExercise>
+    }
+
+    class CardioSession #D5F5E3 {
+        + Distance : double
+        + ElevationGain : double
+        + Type : CardioType
+    }
+}
+
+package "Exercices" #FEF9E7 {
+    class Exercise #FDEBD0 {
+        + Id : int
+        + Name : string
+        + Type : ExerciseType
+        + MuscleGroups : List<MuscleGroup>
+    }
+
+    class WorkoutExercise #FDEBD0 {
+        + Id : int
+        + ExerciseId : int
+        + WorkoutSessionId : int
+        + ExerciseSets : List<ExerciseSet>
+    }
+
+    class ExerciseSet #FDEBD0 {
+        + Id : int
+        + Repetitions : int
+        + Weight : double
+        + WorkoutExerciseId : int
+    }
+}
+
+package "Enums" #F9F9F9 {
+    enum ExerciseType {
+        Strength
+        Cardio
+    }
+
+    enum CardioType {
+        Run
+        Walk
+        Swim
+        Bike
+    }
+
+    enum MuscleGroup {
+        Chest
+        Back
+        Shoulders
+        Biceps
+        Triceps
+        Legs
+        Glutes
+        Abs
+        FullBody
+    }
+}
+
+' Implémentations
+WorkoutSession ..|> ISession
+CardioSession ..|> ISession
+
+' Composition
+WorkoutSession *-- WorkoutExercise
+WorkoutExercise *-- ExerciseSet
+
+' Associations
+WorkoutExercise o-- Exercise : contient
+Exercise o-- ExerciseType : type
+Exercise o-- MuscleGroup : groupes musculaires
+CardioSession o-- CardioType : type
+
+@enduml

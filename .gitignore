@@ -1,0 +1,16 @@
+# Build outputs
+bin/
+obj/
+
+# Base de données locale
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+.vs/
+*.user
+
+# Secrets & config locaux
+appsettings.Development.json

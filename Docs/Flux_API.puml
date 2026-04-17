@@ -1,0 +1,38 @@
+﻿@startuml
+title Flux HTTP — GET /workoutsessions
+
+skinparam sequence {
+    ActorBorderColor #2C3E50
+    ActorBackgroundColor #ECF0F1
+    ParticipantBorderColor #2C3E50
+    ParticipantBackgroundColor #3498DB
+    ParticipantFontColor #FFFFFF
+    ArrowColor #2C3E50
+    LifeLineBorderColor #BDC3C7
+}
+
+actor Client #ECF0F1
+participant "API\n(ASP.NET Core)" as API #3498DB
+participant "Repository\n(WorkoutSessionRepository)" as Repository #27AE60
+participant "BDD\n(SQLite)" as BDD #E67E22
+
+Client -> API : HTTP GET /workoutsessions
+activate API
+
+API -> Repository : GetAllAsync()
+note right : injection de dépendances
+activate Repository
+
+Repository -> BDD : SELECT * FROM WorkoutSessions
+activate BDD
+
+BDD --> Repository : données brutes
+deactivate BDD
+
+Repository --> API : List<WorkoutSession>
+deactivate Repository
+
+API --> Client : HTTP 200 OK + JSON
+deactivate API
+
+@enduml

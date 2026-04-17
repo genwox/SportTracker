@@ -2,7 +2,7 @@
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
 
-namespace SportTracker.Data;
+namespace SportTracker.Data.Repository;
 
 public class ExerciseSetRepository : IRepository<ExerciseSet>
 {
