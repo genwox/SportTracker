@@ -14,3 +14,9 @@ obj/
 
 # Secrets & config locaux
 appsettings.Development.json
+
+# Documentation locale (Obsidian vault)
+vault/
+
+# Scripts d'installation locaux
+dotnet-install.ps1

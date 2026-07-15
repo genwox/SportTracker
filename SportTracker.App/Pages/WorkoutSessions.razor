@@ -1,0 +1,28 @@
+@page "/workoutsessions"
+@using SportTracker.Core.Models
+@inject  HttpClient Http
+
+
+<h3>WorkoutSessions</h3>
+@if (sessions == null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    @foreach (var session in sessions)
+    {
+        <p>@session.Name — @session.Date.ToShortDateString()</p>
+    }
+}
+
+@code {
+    private List<WorkoutSession>? sessions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        sessions = await Http.GetFromJsonAsync<List<WorkoutSession>>
+            ("api/workoutsessions");
+    }
+
+}

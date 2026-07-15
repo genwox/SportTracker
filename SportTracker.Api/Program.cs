@@ -16,16 +16,22 @@ builder.Services.AddDbContext<SportTrackerDbContext>(
     options =>  options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IRepository<WorkoutSession>, WorkoutSessionRepository>();
-builder.Services.AddScoped<IRepository<CardioSession>, CardioSessionRepository>();
+builder.Services.
+    AddScoped<IRepository<WorkoutSession>, WorkoutSessionRepository>();
+builder.Services.
+    AddScoped<IRepository<CardioSession>, CardioSessionRepository>();
+
+builder.Services.AddCors(options => options.AddPolicy("Frontend",
+    policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
-
+app.UseCors("Frontend");
 // Configure the HTTP request pipeline.
 
 app.MapControllers();
 
-app.UseHttpsRedirection();
+if (app.Environment.IsProduction())
+    app.UseHttpsRedirection();
 
 
 app.Run();
