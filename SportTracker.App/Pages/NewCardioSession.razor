@@ -1,0 +1,84 @@
+@page "/cardiosessions/new"
+@using SportTracker.Core.Models
+@using SportTracker.Core.Enums
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Nouvelle séance cardio</h3>
+
+<EditForm Model="form" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nom</label>
+        <InputText class="form-control" @bind-Value="form.Name" placeholder="Ex : Run matinal" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <InputDate class="form-control" @bind-Value="form.Date" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <InputSelect class="form-select" @bind-Value="form.Type">
+            @foreach (var type in Enum.GetValues<CardioType>())
+            {
+                <option value="@type">@type</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Durée (minutes)</label>
+        <InputNumber class="form-control" @bind-Value="durationMinutes" min="1" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Distance (km)</label>
+        <InputNumber class="form-control" @bind-Value="form.Distance" min="0" step="0.1" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Dénivelé (m)</label>
+        <InputNumber class="form-control" @bind-Value="form.ElevationGain" min="0" />
+    </div>
+
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+        @(isSaving ? "Enregistrement..." : "Créer la séance")
+    </button>
+    <a href="/cardiosessions" class="btn btn-secondary ms-2">Annuler</a>
+</EditForm>
+
+@code {
+    private CardioSession form = new() { Date = DateTime.Today };
+    private int durationMinutes = 30;
+    private bool isSaving;
+    private string? errorMessage;
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        errorMessage = null;
+
+        form.Duration = TimeSpan.FromMinutes(durationMinutes);
+
+        var response = await Http.PostAsJsonAsync("api/cardiosessions", form);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/cardiosessions");
+        }
+        else
+        {
+            errorMessage = $"Erreur lors de la création ({(int)response.StatusCode}).";
+            isSaving = false;
+        }
+    }
+}

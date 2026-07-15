@@ -1,0 +1,179 @@
+@page "/workoutsessions/new"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Nouvelle séance muscu</h3>
+
+@if (availableExercises is null)
+{
+    <p>Chargement des exercices...</p>
+}
+else if (!availableExercises.Any())
+{
+    <div class="alert alert-warning">
+        Aucun exercice disponible. <a href="/exercises/new">Créer un exercice</a> avant de commencer.
+    </div>
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label class="form-label">Nom de la séance</label>
+            <InputText class="form-control" @bind-Value="form.Name" placeholder="Ex : Push day" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date</label>
+            <InputDate class="form-control" @bind-Value="form.Date" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Durée (minutes)</label>
+            <InputNumber class="form-control" @bind-Value="durationMinutes" min="1" />
+        </div>
+
+        <hr />
+        <h5>Exercices</h5>
+
+        @for (int i = 0; i < workoutExercises.Count; i++)
+        {
+            var idx = i;
+            var we = workoutExercises[idx];
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <select class="form-select w-auto" @bind="we.ExerciseId">
+                            <option value="0">-- Choisir un exercice --</option>
+                            @foreach (var ex in availableExercises)
+                            {
+                                <option value="@ex.Id">@ex.Name</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                @onclick="() => RemoveExercise(idx)">Supprimer</button>
+                    </div>
+
+                    <table class="table table-sm mb-2">
+                        <thead>
+                            <tr>
+                                <th>Série</th>
+                                <th>Poids (kg)</th>
+                                <th>Répétitions</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int j = 0; j < we.Sets.Count; j++)
+                            {
+                                var setIdx = j;
+                                var set = we.Sets[setIdx];
+                                <tr>
+                                    <td>@(setIdx + 1)</td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm"
+                                               @bind="set.Weight" min="0" step="0.5" style="width:90px" />
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm"
+                                               @bind="set.Repetitions" min="1" style="width:80px" />
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                @onclick="() => RemoveSet(idx, setIdx)">✕</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            @onclick="() => AddSet(idx)">+ Série</button>
+                </div>
+            </div>
+        }
+
+        <button type="button" class="btn btn-outline-success mb-3" @onclick="AddExercise">
+            + Exercice
+        </button>
+
+        @if (errorMessage is not null)
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <div>
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @(isSaving ? "Enregistrement..." : "Créer la séance")
+            </button>
+            <a href="/workoutsessions" class="btn btn-secondary ms-2">Annuler</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    private WorkoutSession form = new() { Date = DateTime.Today };
+    private int durationMinutes = 60;
+    private List<WorkoutExerciseForm> workoutExercises = new();
+    private List<Exercise>? availableExercises;
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises");
+    }
+
+    private void AddExercise() =>
+        workoutExercises.Add(new WorkoutExerciseForm());
+
+    private void RemoveExercise(int index) =>
+        workoutExercises.RemoveAt(index);
+
+    private void AddSet(int exerciseIndex) =>
+        workoutExercises[exerciseIndex].Sets.Add(new ExerciseSet());
+
+    private void RemoveSet(int exerciseIndex, int setIndex) =>
+        workoutExercises[exerciseIndex].Sets.RemoveAt(setIndex);
+
+    private async Task HandleSubmit()
+    {
+        if (workoutExercises.Any(we => we.ExerciseId == 0))
+        {
+            errorMessage = "Sélectionne un exercice pour chaque ligne.";
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+
+        form.Duration = TimeSpan.FromMinutes(durationMinutes);
+        form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise
+        {
+            ExerciseId = we.ExerciseId,
+            ExerciseSets = we.Sets
+        }).ToList();
+
+        var response = await Http.PostAsJsonAsync("api/workoutsessions", form);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/workoutsessions");
+        }
+        else
+        {
+            errorMessage = $"Erreur lors de la création ({(int)response.StatusCode}).";
+            isSaving = false;
+        }
+    }
+
+    // Classe locale pour le state du formulaire — évite de polluer WorkoutExercise
+    private class WorkoutExerciseForm
+    {
+        public int ExerciseId { get; set; }
+        public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() };
+    }
+}

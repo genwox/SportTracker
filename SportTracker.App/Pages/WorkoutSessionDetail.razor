@@ -1,0 +1,94 @@
+@page "/workoutsessions/{Id:int}"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@if (session is null && !notFound)
+{
+    <p>Chargement...</p>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">Séance introuvable.</div>
+    <a href="/workoutsessions" class="btn btn-secondary">Retour</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>@session!.Name</h3>
+        <a href="/workoutsessions" class="btn btn-outline-secondary btn-sm">← Retour</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Date</dt>
+                <dd class="col-sm-8">@session.Date.ToLongDateString()</dd>
+
+                <dt class="col-sm-4">Durée</dt>
+                <dd class="col-sm-8">@session.Duration.Hours h @session.Duration.Minutes min</dd>
+            </dl>
+        </div>
+    </div>
+
+    @if (session.WorkoutExercises is null || !session.WorkoutExercises.Any())
+    {
+        <p class="text-muted">Aucun exercice enregistré.</p>
+    }
+    else
+    {
+        @foreach (var we in session.WorkoutExercises)
+        {
+            <div class="card mb-3">
+                <div class="card-header fw-semibold">
+                    @(we.Exercise?.Name ?? $"Exercice #{we.ExerciseId}")
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Série</th>
+                                <th>Poids (kg)</th>
+                                <th>Répétitions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (we.ExerciseSets is null || !we.ExerciseSets.Any())
+                            {
+                                <tr><td colspan="3" class="text-muted">Aucune série.</td></tr>
+                            }
+                            else
+                            {
+                                @for (int i = 0; i < we.ExerciseSets.Count; i++)
+                                {
+                                    var set = we.ExerciseSets[i];
+                                    <tr>
+                                        <td>@(i + 1)</td>
+                                        <td>@set.Weight</td>
+                                        <td>@set.Repetitions</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private WorkoutSession? session;
+    private bool notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync($"api/workoutsessions/{Id}");
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            notFound = true;
+        else
+            session = await response.Content.ReadFromJsonAsync<WorkoutSession>();
+    }
+}

@@ -12,9 +12,14 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
     {
         _context = context;
     }
-    public async  Task<WorkoutSession?> GetByIdAsync(int id)
+    public async Task<WorkoutSession?> GetByIdAsync(int id)
     {
-        return await _context.WorkoutSessions.FindAsync(id);
+        return await _context.WorkoutSessions
+            .Include(ws => ws.WorkoutExercises)!
+                .ThenInclude(we => we.Exercise)
+            .Include(ws => ws.WorkoutExercises)!
+                .ThenInclude(we => we.ExerciseSets)
+            .FirstOrDefaultAsync(ws => ws.Id == id);
     }
 
     public async  Task<IEnumerable<WorkoutSession>> GetAllAsync()

@@ -18,7 +18,7 @@ SportTracker/
 ├── SportTracker.Core/   # Modèles + interfaces (aucune dépendance framework)
 ├── SportTracker.Data/   # EF Core + Repository pattern
 ├── SportTracker.Api/    # ASP.NET Core — endpoints REST
-└── SportTracker.App/    # Blazor WASM — UI PWA (à créer)
+└── SportTracker.App/    # Blazor WASM — UI PWA
 ```
 
 ## Objectifs d'apprentissage
@@ -43,16 +43,29 @@ SportTracker/
 - [x] Gérer `List<MuscleGroup>` avec un `ValueConverter`
 - [x] Implémenter le Repository pattern (`IRepository<T>`, `WorkoutSessionRepository`, `CardioSessionRepository`)
 - [x] Première migration
+
 ### Étape 3 — API REST ✅
 - [x] `WorkoutSessionController` — 5 endpoints CRUD (`GET`, `GET/{id}`, `POST`, `PUT/{id}`, `DELETE/{id}`)
 - [x] `CardioSessionController` — 5 endpoints CRUD
-- [x] `Program.cs` configuré (`AddControllers()`, `MapControllers()`)
-- [x] Routes explicites et plurielles (`api/workoutsessions`, `api/cardiosessions`)
+- [x] `ExerciseController` — GET all + POST
+- [x] `Program.cs` configuré (`AddControllers()`, `MapControllers()`, `IgnoreCycles`)
+- [x] Routes explicites et plurielles (`api/workoutsessions`, `api/cardiosessions`, `api/exercises`)
 - [x] Gestion des cas d'erreur (`NotFound`, `BadRequest`, `NoContent`)
+- [x] CORS policy `"Frontend"` (`AllowAnyOrigin` en dev)
 
-### Étape 4 — Blazor WASM UI (à faire)
-### Étape 5 — Docker + déploiement VPS (à faire)
-### Étape 6 — Intégration LLM (à faire)
+### Étape 4 — Blazor WASM UI ✅
+- [x] `BaseAddress` configurable via `wwwroot/appsettings.json` (clé `ApiBaseUrl`)
+- [x] `WorkoutSessions.razor` — liste cliquable `/workoutsessions`
+- [x] `NewWorkoutSession.razor` — formulaire création avec exercices + sets dynamiques
+- [x] `WorkoutSessionDetail.razor` — détail séance avec tableau des séries
+- [x] `CardioSessions.razor` — liste cliquable `/cardiosessions`
+- [x] `NewCardioSession.razor` — formulaire création cardio
+- [x] `CardioSessionDetail.razor` — détail séance cardio
+- [x] Fix cycle JSON (`ReferenceHandler.IgnoreCycles` dans l'API)
+- [x] Fix `WorkoutSessionRepository.GetByIdAsync` : `Include`/`ThenInclude` pour charger les relations
+
+### Étape 5 — Docker + déploiement VPS ⏳ À faire
+### Étape 6 — Intégration LLM ⏳ À faire
 
 ## Diagrammes
 - `Docs/Model/domain-model.puml` — modèles de domaine (Core)

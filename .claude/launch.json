@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "SportTracker API",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "SportTracker.Api"],
+      "port": 5294,
+      "autoPort": false
+    },
+    {
+      "name": "SportTracker App",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "SportTracker.App"],
+      "port": 5102
+    }
+  ]
+}

@@ -4,16 +4,26 @@
 
 <h3>Cardio</h3>
 
+<a href="/cardiosessions/new" class="btn btn-primary mb-3">+ Nouvelle séance</a>
+
 @if (sessions == null)
 {
     <p>Chargement...</p>
 }
+else if (!sessions.Any())
+{
+    <p class="text-muted">Aucune séance enregistrée.</p>
+}
 else
 {
-    @foreach (var session in sessions)
-    {
-        <p>@session.Name — @session.Date.ToShortDateString() — @session.Distance km</p>
-    }
+    <div class="list-group">
+        @foreach (var session in sessions)
+        {
+            <a href="/cardiosessions/@session.Id" class="list-group-item list-group-item-action">
+                <strong>@session.Name</strong> — @session.Date.ToShortDateString() — @session.Distance km
+            </a>
+        }
+    </div>
 }
 
 @code {

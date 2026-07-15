@@ -3,17 +3,27 @@
 @inject  HttpClient Http
 
 
-<h3>WorkoutSessions</h3>
+<h3>Musculation</h3>
+
+<a href="/workoutsessions/new" class="btn btn-primary mb-3">+ Nouvelle séance</a>
 @if (sessions == null)
 {
     <p>Chargement...</p>
 }
+else if (!sessions.Any())
+{
+    <p class="text-muted">Aucune séance enregistrée.</p>
+}
 else
 {
-    @foreach (var session in sessions)
-    {
-        <p>@session.Name — @session.Date.ToShortDateString()</p>
-    }
+    <div class="list-group">
+        @foreach (var session in sessions)
+        {
+            <a href="/workoutsessions/@session.Id" class="list-group-item list-group-item-action">
+                <strong>@session.Name</strong> — @session.Date.ToShortDateString()
+            </a>
+        }
+    </div>
 }
 
 @code {

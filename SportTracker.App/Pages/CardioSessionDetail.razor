@@ -1,0 +1,58 @@
+@page "/cardiosessions/{Id:int}"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@if (session is null && !notFound)
+{
+    <p>Chargement...</p>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">Séance introuvable.</div>
+    <a href="/cardiosessions" class="btn btn-secondary">Retour</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>@session!.Name</h3>
+        <a href="/cardiosessions" class="btn btn-outline-secondary btn-sm">← Retour</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Date</dt>
+                <dd class="col-sm-8">@session.Date.ToLongDateString()</dd>
+
+                <dt class="col-sm-4">Type</dt>
+                <dd class="col-sm-8">@session.Type</dd>
+
+                <dt class="col-sm-4">Durée</dt>
+                <dd class="col-sm-8">@session.Duration.Hours h @session.Duration.Minutes min</dd>
+
+                <dt class="col-sm-4">Distance</dt>
+                <dd class="col-sm-8">@session.Distance km</dd>
+
+                <dt class="col-sm-4">Dénivelé</dt>
+                <dd class="col-sm-8">@session.ElevationGain m</dd>
+            </dl>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CardioSession? session;
+    private bool notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync($"api/cardiosessions/{Id}");
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            notFound = true;
+        else
+            session = await response.Content.ReadFromJsonAsync<CardioSession>();
+    }
+}
