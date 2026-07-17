@@ -3,22 +3,42 @@ services:
     build:
       context: .
       dockerfile: SportTracker.Api/Dockerfile
-    ports:
-      - "5000:8080"
     environment:
       - ConnectionStrings__DefaultConnection=Data Source=/data/sporttracker.db
       - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - db-data:/data
+    networks:
+      - traefik
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sporttracker-api.rule=Host(`api.fmon-vps-n8n.fr`)"
+      - "traefik.http.routers.sporttracker-api.entrypoints=websecure"
+      - "traefik.http.routers.sporttracker-api.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.sporttracker-api.loadbalancer.server.port=8080"
 
   app:
     build:
       context: .
       dockerfile: SportTracker.App/Dockerfile
-    ports:
-      - "8081:80"
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sporttracker-app.rule=Host(`app.fmon-vps-n8n.fr`)"
+      - "traefik.http.routers.sporttracker-app.entrypoints=websecure"
+      - "traefik.http.routers.sporttracker-app.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.sporttracker-app.loadbalancer.server.port=80"
     depends_on:
       - api
+
+networks:
+  traefik:
+    external: true
+    name: root_default
+  internal:
+    internal: true
 
 volumes:
   db-data:
