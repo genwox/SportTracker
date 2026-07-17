@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: SportTracker.Api/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/data/sporttracker.db
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - db-data:/data
+
+  app:
+    build:
+      context: .
+      dockerfile: SportTracker.App/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:

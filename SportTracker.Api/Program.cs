@@ -38,6 +38,11 @@ app.MapControllers();
 if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SportTrackerDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 app.Run();
 
