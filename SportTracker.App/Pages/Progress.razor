@@ -1,0 +1,162 @@
+@page "/progress"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="progress-page">
+
+    <h1 class="progress-title">Progress</h1>
+
+    @if (loading)
+    {
+        <p class="loading-text">Chargement...</p>
+    }
+    else
+    {
+        <!-- Weekly minutes card -->
+        <div class="neon-card">
+            <p class="neon-card__label">MINUTES CETTE SEMAINE</p>
+            <p class="neon-card__value">@weeklyMinutes</p>
+            @if (weeklyMinutesDelta != 0)
+            {
+                <div class="neon-card__trend">
+                    <span class="trend-badge">
+                        @(weeklyMinutesDelta > 0 ? "↑" : "↓") @Math.Abs(weeklyMinutesDelta) MIN
+                    </span>
+                    <span class="trend-label">vs semaine dernière</span>
+                </div>
+            }
+            <svg class="neon-card__deco" viewBox="0 0 90 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="0,55 20,35 40,42 60,15 80,25 90,10" stroke="#172713" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <!-- Stat pair -->
+        <div class="stat-pair">
+            <div class="stat-card">
+                <p class="stat-card__label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4A8585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                    SÉRIE EN COURS
+                </p>
+                <p class="stat-card__value">@streak <span class="stat-card__unit">JOURS</span></p>
+                <div class="streak-dots">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="streak-dot @(i < Math.Min(streak, 5) ? "streak-dot--active" : "")"></div>
+                    }
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <p class="stat-card__label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4A8585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
+                    </svg>
+                    SÉANCES CETTE SEMAINE
+                </p>
+                <p class="stat-card__value">@weekSessions <span class="stat-card__unit">SÉANCES</span></p>
+                @if (weekSessions > 0)
+                {
+                    <div class="goal-met">
+                        <div class="goal-met__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                        <span class="goal-met__label">OBJECTIF ATTEINT</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Weekly volume chart -->
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <span class="chart-card__title">Volume <span class="chart-card__sub">SÉANCES/JOUR</span></span>
+            </div>
+            <div class="bar-chart">
+                @{
+                    var maxVal = volumeData.Max(v => v.count) is int m && m > 0 ? m : 1;
+                }
+                @foreach (var day in volumeData)
+                {
+                    var heightPct = (double)day.count / maxVal * 100;
+                    <div class="bar-col">
+                        <div class="bar-slot">
+                            @if (day.count > 0)
+                            {
+                                <div class="bar-fill @(day.isToday ? "bar-fill--active" : "")"
+                                     style="height: @(heightPct)%"></div>
+                            }
+                        </div>
+                        <span class="bar-label @(day.isToday ? "bar-label--active" : "")">@day.label</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    private bool loading = true;
+    private int weeklyMinutes;
+    private int weeklyMinutesDelta;
+    private int streak;
+    private int weekSessions;
+    private List<(string label, int count, bool isToday)> volumeData = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+        await Task.WhenAll(workoutsTask, cardioTask);
+
+        var workouts = workoutsTask.Result ?? [];
+        var cardio   = cardioTask.Result ?? [];
+
+        var today   = DateTime.Today;
+        var monday  = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+        var lastMon = monday.AddDays(-7);
+
+        // All sessions merged
+        var allDates = workouts.Select(s => s.Date.Date)
+            .Concat(cardio.Select(s => s.Date.Date))
+            .ToHashSet();
+
+        // Weekly minutes (this week)
+        var thisWeekWorkouts = workouts.Where(s => s.Date.Date >= monday);
+        var thisWeekCardio   = cardio.Where(s => s.Date.Date >= monday);
+        weeklyMinutes = (int)(thisWeekWorkouts.Sum(s => s.Duration.TotalMinutes)
+                            + thisWeekCardio.Sum(s => s.Duration.TotalMinutes));
+
+        // Weekly minutes (last week)
+        var lastWeekMin = (int)(workouts.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes)
+                              + cardio.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes));
+        weeklyMinutesDelta = weeklyMinutes - lastWeekMin;
+
+        // Sessions this week
+        weekSessions = thisWeekWorkouts.Count() + thisWeekCardio.Count();
+
+        // Streak (consecutive days with session going back from today)
+        streak = 0;
+        var check = today;
+        while (allDates.Contains(check))
+        {
+            streak++;
+            check = check.AddDays(-1);
+        }
+
+        // Volume per day this week (Mon–Sun)
+        volumeData = Enumerable.Range(0, 7).Select(i =>
+        {
+            var day   = monday.AddDays(i);
+            var count = workouts.Count(s => s.Date.Date == day) + cardio.Count(s => s.Date.Date == day);
+            var labels = new[] { "L", "M", "M", "J", "V", "S", "D" };
+            return (labels[i], count, day == today);
+        }).ToList();
+
+        loading = false;
+    }
+}

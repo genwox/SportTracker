@@ -1,23 +1,53 @@
+/* ── Design tokens (Figma) ─────────────────────────────── */
+:root {
+    --st-cyan:         #78E8E4;
+    --st-neon:         #D4F53C;
+    --st-dark:         #172713;
+    --st-nav-inactive: #4A8585;
+    --st-white:        #ffffff;
+    --st-card-bg:      #ffffff;
+    --st-text-muted:   #999999;
+    --st-neon-dark:    #3A5C00;
+
+    --st-font-body:    'Barlow', 'Helvetica Neue', Arial, sans-serif;
+    --st-font-display: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+
+    --st-radius-card:  22px;
+    --st-radius-pill:  20px;
+    --st-radius-badge: 18px;
+}
+
+/* ── Base ──────────────────────────────────────────────── */
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--st-font-body);
+    background-color: var(--st-cyan);
+    color: var(--st-dark);
 }
 
 h1:focus {
     outline: none;
 }
 
+/* ── Bootstrap overrides ───────────────────────────────── */
 a, .btn-link {
-    color: #0071c1;
+    color: var(--st-dark);
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: var(--st-dark);
+    background-color: var(--st-neon);
+    border-color: var(--st-neon);
+    font-weight: 800;
+}
+
+.btn-primary:hover {
+    background-color: #c4e530;
+    border-color: #c4e530;
+    color: var(--st-dark);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.15rem rgba(212, 245, 60, 0.45);
 }
 
 .content {

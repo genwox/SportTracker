@@ -12,7 +12,7 @@
       "name": "SportTracker App",
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "SportTracker.App"],
-      "port": 5102
+      "port": 5281
     }
   ]
 }

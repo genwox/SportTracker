@@ -3,43 +3,56 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
+<div class="detail-page">
+
 @if (session is null && !notFound)
 {
-    <p>Chargement...</p>
+    <p class="loading-text">Chargement...</p>
 }
 else if (notFound)
 {
-    <div class="alert alert-warning">Séance introuvable.</div>
-    <a href="/cardiosessions" class="btn btn-secondary">Retour</a>
+    <div class="not-found">
+        <p>Séance introuvable.</p>
+        <a href="/history" class="back-btn">← Retour</a>
+    </div>
 }
 else
 {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>@session!.Name</h3>
-        <a href="/cardiosessions" class="btn btn-outline-secondary btn-sm">← Retour</a>
+    <div class="detail-header">
+        <a href="/history" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <h1 class="detail-title">@session!.Name</h1>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-4">Date</dt>
-                <dd class="col-sm-8">@session.Date.ToLongDateString()</dd>
+    <div class="hero-card">
+        <p class="hero-label">@session.Type.ToString().ToUpper()</p>
+        <p class="hero-value">@session.Distance.ToString("F1")</p>
+        <p class="hero-unit">kilomètres</p>
+    </div>
 
-                <dt class="col-sm-4">Type</dt>
-                <dd class="col-sm-8">@session.Type</dd>
-
-                <dt class="col-sm-4">Durée</dt>
-                <dd class="col-sm-8">@session.Duration.Hours h @session.Duration.Minutes min</dd>
-
-                <dt class="col-sm-4">Distance</dt>
-                <dd class="col-sm-8">@session.Distance km</dd>
-
-                <dt class="col-sm-4">Dénivelé</dt>
-                <dd class="col-sm-8">@session.ElevationGain m</dd>
-            </dl>
+    <div class="stats-grid">
+        <div class="stat-tile">
+            <p class="stat-tile__val">@session.Duration.Hours h @session.Duration.Minutes min</p>
+            <p class="stat-tile__lbl">Durée</p>
         </div>
+        <div class="stat-tile">
+            <p class="stat-tile__val">@session.Date.ToString("dd MMM yyyy")</p>
+            <p class="stat-tile__lbl">Date</p>
+        </div>
+        @if (session.ElevationGain > 0)
+        {
+            <div class="stat-tile">
+                <p class="stat-tile__val">@session.ElevationGain m</p>
+                <p class="stat-tile__lbl">Dénivelé</p>
+            </div>
+        }
     </div>
 }
+
+</div>
 
 @code {
     [Parameter] public int Id { get; set; }

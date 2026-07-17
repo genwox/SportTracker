@@ -1,0 +1,190 @@
+@page "/"
+@using SportTracker.Core.Models
+@using SportTracker.Core.Enums
+@inject HttpClient Http
+
+<div class="today-page">
+
+    <p class="today-date">@DateTime.Today.ToString("ddd, dd MMM").ToUpper()</p>
+    <h1 class="today-greeting">Bonjour 👋</h1>
+
+    @if (loading)
+    {
+        <p class="loading-text">Chargement...</p>
+    }
+    else
+    {
+        <!-- Session du jour -->
+        @if (todayWorkout != null)
+        {
+            <div class="session-card">
+                <div class="session-card__header">
+                    <div>
+                        <p class="session-card__time">Aujourd'hui — @todayWorkout.Date.ToString("HH:mm")</p>
+                        <p class="session-card__name">@todayWorkout.Name</p>
+                    </div>
+                    <a href="/workoutsessions/@todayWorkout.Id" class="session-card__edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </a>
+                </div>
+                <hr class="session-card__divider"/>
+                <div class="session-card__hero">
+                    <span class="session-card__big">@(todayWorkout.WorkoutExercises?.Count ?? 0)</span>
+                    <p class="session-card__unit">exercices</p>
+                </div>
+                <div class="session-card__grid">
+                    <div>
+                        <p class="stat-val">@((int)todayWorkout.Duration.TotalMinutes) MIN</p>
+                        <p class="stat-lbl">Durée</p>
+                    </div>
+                    <div>
+                        <p class="stat-val">@(todayWorkout.WorkoutExercises?.Sum(e => e.ExerciseSets?.Count ?? 0) ?? 0)</p>
+                        <p class="stat-lbl">Séries</p>
+                    </div>
+                    <div>
+                        <p class="stat-val">@todayWorkout.Date.ToString("HH:mm")</p>
+                        <p class="stat-lbl">Heure</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (todayCardio != null)
+        {
+            <div class="session-card">
+                <div class="session-card__header">
+                    <div>
+                        <p class="session-card__time">Aujourd'hui — @todayCardio.Date.ToString("HH:mm")</p>
+                        <p class="session-card__name">@todayCardio.Name</p>
+                    </div>
+                    <a href="/cardiosessions/@todayCardio.Id" class="session-card__edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </a>
+                </div>
+                <hr class="session-card__divider"/>
+                <div class="session-card__hero">
+                    <span class="session-card__big">@todayCardio.Distance.ToString("F1")</span>
+                    <p class="session-card__unit">kilomètres</p>
+                </div>
+                <div class="session-card__grid">
+                    <div>
+                        <p class="stat-val">@((int)todayCardio.Duration.TotalMinutes) MIN</p>
+                        <p class="stat-lbl">Temps</p>
+                    </div>
+                    @if (todayCardio.ElevationGain > 0)
+                    {
+                        <div>
+                            <p class="stat-val">@todayCardio.ElevationGain m</p>
+                            <p class="stat-lbl">Dénivelé</p>
+                        </div>
+                    }
+                    <div>
+                        <p class="stat-val">@todayCardio.Type</p>
+                        <p class="stat-lbl">Type</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="no-session-card">
+                <p class="no-session-card__title">Aucune séance aujourd'hui</p>
+                <p class="no-session-card__sub">C'est le bon moment pour s'y mettre.</p>
+                <div class="no-session-card__actions">
+                    <a href="/workoutsessions/new" class="action-btn action-btn--dark">+ Muscu</a>
+                    <a href="/cardiosessions/new" class="action-btn action-btn--outline">+ Cardio</a>
+                </div>
+            </div>
+        }
+
+        <!-- Streak -->
+        <div class="streak-banner">
+            <div>
+                <p class="streak-banner__label">SÉRIE EN COURS</p>
+                <p class="streak-banner__value">
+                    @streak <span class="streak-banner__unit">JOURS</span>
+                </p>
+            </div>
+            <div class="streak-banner__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4F53C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Suggested -->
+        @if (suggestedWorkout != null)
+        {
+            <p class="section-title">Recommandé aujourd'hui</p>
+            <a href="/workoutsessions/@suggestedWorkout.Id" class="suggested-card">
+                <div class="suggested-card__body">
+                    <p class="suggested-card__badge">MUSCU</p>
+                    <p class="suggested-card__name">@suggestedWorkout.Name</p>
+                    <div class="suggested-card__stats">
+                        <span class="sstat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4F53C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            @((int)suggestedWorkout.Duration.TotalMinutes) MIN
+                        </span>
+                        <span class="sstat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4F53C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
+                            </svg>
+                            @(suggestedWorkout.WorkoutExercises?.Count ?? 0) EXOS
+                        </span>
+                    </div>
+                </div>
+                <div class="suggested-card__play">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#172713" stroke="#172713" stroke-width="1">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                </div>
+            </a>
+        }
+    }
+
+</div>
+
+@code {
+    private bool loading = true;
+    private WorkoutSession? todayWorkout;
+    private CardioSession? todayCardio;
+    private WorkoutSession? suggestedWorkout;
+    private int streak;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+        await Task.WhenAll(workoutsTask, cardioTask);
+
+        var workouts = workoutsTask.Result ?? [];
+        var cardio   = cardioTask.Result ?? [];
+
+        var today = DateTime.Today;
+
+        todayWorkout = workouts.Where(s => s.Date.Date == today).MaxBy(s => s.Date);
+        todayCardio  = cardio.Where(s => s.Date.Date == today).MaxBy(s => s.Date);
+
+        // Suggested: most recent workout that's not today
+        suggestedWorkout = workouts
+            .Where(s => s.Date.Date != today)
+            .OrderByDescending(s => s.Date)
+            .FirstOrDefault();
+
+        // Streak
+        var allDates = workouts.Select(s => s.Date.Date)
+            .Concat(cardio.Select(s => s.Date.Date))
+            .ToHashSet();
+        var check = today;
+        while (allDates.Contains(check)) { streak++; check = check.AddDays(-1); }
+
+        loading = false;
+    }
+}

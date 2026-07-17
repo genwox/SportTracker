@@ -1,0 +1,157 @@
+@page "/profile"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="profile-page">
+
+    <h1 class="profile-title">Profile</h1>
+
+    @if (loading)
+    {
+        <p class="loading-text">Chargement...</p>
+    }
+    else
+    {
+        <!-- Avatar -->
+        <div class="avatar-section">
+            <div class="avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 5v14"/><path d="M18 5v14"/>
+                    <path d="M2 9h4"/><path d="M18 9h4"/>
+                    <path d="M2 15h4"/><path d="M18 15h4"/>
+                    <line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
+                </svg>
+            </div>
+            <p class="avatar-name">Sportif</p>
+            @if (memberSince.HasValue)
+            {
+                <p class="avatar-since">Membre depuis @memberSince.Value.ToString("MMM yyyy")</p>
+            }
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+            <div class="stats-row__item">
+                <p class="stats-row__value">@totalSessions</p>
+                <p class="stats-row__label">SÉANCES</p>
+            </div>
+            <div class="stats-row__item stats-row__item--mid">
+                <p class="stats-row__value">@streak</p>
+                <p class="stats-row__label">JOURS SÉRIE</p>
+            </div>
+            <div class="stats-row__item">
+                <p class="stats-row__value">@totalMinutes</p>
+                <p class="stats-row__label">MIN TOTAL</p>
+            </div>
+        </div>
+
+        <!-- Weekly goal ring -->
+        <div class="goal-card">
+            <div class="goal-ring">
+                @{
+                    const int weeklyGoal = 4;
+                    var pct = Math.Min((double)weekSessions / weeklyGoal, 1.0);
+                    var circumference = 2 * Math.PI * 22;
+                    var dash = pct * circumference;
+                }
+                <svg viewBox="0 0 54 54" style="transform: rotate(-90deg)">
+                    <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(23,39,19,0.14)" stroke-width="5"/>
+                    <circle cx="27" cy="27" r="22" fill="none" stroke="#172713" stroke-width="5"
+                            stroke-linecap="round"
+                            stroke-dasharray="@dash @circumference"/>
+                </svg>
+                <span class="goal-ring__pct">@((int)(pct * 100))%</span>
+            </div>
+            <div class="goal-info">
+                <p class="goal-info__label">OBJECTIF HEBDO</p>
+                <p class="goal-info__value">@weekSessions / @weeklyGoal séances</p>
+                <p class="goal-info__sub">
+                    @if (weekSessions >= weeklyGoal)
+                    {
+                        <span>Objectif atteint 🎯</span>
+                    }
+                    else
+                    {
+                        <span>Encore @(weeklyGoal - weekSessions) pour cette semaine</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <!-- Menu -->
+        <div class="menu-list">
+            @foreach (var item in menuItems)
+            {
+                <a href="@item.Href" class="menu-item">
+                    <div class="menu-item__icon" style="background: @item.IconBg">
+                        @((MarkupString)item.IconSvg)
+                    </div>
+                    <span class="menu-item__label">@item.Label</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </a>
+            }
+        </div>
+    }
+
+</div>
+
+@code {
+    private bool loading = true;
+    private int totalSessions;
+    private int streak;
+    private int totalMinutes;
+    private int weekSessions;
+    private DateTime? memberSince;
+
+    private record MenuItem(string Label, string Href, string IconBg, string IconSvg);
+
+    private List<MenuItem> menuItems =
+    [
+        new("Objectifs & Préférences", "#", "#D4F53C",
+            """<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>"""),
+        new("Notifications", "#", "rgba(120,232,228,0.35)",
+            """<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>"""),
+        new("Apps connectées", "#", "rgba(120,232,228,0.35)",
+            """<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>"""),
+        new("Confidentialité", "#", "#172713",
+            """<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#D4F53C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>"""),
+        new("Aide & Support", "#", "#D4F53C",
+            """<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>"""),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+        await Task.WhenAll(workoutsTask, cardioTask);
+
+        var workouts = workoutsTask.Result ?? [];
+        var cardio   = cardioTask.Result ?? [];
+
+        totalSessions = workouts.Count + cardio.Count;
+        totalMinutes  = (int)(workouts.Sum(s => s.Duration.TotalMinutes)
+                            + cardio.Sum(s => s.Duration.TotalMinutes));
+
+        var allDates = workouts.Select(s => s.Date.Date)
+            .Concat(cardio.Select(s => s.Date.Date))
+            .ToHashSet();
+
+        // Streak
+        var check = DateTime.Today;
+        while (allDates.Contains(check)) { streak++; check = check.AddDays(-1); }
+
+        // Member since (first session)
+        var allSessions = workouts.Select(s => s.Date)
+            .Concat(cardio.Select(s => s.Date));
+        if (allSessions.Any()) memberSince = allSessions.Min();
+
+        // This week
+        var monday = DateTime.Today.AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
+        weekSessions = workouts.Count(s => s.Date.Date >= monday)
+                     + cardio.Count(s => s.Date.Date >= monday);
+
+        loading = false;
+    }
+}

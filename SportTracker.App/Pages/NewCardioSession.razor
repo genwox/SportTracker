@@ -4,57 +4,71 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<h3>Nouvelle séance cardio</h3>
+<div class="form-page">
 
-<EditForm Model="form" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="mb-3">
-        <label class="form-label">Nom</label>
-        <InputText class="form-control" @bind-Value="form.Name" placeholder="Ex : Run matinal" />
+    <div class="form-header">
+        <a href="/history" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <h1 class="form-title">Nouvelle séance cardio</h1>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Date</label>
-        <InputDate class="form-control" @bind-Value="form.Date" />
-    </div>
+    <EditForm Model="form" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
 
-    <div class="mb-3">
-        <label class="form-label">Type</label>
-        <InputSelect class="form-select" @bind-Value="form.Type">
-            @foreach (var type in Enum.GetValues<CardioType>())
-            {
-                <option value="@type">@type</option>
-            }
-        </InputSelect>
-    </div>
+        <div class="field-group">
+            <label class="field-label">Nom</label>
+            <InputText class="field-input" @bind-Value="form.Name" placeholder="Ex : Run matinal" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Durée (minutes)</label>
-        <InputNumber class="form-control" @bind-Value="durationMinutes" min="1" />
-    </div>
+        <div class="field-row">
+            <div class="field-group">
+                <label class="field-label">Date</label>
+                <InputDate class="field-input" @bind-Value="form.Date" />
+            </div>
+            <div class="field-group">
+                <label class="field-label">Type</label>
+                <InputSelect class="field-input field-input--select" @bind-Value="form.Type">
+                    @foreach (var type in Enum.GetValues<CardioType>())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Distance (km)</label>
-        <InputNumber class="form-control" @bind-Value="form.Distance" min="0" step="0.1" />
-    </div>
+        <div class="field-row">
+            <div class="field-group">
+                <label class="field-label">Durée (min)</label>
+                <InputNumber class="field-input" @bind-Value="durationMinutes" min="1" />
+            </div>
+            <div class="field-group">
+                <label class="field-label">Distance (km)</label>
+                <InputNumber class="field-input" @bind-Value="form.Distance" min="0" step="0.1" />
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Dénivelé (m)</label>
-        <InputNumber class="form-control" @bind-Value="form.ElevationGain" min="0" />
-    </div>
+        <div class="field-group">
+            <label class="field-label">Dénivelé (m)</label>
+            <InputNumber class="field-input" @bind-Value="form.ElevationGain" min="0" />
+        </div>
 
-    @if (errorMessage is not null)
-    {
-        <div class="alert alert-danger">@errorMessage</div>
-    }
+        @if (errorMessage is not null)
+        {
+            <div class="error-card">@errorMessage</div>
+        }
 
-    <button type="submit" class="btn btn-primary" disabled="@isSaving">
-        @(isSaving ? "Enregistrement..." : "Créer la séance")
-    </button>
-    <a href="/cardiosessions" class="btn btn-secondary ms-2">Annuler</a>
-</EditForm>
+        <div class="form-actions">
+            <button type="submit" class="submit-btn" disabled="@isSaving">
+                @(isSaving ? "Enregistrement..." : "Créer la séance")
+            </button>
+            <a href="/history" class="cancel-btn">Annuler</a>
+        </div>
+    </EditForm>
+
+</div>
 
 @code {
     private CardioSession form = new() { Date = DateTime.Today };
@@ -66,15 +80,10 @@
     {
         isSaving = true;
         errorMessage = null;
-
         form.Duration = TimeSpan.FromMinutes(durationMinutes);
-
         var response = await Http.PostAsJsonAsync("api/cardiosessions", form);
-
         if (response.IsSuccessStatusCode)
-        {
-            Nav.NavigateTo("/cardiosessions");
-        }
+            Nav.NavigateTo("/history");
         else
         {
             errorMessage = $"Erreur lors de la création ({(int)response.StatusCode}).";
