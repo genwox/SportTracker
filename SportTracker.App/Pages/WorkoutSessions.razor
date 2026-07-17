@@ -5,13 +5,20 @@
 <div class="workouts-page">
 
     <div class="workouts-header">
-        <h1 class="workouts-title">Workouts</h1>
+        <h1 class="workouts-title">
+            <span class="title-eyebrow">Find your</span>
+            Workouts
+        </h1>
         <a href="/workoutsessions/new" class="new-btn">+ Nouvelle</a>
     </div>
 
     @if (sessions == null)
     {
-        <p class="loading-text">Chargement...</p>
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+        </div>
     }
     else if (!sessions.Any())
     {

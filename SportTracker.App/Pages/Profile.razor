@@ -4,11 +4,24 @@
 
 <div class="profile-page">
 
-    <h1 class="profile-title">Profile</h1>
+    <h1 class="profile-title">
+        <span class="title-eyebrow">Your</span>
+        Profile
+    </h1>
 
     @if (loading)
     {
-        <p class="loading-text">Chargement...</p>
+        <div class="st-skel-block">
+            <div class="st-skel-row" style="align-items:center; gap:16px; margin-bottom:4px;">
+                <div class="st-skeleton st-skel-circ"></div>
+                <div class="st-skel-block" style="flex:1; gap:8px; margin-bottom:0;">
+                    <div class="st-skeleton st-skel-line" style="width:60%"></div>
+                    <div class="st-skeleton st-skel-line" style="width:40%"></div>
+                </div>
+            </div>
+            <div class="st-skeleton st-skel-sm"></div>
+            <div class="st-skeleton" style="height:140px"></div>
+        </div>
     }
     else
     {

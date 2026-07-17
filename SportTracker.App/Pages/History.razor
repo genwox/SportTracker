@@ -6,7 +6,10 @@
 <div class="history-page">
 
     <div class="history-header">
-        <h1 class="history-title">History</h1>
+        <h1 class="history-title">
+            <span class="title-eyebrow">Track your</span>
+            History
+        </h1>
         <button class="filter-btn @(filterOpen ? "filter-btn--active" : "")" @onclick="ToggleFilter">
             FILTER BY TYPE
         </button>
@@ -26,7 +29,12 @@
 
     @if (allItems == null)
     {
-        <p class="loading-text">Chargement...</p>
+        <div class="st-skel-block">
+            <div class="st-skeleton" style="height:70px"></div>
+            <div class="st-skeleton" style="height:70px"></div>
+            <div class="st-skeleton" style="height:70px"></div>
+            <div class="st-skeleton" style="height:70px"></div>
+        </div>
     }
     else if (!FilteredItems.Any())
     {

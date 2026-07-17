@@ -16,7 +16,13 @@
 
     @if (availableExercises is null)
     {
-        <p class="loading-text">Chargement des exercices...</p>
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-sm"></div>
+            <div class="st-skel-row">
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+            </div>
+        </div>
     }
     else if (!availableExercises.Any())
     {

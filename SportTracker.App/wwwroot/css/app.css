@@ -143,3 +143,90 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* ── Shared typography helpers ─────────────────────────── */
+.title-eyebrow {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--st-nav-inactive);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    font-family: var(--st-font-body);
+}
+
+/* ═══════════════════════════════════════════
+   UX Polish — Animations & Micro-interactions
+═══════════════════════════════════════════ */
+
+@keyframes st-page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes st-shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+}
+
+/* Page entry transitions */
+.today-page,
+.workouts-page,
+.history-page,
+.progress-page,
+.profile-page,
+.detail-page,
+.form-page {
+    animation: st-page-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Skeleton shimmer */
+.st-skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.28) 25%,
+        rgba(255,255,255,0.58) 50%,
+        rgba(255,255,255,0.28) 75%
+    );
+    background-size: 200% 100%;
+    animation: st-shimmer 1.5s ease-in-out infinite;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.st-skel-block { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.st-skel-row   { display: flex; gap: 12px; }
+
+/* Common skeleton heights */
+.st-skel-tall  { height: 200px; }
+.st-skel-med   { height: 100px; }
+.st-skel-sm    { height: 60px; }
+.st-skel-xs    { height: 36px; width: 120px; }
+.st-skel-line  { height: 20px; border-radius: 8px; }
+.st-skel-circ  { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; }
+
+/* Micro-interactions */
+.submit-btn,
+.add-exercise-btn,
+.fab,
+.add-set-btn {
+    transition: transform 0.1s ease, opacity 0.15s ease, background 0.15s ease;
+}
+
+.submit-btn:active:not(:disabled),
+.add-exercise-btn:active,
+.fab:active,
+.add-set-btn:active {
+    transform: scale(0.95);
+}
+
+.back-link {
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+.back-link:active { transform: scale(0.88); }
+
+/* Smooth focus transitions */
+.field-input  { transition: box-shadow 0.15s ease; }
+.set-input    { transition: box-shadow 0.15s ease; }
+.remove-btn   { transition: background 0.15s ease, opacity 0.15s ease; }
+.remove-btn:active { opacity: 0.6; }

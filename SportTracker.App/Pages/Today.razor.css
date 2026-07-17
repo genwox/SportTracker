@@ -4,17 +4,20 @@
 }
 
 .today-date {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--st-nav-inactive);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    margin-bottom: 2px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin-bottom: 0;
 }
 
 .today-greeting {
-    font-size: 26px;
-    font-weight: 800;
+    font-size: 34px;
+    font-weight: 900;
     color: var(--st-dark);
+    font-family: var(--st-font-display);
+    letter-spacing: -0.5px;
+    line-height: 1.05;
     margin-bottom: 20px;
 }
 

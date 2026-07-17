@@ -4,11 +4,21 @@
 
 <div class="progress-page">
 
-    <h1 class="progress-title">Progress</h1>
+    <h1 class="progress-title">
+        <span class="title-eyebrow">Your</span>
+        Progress
+    </h1>
 
     @if (loading)
     {
-        <p class="loading-text">Chargement...</p>
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-med"></div>
+            <div class="st-skel-row">
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+            </div>
+            <div class="st-skeleton" style="height:140px"></div>
+        </div>
     }
     else
     {

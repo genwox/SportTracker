@@ -4,10 +4,15 @@
 }
 
 .profile-title {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 34px;
+    font-weight: 900;
     color: var(--st-dark);
+    font-family: var(--st-font-display);
+    letter-spacing: -0.5px;
     margin-bottom: 22px;
+    line-height: 1.05;
+    display: flex;
+    flex-direction: column;
 }
 
 .loading-text {

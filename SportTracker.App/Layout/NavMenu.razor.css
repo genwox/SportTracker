@@ -16,9 +16,10 @@
     color: var(--st-nav-inactive);
     text-decoration: none;
     padding: 4px 10px;
-    transition: color 0.15s;
+    transition: color 0.18s ease, transform 0.15s ease;
     background: none;
     border: none;
+    position: relative;
 }
 
 .bottom-nav ::deep a:hover {
@@ -26,8 +27,31 @@
     text-decoration: none;
 }
 
+.bottom-nav ::deep a:active {
+    transform: scale(0.88);
+}
+
 .bottom-nav ::deep a.active {
     color: var(--st-neon);
+}
+
+/* Dark pill indicator behind active icon (inspired by template) */
+.bottom-nav ::deep a.active::before {
+    content: '';
+    position: absolute;
+    width: 46px;
+    height: 30px;
+    background: var(--st-dark);
+    border-radius: 15px;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0;
+}
+
+.bottom-nav ::deep a.active svg {
+    position: relative;
+    z-index: 1;
 }
 
 .bottom-nav ::deep a span {

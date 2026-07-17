@@ -10,7 +10,14 @@
 
     @if (loading)
     {
-        <p class="loading-text">Chargement...</p>
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skel-row">
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
+            </div>
+            <div class="st-skeleton st-skel-med"></div>
+        </div>
     }
     else
     {
