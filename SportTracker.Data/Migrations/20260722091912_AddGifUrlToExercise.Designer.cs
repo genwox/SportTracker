@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportTracker.Data;
 
@@ -10,9 +11,11 @@ using SportTracker.Data;
 namespace SportTracker.Data.Migrations
 {
     [DbContext(typeof(SportTrackerDbContext))]
-    partial class SportTrackerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722091912_AddGifUrlToExercise")]
+    partial class AddGifUrlToExercise
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
@@ -54,9 +57,6 @@ namespace SportTracker.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("GifUrl")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InstructionsFr")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("MuscleGroups")

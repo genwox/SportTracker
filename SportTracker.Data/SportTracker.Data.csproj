@@ -12,6 +12,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Seed\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,18 @@
   <ItemGroup>
     <ProjectReference Include="..\SportTracker.Core\SportTracker.Core.csproj" />
     <ProjectReference Include="..\SportTracker.Data\SportTracker.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\SportTracker.Data\Seed\exercises.json" Link="Seed\exercises.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

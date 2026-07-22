@@ -60,16 +60,61 @@
                 var we = workoutExercises[idx];
 
                 <div class="exercise-block">
+                    @{
+                        var selectedEx = availableExercises.FirstOrDefault(e => e.Id == we.ExerciseId);
+                        var filtered = string.IsNullOrWhiteSpace(we.SearchText)
+                            ? Enumerable.Empty<Exercise>()
+                            : availableExercises
+                                .Where(e => e.Name.Contains(we.SearchText, StringComparison.OrdinalIgnoreCase))
+                                .Take(8);
+                    }
                     <div class="exercise-block__header">
-                        <select class="field-input field-input--select" @bind="we.ExerciseId">
-                            <option value="0">— Choisir un exercice —</option>
-                            @foreach (var ex in availableExercises)
-                            {
-                                <option value="@ex.Id">@ex.Name</option>
-                            }
-                        </select>
+                        @if (selectedEx is not null)
+                        {
+                            <div class="ex-selected">
+                                <span>@selectedEx.Name</span>
+                                <button type="button" class="ex-clear" @onclick="() => ClearExercise(idx)">✕</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ex-search">
+                                <input type="text" class="field-input"
+                                       placeholder="Rechercher un exercice..."
+                                       value="@we.SearchText"
+                                       @oninput="e => we.SearchText = e.Value?.ToString() ?? string.Empty"
+                                       @onfocusin="() => we.ShowDropdown = true"
+                                       @onfocusout="() => we.ShowDropdown = false" />
+                                @if (we.ShowDropdown && filtered.Any())
+                                {
+                                    <div class="ex-dropdown">
+                                        @foreach (var ex in filtered)
+                                        {
+                                            <button type="button" class="ex-option"
+                                                    @onmousedown:preventDefault
+                                                    @onclick="() => SelectExercise(idx, ex)">
+                                                @ex.Name
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
                         <button type="button" class="remove-btn" @onclick="() => RemoveExercise(idx)">✕</button>
                     </div>
+                    @if (selectedEx is not null)
+                    {
+                        <div class="ex-preview">
+                            @if (selectedEx.GifUrl is not null)
+                            {
+                                <img src="@selectedEx.GifUrl" alt="@selectedEx.Name" class="exercise-gif" loading="lazy" />
+                            }
+                            @if (selectedEx.InstructionsFr is not null)
+                            {
+                                <p class="ex-instructions">@selectedEx.InstructionsFr</p>
+                            }
+                        </div>
+                    }
 
                     <div class="sets-header">
                         <span>SÉRIE</span><span>POIDS (kg)</span><span>REPS</span><span></span>
@@ -127,6 +172,19 @@
     private void AddSet(int exerciseIndex) => workoutExercises[exerciseIndex].Sets.Add(new ExerciseSet());
     private void RemoveSet(int exerciseIndex, int setIndex) => workoutExercises[exerciseIndex].Sets.RemoveAt(setIndex);
 
+    private void SelectExercise(int index, Exercise ex)
+    {
+        workoutExercises[index].ExerciseId = ex.Id;
+        workoutExercises[index].SearchText = string.Empty;
+        workoutExercises[index].ShowDropdown = false;
+    }
+
+    private void ClearExercise(int index)
+    {
+        workoutExercises[index].ExerciseId = 0;
+        workoutExercises[index].SearchText = string.Empty;
+    }
+
     private async Task HandleSubmit()
     {
         if (workoutExercises.Any(we => we.ExerciseId == 0))
@@ -155,6 +213,8 @@
     private class WorkoutExerciseForm
     {
         public int ExerciseId { get; set; }
+        public string SearchText { get; set; } = string.Empty;
+        public bool ShowDropdown { get; set; }
         public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() };
     }
 }

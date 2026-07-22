@@ -14,6 +14,11 @@ COPY SportTracker.Core/ SportTracker.Core/
 COPY SportTracker.Data/ SportTracker.Data/
 COPY SportTracker.Api/ SportTracker.Api/
 
+# Télécharge le dataset exercises (non versionné dans git)
+RUN mkdir -p SportTracker.Data/Seed && \
+    curl -fsSL https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/data/exercises.json \
+    -o SportTracker.Data/Seed/exercises.json
+
 RUN dotnet publish SportTracker.Api/SportTracker.Api.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

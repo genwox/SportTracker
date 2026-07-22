@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SportTracker.Data.Seed;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportTracker.Core.Enums;
 using SportTracker.Core.Interfaces;
@@ -42,6 +43,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SportTrackerDbContext>();
     await db.Database.MigrateAsync();
+    await ExerciseSeeder.SeedAsync(db);
 }
 
 app.Run();
