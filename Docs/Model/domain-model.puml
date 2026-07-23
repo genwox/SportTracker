@@ -28,6 +28,7 @@ package "Sessions" #EBF5FB {
 
     class WorkoutSession #D5F5E3 {
         + WorkoutExercises : List<WorkoutExercise>
+        + WorkoutProgramSessionId : int?
     }
 
     class CardioSession #D5F5E3 {
@@ -37,12 +38,42 @@ package "Sessions" #EBF5FB {
     }
 }
 
+package "Programmes" #E8F8F5 {
+    class WorkoutProgram #A3E4D7 {
+        + Id : int
+        + Name : string
+        + Objective : string?
+        + ColorHex : string
+        + Sessions : List<WorkoutProgramSession>
+    }
+
+    class WorkoutProgramSession #A3E4D7 {
+        + Id : int
+        + Name : string
+        + Order : int
+        + WorkoutProgramId : int
+        + Exercises : List<WorkoutProgramExercise>
+    }
+
+    class WorkoutProgramExercise #A3E4D7 {
+        + Id : int
+        + Order : int
+        + ExerciseId : int
+        + TargetSets : int
+        + TargetRepsMin : int
+        + TargetRepsMax : int
+        + RestSeconds : int
+    }
+}
+
 package "Exercices" #FEF9E7 {
     class Exercise #FDEBD0 {
         + Id : int
         + Name : string
         + Type : ExerciseType
         + MuscleGroups : List<MuscleGroup>
+        + GifUrl : string?
+        + InstructionsFr : string?
     }
 
     class WorkoutExercise #FDEBD0 {
@@ -90,14 +121,22 @@ package "Enums" #F9F9F9 {
 WorkoutSession ..|> ISession
 CardioSession ..|> ISession
 
-' Composition
+' Composition — Sessions
 WorkoutSession *-- WorkoutExercise
 WorkoutExercise *-- ExerciseSet
 
+' Composition — Programmes
+WorkoutProgram *-- WorkoutProgramSession
+WorkoutProgramSession *-- WorkoutProgramExercise
+
 ' Associations
 WorkoutExercise o-- Exercise : contient
+WorkoutProgramExercise o-- Exercise : cible
 Exercise o-- ExerciseType : type
 Exercise o-- MuscleGroup : groupes musculaires
 CardioSession o-- CardioType : type
+
+' Lien Programme → Historique
+WorkoutSession "0..*" ..> "0..1" WorkoutProgramSession : provient de\n(FK nullable, SetNull)
 
 @enduml

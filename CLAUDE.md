@@ -64,6 +64,18 @@ SportTracker/
 - [x] Fix cycle JSON (`ReferenceHandler.IgnoreCycles` dans l'API)
 - [x] Fix `WorkoutSessionRepository.GetByIdAsync` : `Include`/`ThenInclude` pour charger les relations
 
+### Étape 4b — Programmes d'entraînement (Carnets) ✅
+- [x] Modèles : `WorkoutProgram`, `WorkoutProgramSession`, `WorkoutProgramExercise`
+- [x] FK nullable `WorkoutProgramSessionId` sur `WorkoutSession`
+- [x] Migration EF Core `AddWorkoutPrograms`
+- [x] `WorkoutProgramRepository` + DI
+- [x] `WorkoutProgramController` — 5 endpoints CRUD (`api/programs`)
+- [x] `ExerciseController` — endpoint historique (`api/exercises/{id}/history`)
+- [x] Tab bar Séances/Carnets sur la page Workouts
+- [x] Pages Blazor : liste programmes, détail, création, séances, exercices, historique
+- [x] Timer de repos pré-rempli depuis `RestSeconds`
+- [x] Schéma cible structuré (TargetSets, TargetRepsMin/Max, RestSeconds)
+
 ### Étape 5 — Docker + déploiement VPS ⏳ À faire
 ### Étape 6 — Intégration LLM ⏳ À faire
 

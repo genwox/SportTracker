@@ -1,5 +1,5 @@
-﻿@startuml
-title Flux HTTP — GET /workoutsessions
+@startuml
+title Flux HTTP — SportTracker API
 
 skinparam sequence {
     ActorBorderColor #2C3E50
@@ -13,14 +13,16 @@ skinparam sequence {
 
 actor Client #ECF0F1
 participant "API\n(ASP.NET Core)" as API #3498DB
-participant "Repository\n(WorkoutSessionRepository)" as Repository #27AE60
+participant "Repository" as Repository #27AE60
 participant "BDD\n(SQLite)" as BDD #E67E22
+
+== GET /workoutsessions ==
 
 Client -> API : HTTP GET /workoutsessions
 activate API
 
 API -> Repository : GetAllAsync()
-note right : injection de dépendances
+note right : WorkoutSessionRepository
 activate Repository
 
 Repository -> BDD : SELECT * FROM WorkoutSessions
@@ -30,6 +32,48 @@ BDD --> Repository : données brutes
 deactivate BDD
 
 Repository --> API : List<WorkoutSession>
+deactivate Repository
+
+API --> Client : HTTP 200 OK + JSON
+deactivate API
+
+== GET /programs/{id} ==
+
+Client -> API : HTTP GET /programs/1
+activate API
+
+API -> Repository : GetByIdAsync(1)
+note right : WorkoutProgramRepository\nInclude Sessions\n  .ThenInclude Exercises\n    .ThenInclude Exercise
+activate Repository
+
+Repository -> BDD : SELECT + JOINs\n(Programs, ProgramSessions,\nProgramExercises, Exercises)
+activate BDD
+
+BDD --> Repository : données brutes
+deactivate BDD
+
+Repository --> API : WorkoutProgram
+deactivate Repository
+
+API --> Client : HTTP 200 OK + JSON
+deactivate API
+
+== GET /exercises/{id}/history ==
+
+Client -> API : HTTP GET /exercises/5/history
+activate API
+
+API -> Repository : GetHistoryAsync(5)
+note right : ExerciseRepository\nou query directe DbContext
+activate Repository
+
+Repository -> BDD : SELECT FROM ExerciseSets\nJOIN WorkoutExercises\nJOIN WorkoutSessions\nWHERE ExerciseId = 5\nGROUP BY Date
+activate BDD
+
+BDD --> Repository : données brutes
+deactivate BDD
+
+Repository --> API : List<ExerciseHistoryEntry>
 deactivate Repository
 
 API --> Client : HTTP 200 OK + JSON

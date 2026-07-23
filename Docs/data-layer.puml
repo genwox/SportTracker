@@ -27,6 +27,9 @@ package "SportTracker.Core" #EBF5FB {
     class Exercise #D5F5E3
     class ExerciseSet #D5F5E3
     class WorkoutExercise #D5F5E3
+    class WorkoutProgram #A3E4D7
+    class WorkoutProgramSession #A3E4D7
+    class WorkoutProgramExercise #A3E4D7
 }
 
 package "SportTracker.Data" #FEF9E7 {
@@ -36,6 +39,9 @@ package "SportTracker.Data" #FEF9E7 {
         + Exercises : DbSet<Exercise>
         + ExerciseSets : DbSet<ExerciseSet>
         + WorkoutExercises : DbSet<WorkoutExercise>
+        + WorkoutPrograms : DbSet<WorkoutProgram>
+        + WorkoutProgramSessions : DbSet<WorkoutProgramSession>
+        + WorkoutProgramExercises : DbSet<WorkoutProgramExercise>
     }
 
     class WorkoutSessionRepository implements IRepository
@@ -43,6 +49,7 @@ package "SportTracker.Data" #FEF9E7 {
     class ExerciseRepository implements IRepository
     class ExerciseSetRepository implements IRepository
     class WorkoutExerciseRepository implements IRepository
+    class WorkoutProgramRepository implements IRepository
 }
 
 ' Dépendances vers DbContext (injection de dépendances)
@@ -51,6 +58,7 @@ CardioSessionRepository --> SportTrackerDbContext : utilise
 ExerciseRepository --> SportTrackerDbContext : utilise
 ExerciseSetRepository --> SportTrackerDbContext : utilise
 WorkoutExerciseRepository --> SportTrackerDbContext : utilise
+WorkoutProgramRepository --> SportTrackerDbContext : utilise
 
 ' DbContext expose les modèles
 SportTrackerDbContext --> WorkoutSession : DbSet<>
@@ -58,6 +66,9 @@ SportTrackerDbContext --> CardioSession : DbSet<>
 SportTrackerDbContext --> Exercise : DbSet<>
 SportTrackerDbContext --> ExerciseSet : DbSet<>
 SportTrackerDbContext --> WorkoutExercise : DbSet<>
+SportTrackerDbContext --> WorkoutProgram : DbSet<>
+SportTrackerDbContext --> WorkoutProgramSession : DbSet<>
+SportTrackerDbContext --> WorkoutProgramExercise : DbSet<>
 
 package "SportTracker.Api" #FDEDEC {
     class WorkoutSessionController #F5B7B1 {
@@ -75,10 +86,26 @@ package "SportTracker.Api" #FDEDEC {
         + UpdateAsync(id, body) : Task<IActionResult>
         + DeleteAsync(id) : Task<IActionResult>
     }
+
+    class WorkoutProgramController #F5B7B1 {
+        + GetAllAsync() : Task<IActionResult>
+        + GetByIdAsync(id) : Task<IActionResult>
+        + CreateAsync(body) : Task<IActionResult>
+        + UpdateAsync(id, body) : Task<IActionResult>
+        + DeleteAsync(id) : Task<IActionResult>
+    }
+
+    class ExerciseController #F5B7B1 {
+        + GetAllAsync() : Task<IActionResult>
+        + CreateAsync(body) : Task<IActionResult>
+        + GetHistoryAsync(id) : Task<IActionResult>
+    }
 }
 
 ' Controllers dépendent des repositories via IRepository
 WorkoutSessionController --> IRepository : IRepository<WorkoutSession>
 CardioSessionController --> IRepository : IRepository<CardioSession>
+WorkoutProgramController --> IRepository : IRepository<WorkoutProgram>
+ExerciseController --> IRepository : IRepository<Exercise>
 
 @enduml
