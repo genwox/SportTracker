@@ -9,4 +9,6 @@ public class WorkoutSession : ISession
     public DateTime Date { get; set; }
     public TimeSpan Duration { get; set; }
     public string Name { get; set; } = string.Empty;
+    public int? WorkoutProgramSessionId { get; set; }
+    public WorkoutProgramSession? WorkoutProgramSession { get; set; }
 }
