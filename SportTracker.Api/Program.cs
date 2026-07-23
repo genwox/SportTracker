@@ -26,6 +26,8 @@ builder.Services.
     AddScoped<IRepository<CardioSession>, CardioSessionRepository>();
 builder.Services.
     AddScoped<IRepository<Exercise>, ExerciseRepository>();
+builder.Services.
+    AddScoped<IRepository<WorkoutProgram>, WorkoutProgramRepository>();
 
 builder.Services.AddCors(options => options.AddPolicy("Frontend",
     policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
