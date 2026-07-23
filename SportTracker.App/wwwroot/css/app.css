@@ -225,6 +225,19 @@ code {
 }
 .back-link:active { transform: scale(0.88); }
 
+.edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary, #888);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+}
+.edit-btn:hover {
+    color: var(--color-text-primary, #fff);
+}
+
 /* Smooth focus transitions */
 .field-input  { transition: box-shadow 0.15s ease; }
 .set-input    { transition: box-shadow 0.15s ease; }

@@ -10,6 +10,15 @@
                 <polyline points="15 18 9 12 15 6"/>
             </svg>
         </a>
+        @if (!isEditing && session != null)
+        {
+            <button type="button" class="edit-btn" @onclick="EnterEditMode">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
+        }
     </div>
 
     @if (session == null)
@@ -18,6 +27,86 @@
             <div class="st-skeleton st-skel-med"></div>
             <div class="st-skeleton st-skel-tall"></div>
             <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else if (isEditing)
+    {
+        <div class="field-group" style="margin-bottom: 1rem;">
+            <label class="field-label">Nom de la séance</label>
+            <input type="text" class="field-input" @bind="editName" @bind:event="oninput" placeholder="Nom de la séance" />
+        </div>
+
+        <div class="section-label">EXERCICES</div>
+
+        @for (int i = 0; i < editExercises.Count; i++)
+        {
+            var idx = i;
+            var ef = editExercises[idx];
+            <div class="exercise-block">
+                <div class="exercise-block__header">
+                    <span style="font-weight: 600; font-size: 0.95rem;">@ef.ExerciseName</span>
+                    <button type="button" class="remove-btn" @onclick="() => RemoveExercise(idx)">✕</button>
+                </div>
+                <div class="target-fields">
+                    <div class="field-group field-group--sm">
+                        <label class="field-label">Séries</label>
+                        <input type="number" class="field-input" @bind="ef.TargetSets" min="1" />
+                    </div>
+                    <div class="field-group field-group--sm">
+                        <label class="field-label">Reps min</label>
+                        <input type="number" class="field-input" @bind="ef.TargetRepsMin" min="1" />
+                    </div>
+                    <div class="field-group field-group--sm">
+                        <label class="field-label">Reps max</label>
+                        <input type="number" class="field-input" @bind="ef.TargetRepsMax" min="1" />
+                    </div>
+                    <div class="field-group field-group--sm">
+                        <label class="field-label">Repos (s)</label>
+                        <input type="number" class="field-input" @bind="ef.RestSeconds" min="0" />
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="ex-search" style="margin-top: 0.5rem;">
+            <input type="text" class="field-input"
+                   placeholder="Ajouter un exercice..."
+                   value="@searchText"
+                   @oninput="e => searchText = e.Value?.ToString() ?? string.Empty"
+                   @onfocusin="() => showDropdown = true"
+                   @onfocusout="() => showDropdown = false" />
+            @{
+                var filtered = string.IsNullOrWhiteSpace(searchText)
+                    ? Enumerable.Empty<Exercise>()
+                    : availableExercises
+                        .Where(e => e.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                        .Take(8);
+            }
+            @if (showDropdown && filtered.Any())
+            {
+                <div class="ex-dropdown">
+                    @foreach (var ex in filtered)
+                    {
+                        <button type="button" class="ex-option"
+                                @onmousedown:preventDefault
+                                @onclick="() => SelectExercise(ex)">
+                            @ex.Name
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (errorMessage is not null)
+        {
+            <div class="error-card">@errorMessage</div>
+        }
+
+        <div class="form-actions">
+            <button type="button" class="submit-btn" @onclick="SaveAsync" disabled="@isSaving">
+                @(isSaving ? "Enregistrement..." : "Enregistrer")
+            </button>
+            <button type="button" class="cancel-btn" @onclick="CancelEdit">Annuler</button>
         </div>
     }
     else
