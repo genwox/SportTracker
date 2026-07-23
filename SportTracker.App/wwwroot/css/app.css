@@ -552,3 +552,50 @@ code {
     display: flex;
     align-items: center;
 }
+
+/* ── Target fields row ────────────────────────────────── */
+.target-fields {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.field-group--sm {
+    flex: 1;
+    min-width: 0;
+}
+
+.field-group--sm .field-label {
+    font-size: 0.7rem;
+}
+
+.field-group--sm .field-input {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* ── Floating action button ───────────────────────────── */
+.fab-btn {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #4A90D9;
+    color: var(--st-white);
+    font-size: 1.8rem;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(74, 144, 217, 0.4);
+    z-index: 40;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.fab-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(74, 144, 217, 0.5);
+}

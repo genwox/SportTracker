@@ -1,0 +1,216 @@
+@page "/programs/{ProgramId:int}/sessions/new"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="form-page">
+
+    <div class="form-header">
+        <a href="/programs/@ProgramId" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <h1 class="form-title">Nouvelle séance</h1>
+    </div>
+
+    @if (availableExercises is null)
+    {
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-sm"></div>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="field-group">
+                <label class="field-label">Nom de la séance</label>
+                <InputText class="field-input" @bind-Value="form.Name" placeholder="Ex : Base, Volume, Finition..." />
+            </div>
+
+            <div class="section-label">EXERCICES</div>
+
+            @for (int i = 0; i < exercises.Count; i++)
+            {
+                var idx = i;
+                var ef = exercises[idx];
+                <div class="exercise-block">
+                    <div class="exercise-block__header">
+                        @{
+                            var selectedEx = availableExercises.FirstOrDefault(e => e.Id == ef.ExerciseId);
+                            var filtered = string.IsNullOrWhiteSpace(ef.SearchText)
+                                ? Enumerable.Empty<Exercise>()
+                                : availableExercises
+                                    .Where(e => e.Name.Contains(ef.SearchText, StringComparison.OrdinalIgnoreCase))
+                                    .Take(8);
+                        }
+                        @if (selectedEx is not null)
+                        {
+                            <div class="ex-selected">
+                                <span>@selectedEx.Name</span>
+                                <button type="button" class="ex-clear" @onclick="() => ClearExercise(idx)">✕</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ex-search">
+                                <input type="text" class="field-input"
+                                       placeholder="Rechercher un exercice..."
+                                       value="@ef.SearchText"
+                                       @oninput="e => ef.SearchText = e.Value?.ToString() ?? string.Empty"
+                                       @onfocusin="() => ef.ShowDropdown = true"
+                                       @onfocusout="() => ef.ShowDropdown = false" />
+                                @if (ef.ShowDropdown && filtered.Any())
+                                {
+                                    <div class="ex-dropdown">
+                                        @foreach (var ex in filtered)
+                                        {
+                                            <button type="button" class="ex-option"
+                                                    @onmousedown:preventDefault
+                                                    @onclick="() => SelectExercise(idx, ex)">
+                                                @ex.Name
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <button type="button" class="remove-btn" @onclick="() => exercises.RemoveAt(idx)">✕</button>
+                    </div>
+
+                    <div class="target-fields">
+                        <div class="field-group field-group--sm">
+                            <label class="field-label">Séries</label>
+                            <InputNumber class="field-input" @bind-Value="ef.TargetSets" min="1" />
+                        </div>
+                        <div class="field-group field-group--sm">
+                            <label class="field-label">Reps min</label>
+                            <InputNumber class="field-input" @bind-Value="ef.TargetRepsMin" min="1" />
+                        </div>
+                        <div class="field-group field-group--sm">
+                            <label class="field-label">Reps max</label>
+                            <InputNumber class="field-input" @bind-Value="ef.TargetRepsMax" min="1" />
+                        </div>
+                        <div class="field-group field-group--sm">
+                            <label class="field-label">Repos (s)</label>
+                            <InputNumber class="field-input" @bind-Value="ef.RestSeconds" min="0" />
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <button type="button" class="add-exercise-btn" @onclick="AddExercise">+ Exercice</button>
+
+            @if (errorMessage is not null)
+            {
+                <div class="error-card">@errorMessage</div>
+            }
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn" disabled="@isSaving">
+                    @(isSaving ? "Enregistrement..." : "Ajouter la séance")
+                </button>
+                <a href="/programs/@ProgramId" class="cancel-btn">Annuler</a>
+            </div>
+        </EditForm>
+    }
+
+</div>
+
+@code {
+    [Parameter] public int ProgramId { get; set; }
+
+    private SessionForm form = new();
+    private List<ExerciseForm> exercises = new() { new() };
+    private List<Exercise>? availableExercises;
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises");
+    }
+
+    private void AddExercise() => exercises.Add(new());
+    private void SelectExercise(int idx, Exercise ex)
+    {
+        exercises[idx].ExerciseId = ex.Id;
+        exercises[idx].SearchText = string.Empty;
+        exercises[idx].ShowDropdown = false;
+    }
+    private void ClearExercise(int idx)
+    {
+        exercises[idx].ExerciseId = 0;
+        exercises[idx].SearchText = string.Empty;
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(form.Name))
+        {
+            errorMessage = "Le nom de la séance est requis.";
+            return;
+        }
+        if (exercises.Any(e => e.ExerciseId == 0))
+        {
+            errorMessage = "Sélectionne un exercice pour chaque ligne.";
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+
+        var program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+        if (program == null)
+        {
+            errorMessage = "Programme introuvable.";
+            isSaving = false;
+            return;
+        }
+
+        var newSession = new WorkoutProgramSession
+        {
+            Name = form.Name,
+            Order = program.Sessions.Count,
+            WorkoutProgramId = ProgramId,
+            Exercises = exercises.Select((e, i) => new WorkoutProgramExercise
+            {
+                ExerciseId = e.ExerciseId,
+                Order = i,
+                TargetSets = e.TargetSets,
+                TargetRepsMin = e.TargetRepsMin,
+                TargetRepsMax = e.TargetRepsMax,
+                RestSeconds = e.RestSeconds
+            }).ToList()
+        };
+
+        program.Sessions.Add(newSession);
+
+        var response = await Http.PutAsJsonAsync($"api/programs/{ProgramId}", program);
+        if (response.IsSuccessStatusCode)
+            Nav.NavigateTo($"/programs/{ProgramId}");
+        else
+        {
+            errorMessage = $"Erreur ({(int)response.StatusCode}).";
+            isSaving = false;
+        }
+    }
+
+    private class SessionForm
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private class ExerciseForm
+    {
+        public int ExerciseId { get; set; }
+        public string SearchText { get; set; } = string.Empty;
+        public bool ShowDropdown { get; set; }
+        public int TargetSets { get; set; } = 3;
+        public int TargetRepsMin { get; set; } = 10;
+        public int TargetRepsMax { get; set; } = 12;
+        public int RestSeconds { get; set; } = 120;
+    }
+}
