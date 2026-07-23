@@ -1,0 +1,69 @@
+@page "/programs/{ProgramId:int}"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="workouts-page">
+
+    <div class="form-header">
+        <a href="/programs" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+    </div>
+
+    @if (program == null)
+    {
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-med"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else
+    {
+        <h1 class="workouts-title">
+            <span class="title-eyebrow">Séances</span>
+            @program.Name
+        </h1>
+
+        @if (!string.IsNullOrEmpty(program.Objective))
+        {
+            <p class="program-detail__objective">@program.Objective</p>
+        }
+
+        @if (!program.Sessions.Any())
+        {
+            <div class="empty-state">
+                <p class="empty-title">Aucune séance</p>
+                <p class="empty-sub">Ce carnet ne contient pas encore de séance.</p>
+            </div>
+        }
+        else
+        {
+            <div class="programs-list">
+                @foreach (var session in program.Sessions.OrderBy(s => s.Order))
+                {
+                    <a href="/programs/@ProgramId/sessions/@session.Id" class="program-card">
+                        <div class="program-card__pill" style="background-color: @program.ColorHex">
+                            @session.Name.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="program-card__info">
+                            <h2 class="program-card__name">@session.Name</h2>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    [Parameter] public int ProgramId { get; set; }
+    private WorkoutProgram? program;
+
+    protected override async Task OnInitializedAsync()
+    {
+        program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+    }
+}

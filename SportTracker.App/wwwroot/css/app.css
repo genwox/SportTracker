@@ -319,3 +319,43 @@ code {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* ── Color picker ─────────────────────────────────────── */
+.color-picker {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.color-swatch {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+}
+
+.color-swatch--selected {
+    border-color: var(--st-white);
+    transform: scale(1.15);
+}
+
+/* ── Session template row ─────────────────────────────── */
+.session-template-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.session-template-row .field-input {
+    flex: 1;
+}
+
+/* ── Program detail ───────────────────────────────────── */
+.program-detail__objective {
+    color: var(--st-text-muted);
+    font-size: 0.88rem;
+    margin: -0.5rem 0 1rem;
+}

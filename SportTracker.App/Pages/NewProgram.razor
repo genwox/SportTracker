@@ -1,0 +1,122 @@
+@page "/programs/new"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="form-page">
+
+    <div class="form-header">
+        <a href="/programs" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <h1 class="form-title">Nouveau carnet</h1>
+    </div>
+
+    <EditForm Model="form" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="field-group">
+            <label class="field-label">Nom du programme</label>
+            <InputText class="field-input" @bind-Value="form.Name" placeholder="Ex : Full body gainz" />
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Objectif (optionnel)</label>
+            <InputText class="field-input" @bind-Value="form.Objective" placeholder="Ex : prise de volume sur 3 séances" />
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Couleur</label>
+            <div class="color-picker">
+                @foreach (var color in colorOptions)
+                {
+                    <button type="button"
+                            class="color-swatch @(form.ColorHex == color ? "color-swatch--selected" : "")"
+                            style="background-color: @color"
+                            @onclick="() => form.ColorHex = color">
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="section-label">SÉANCES</div>
+
+        @for (int i = 0; i < sessions.Count; i++)
+        {
+            var idx = i;
+            <div class="session-template-row">
+                <input type="text" class="field-input" @bind="sessions[idx].Name" placeholder="Ex : Base, Volume, Finition..." />
+                <button type="button" class="set-remove" @onclick="() => sessions.RemoveAt(idx)">&#10005;</button>
+            </div>
+        }
+
+        <button type="button" class="add-exercise-btn" @onclick="AddSession">+ Séance</button>
+
+        @if (errorMessage is not null)
+        {
+            <div class="error-card">@errorMessage</div>
+        }
+
+        <div class="form-actions">
+            <button type="submit" class="submit-btn" disabled="@isSaving">
+                @(isSaving ? "Enregistrement..." : "Créer le carnet")
+            </button>
+            <a href="/programs" class="cancel-btn">Annuler</a>
+        </div>
+    </EditForm>
+
+</div>
+
+@code {
+    private WorkoutProgram form = new();
+    private List<SessionForm> sessions = new() { new SessionForm() };
+    private bool isSaving;
+    private string? errorMessage;
+
+    private static readonly string[] colorOptions =
+    {
+        "#4A90D9", "#E57C3A", "#5BBD72", "#D94A6B",
+        "#9B59B6", "#1ABC9C", "#E74C3C", "#F1C40F"
+    };
+
+    private void AddSession() => sessions.Add(new SessionForm());
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(form.Name))
+        {
+            errorMessage = "Le nom du programme est requis.";
+            return;
+        }
+        if (sessions.Any(s => string.IsNullOrWhiteSpace(s.Name)))
+        {
+            errorMessage = "Chaque séance doit avoir un nom.";
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+
+        form.Sessions = sessions.Select((s, i) => new WorkoutProgramSession
+        {
+            Name = s.Name,
+            Order = i
+        }).ToList();
+
+        var response = await Http.PostAsJsonAsync("api/programs", form);
+        if (response.IsSuccessStatusCode)
+            Nav.NavigateTo("/programs");
+        else
+        {
+            errorMessage = $"Erreur lors de la création ({(int)response.StatusCode}).";
+            isSaving = false;
+        }
+    }
+
+    private class SessionForm
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+}
