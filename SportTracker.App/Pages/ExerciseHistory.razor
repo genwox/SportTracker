@@ -1,0 +1,204 @@
+@page "/programs/{ProgramId:int}/sessions/{SessionId:int}/exercises/{ExerciseId:int}/history"
+@using SportTracker.Core.Models
+@using System.Timers
+@inject HttpClient Http
+@implements IDisposable
+
+<div class="workouts-page">
+
+    <div class="form-header">
+        <a href="/programs/@ProgramId/sessions/@SessionId" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+    </div>
+
+    @if (loading)
+    {
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-med"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else
+    {
+        <div class="history-header">
+            @if (!string.IsNullOrEmpty(exerciseGifUrl))
+            {
+                <img src="@exerciseGifUrl" alt="@exerciseName" class="history-header__img" />
+            }
+            <div>
+                <h1 class="history-header__name">@exerciseName</h1>
+                @if (schema is not null)
+                {
+                    <p class="history-header__schema">@schema</p>
+                }
+            </div>
+        </div>
+
+        @if (history.Any())
+        {
+            @foreach (var entry in history)
+            {
+                <div class="history-block">
+                    <div class="history-block__header">
+                        <span class="history-block__date">@entry.Date.ToString("dd/MM")<br/>@entry.Date.ToString("yyyy")</span>
+                        <span class="history-block__stat">Total</span>
+                        <span class="history-block__stat">@entry.TotalReps<br/><small>reps</small></span>
+                        <span class="history-block__stat">@entry.TotalVolume<br/><small>kg</small></span>
+                    </div>
+                    @foreach (var set in entry.Sets)
+                    {
+                        <div class="history-set-row">
+                            <span class="history-set-row__label">Serie @set.Order</span>
+                            <span class="history-set-row__value">
+                                <strong>@set.Repetitions</strong> reps x <strong>@set.Weight</strong> kg
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <p class="empty-title">Aucun historique</p>
+                <p class="empty-sub">Les donnees apparaitront apres ta premiere seance.</p>
+            </div>
+        }
+
+        @if (restSeconds > 0)
+        {
+            <div class="rest-timer">
+                <span class="rest-timer__label">repos</span>
+                <span class="rest-timer__time">@FormatTime(timerRemaining)</span>
+                <button class="rest-timer__btn" @onclick="ToggleTimer">
+                    @if (timerRunning)
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+                        </svg>
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    }
+                </button>
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    [Parameter] public int ProgramId { get; set; }
+    [Parameter] public int SessionId { get; set; }
+    [Parameter] public int ExerciseId { get; set; }
+
+    private bool loading = true;
+    private string exerciseName = "";
+    private string? exerciseGifUrl;
+    private string? schema;
+    private int restSeconds;
+    private List<HistoryEntry> history = new();
+
+    private int timerRemaining;
+    private bool timerRunning;
+    private System.Timers.Timer? timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+        var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
+
+        await Task.WhenAll(programTask, historyTask);
+
+        var program = programTask.Result;
+        history = historyTask.Result ?? new();
+
+        var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
+        var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
+        var exercise = pe?.Exercise;
+
+        exerciseName = exercise?.Name ?? "Exercice";
+        exerciseGifUrl = exercise?.GifUrl;
+
+        if (pe is not null)
+        {
+            var reps = pe.TargetRepsMin == pe.TargetRepsMax
+                ? $"{pe.TargetRepsMin}"
+                : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
+            var rest = pe.RestSeconds >= 60
+                ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
+                : $"{pe.RestSeconds}s";
+            schema = $"{pe.TargetSets}x{reps} et {rest} de pause";
+            restSeconds = pe.RestSeconds;
+        }
+
+        timerRemaining = restSeconds;
+        loading = false;
+    }
+
+    private void ToggleTimer()
+    {
+        if (timerRunning)
+        {
+            timer?.Stop();
+            timerRunning = false;
+        }
+        else
+        {
+            if (timerRemaining <= 0)
+                timerRemaining = restSeconds;
+
+            timer = new System.Timers.Timer(1000);
+            timer.Elapsed += OnTimerTick;
+            timer.Start();
+            timerRunning = true;
+        }
+    }
+
+    private void OnTimerTick(object? sender, ElapsedEventArgs e)
+    {
+        timerRemaining--;
+        if (timerRemaining <= 0)
+        {
+            timer?.Stop();
+            timerRunning = false;
+            timerRemaining = restSeconds;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string FormatTime(int totalSeconds)
+    {
+        var m = totalSeconds / 60;
+        var s = totalSeconds % 60;
+        return $"{m:D2}:{s:D2}";
+    }
+
+    public void Dispose()
+    {
+        timer?.Stop();
+        timer?.Dispose();
+    }
+
+    private class HistoryEntry
+    {
+        public DateTime Date { get; set; }
+        public int TotalReps { get; set; }
+        public double TotalVolume { get; set; }
+        public List<SetEntry> Sets { get; set; } = new();
+    }
+
+    private class SetEntry
+    {
+        public int Order { get; set; }
+        public int Repetitions { get; set; }
+        public double Weight { get; set; }
+    }
+}
