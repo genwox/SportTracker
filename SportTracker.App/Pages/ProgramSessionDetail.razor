@@ -1,0 +1,85 @@
+@page "/programs/{ProgramId:int}/sessions/{SessionId:int}"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="workouts-page">
+
+    <div class="form-header">
+        <a href="/programs/@ProgramId" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+    </div>
+
+    @if (session == null)
+    {
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-med"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else
+    {
+        <h1 class="workouts-title">
+            <span class="title-eyebrow">Exercices</span>
+            @session.Name
+        </h1>
+
+        <div class="exercise-list">
+            @foreach (var pe in session.Exercises.OrderBy(e => e.Order))
+            {
+                var ex = pe.Exercise;
+                if (ex == null) continue;
+
+                var schema = FormatSchema(pe);
+
+                <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/history" class="exercise-card">
+                    @if (!string.IsNullOrEmpty(ex.GifUrl))
+                    {
+                        <img src="@ex.GifUrl" alt="@ex.Name" class="exercise-card__img" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="exercise-card__img-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
+                            </svg>
+                        </div>
+                    }
+                    <div class="exercise-card__info">
+                        <h3 class="exercise-card__name">@ex.Name</h3>
+                        <p class="exercise-card__schema">@schema</p>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public int ProgramId { get; set; }
+    [Parameter] public int SessionId { get; set; }
+    private WorkoutProgramSession? session;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+        session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
+    }
+
+    private string FormatSchema(WorkoutProgramExercise pe)
+    {
+        var reps = pe.TargetRepsMin == pe.TargetRepsMax
+            ? $"{pe.TargetRepsMin}"
+            : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
+
+        var rest = pe.RestSeconds >= 60
+            ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
+            : $"{pe.RestSeconds}s";
+
+        return $"{pe.TargetSets}x{reps} et {rest} de pause";
+    }
+}

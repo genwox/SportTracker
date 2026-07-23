@@ -359,3 +359,64 @@ code {
     font-size: 0.88rem;
     margin: -0.5rem 0 1rem;
 }
+
+/* ── Exercise list (program session) ──────────────────── */
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.exercise-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0.5rem;
+    text-decoration: none;
+    color: var(--st-white);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.15s;
+}
+
+.exercise-card:hover {
+    background: rgba(255,255,255,0.04);
+}
+
+.exercise-card__img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+}
+
+.exercise-card__img-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--st-nav-inactive);
+}
+
+.exercise-card__info {
+    min-width: 0;
+}
+
+.exercise-card__name {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0;
+    color: var(--st-white);
+}
+
+.exercise-card__schema {
+    font-size: 0.8rem;
+    color: var(--st-nav-inactive);
+    margin: 0.15rem 0 0;
+}
