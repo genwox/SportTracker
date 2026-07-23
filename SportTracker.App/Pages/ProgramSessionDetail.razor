@@ -224,46 +224,50 @@
         isSaving = true;
         errorMessage = null;
 
-        var program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-        if (program == null)
+        try
         {
-            errorMessage = "Programme introuvable.";
+            var program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+            if (program == null)
+            {
+                errorMessage = "Programme introuvable.";
+                return;
+            }
+
+            var target = program.Sessions.FirstOrDefault(s => s.Id == SessionId);
+            if (target == null)
+            {
+                errorMessage = "Séance introuvable.";
+                return;
+            }
+
+            target.Name = editName.Trim();
+            target.Exercises = editExercises.Select((ef, i) => new WorkoutProgramExercise
+            {
+                ExerciseId = ef.ExerciseId,
+                Order = i,
+                TargetSets = ef.TargetSets,
+                TargetRepsMin = ef.TargetRepsMin,
+                TargetRepsMax = ef.TargetRepsMax,
+                RestSeconds = ef.RestSeconds
+            }).ToList();
+
+            var response = await Http.PutAsJsonAsync($"api/programs/{ProgramId}", program);
+            if (response.IsSuccessStatusCode)
+            {
+                var updated = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+                if (updated != null)
+                    session = updated.Sessions.FirstOrDefault(s => s.Id == SessionId) ?? session;
+                isEditing = false;
+            }
+            else
+            {
+                errorMessage = $"Erreur lors de la sauvegarde ({(int)response.StatusCode}).";
+            }
+        }
+        finally
+        {
             isSaving = false;
-            return;
         }
-
-        var target = program.Sessions.FirstOrDefault(s => s.Id == SessionId);
-        if (target == null)
-        {
-            errorMessage = "Séance introuvable.";
-            isSaving = false;
-            return;
-        }
-
-        target.Name = editName;
-        target.Exercises = editExercises.Select((ef, i) => new WorkoutProgramExercise
-        {
-            ExerciseId = ef.ExerciseId,
-            Order = i,
-            TargetSets = ef.TargetSets,
-            TargetRepsMin = ef.TargetRepsMin,
-            TargetRepsMax = ef.TargetRepsMax,
-            RestSeconds = ef.RestSeconds
-        }).ToList();
-
-        var response = await Http.PutAsJsonAsync($"api/programs/{ProgramId}", program);
-        if (response.IsSuccessStatusCode)
-        {
-            var updated = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-            session = updated?.Sessions.FirstOrDefault(s => s.Id == SessionId);
-            isEditing = false;
-        }
-        else
-        {
-            errorMessage = $"Erreur lors de la sauvegarde ({(int)response.StatusCode}).";
-        }
-
-        isSaving = false;
     }
 
     private string FormatSchema(WorkoutProgramExercise pe)

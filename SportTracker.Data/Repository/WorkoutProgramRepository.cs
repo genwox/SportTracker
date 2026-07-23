@@ -35,6 +35,13 @@ public class WorkoutProgramRepository : IRepository<WorkoutProgram>
 
     public async Task UpdateAsync(WorkoutProgram entity)
     {
+        // Supprimer les exercices existants pour toutes les sessions du programme
+        // afin d'éviter les doublons quand EF Core traite les WorkoutProgramExercise avec Id = 0
+        var existingExercises = await _context.WorkoutProgramExercises
+            .Where(e => e.WorkoutProgramSession!.WorkoutProgramId == entity.Id)
+            .ToListAsync();
+        _context.WorkoutProgramExercises.RemoveRange(existingExercises);
+
         _context.WorkoutPrograms.Update(entity);
         await _context.SaveChangesAsync();
     }
