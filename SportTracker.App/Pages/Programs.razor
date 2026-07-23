@@ -1,0 +1,66 @@
+@page "/programs"
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="workouts-page">
+
+    <div class="tab-bar">
+        <a href="/workoutsessions" class="tab-bar__tab">Seances</a>
+        <a href="/programs" class="tab-bar__tab tab-bar__tab--active">Carnets</a>
+    </div>
+
+    <div class="workouts-header">
+        <h1 class="workouts-title">
+            <span class="title-eyebrow">Mes</span>
+            Carnets
+        </h1>
+        <a href="/programs/new" class="new-btn">+ Nouveau</a>
+    </div>
+
+    @if (programs == null)
+    {
+        <div class="st-skel-block">
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+            <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else if (!programs.Any())
+    {
+        <div class="empty-state">
+            <p class="empty-title">Aucun carnet</p>
+            <p class="empty-sub">Cree ton premier programme d'entrainement.</p>
+            <a href="/programs/new" class="empty-cta">+ Nouveau carnet</a>
+        </div>
+    }
+    else
+    {
+        <div class="programs-list">
+            @foreach (var program in programs)
+            {
+                <a href="/programs/@program.Id" class="program-card">
+                    <div class="program-card__pill" style="background-color: @program.ColorHex">
+                        @program.Name.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="program-card__info">
+                        <h2 class="program-card__name">@program.Name</h2>
+                        @if (!string.IsNullOrEmpty(program.Objective))
+                        {
+                            <p class="program-card__objective">@program.Objective</p>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<WorkoutProgram>? programs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        programs = await Http.GetFromJsonAsync<List<WorkoutProgram>>("api/programs");
+    }
+}
