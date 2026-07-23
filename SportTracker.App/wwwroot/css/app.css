@@ -230,3 +230,35 @@ code {
 .set-input    { transition: box-shadow 0.15s ease; }
 .remove-btn   { transition: background 0.15s ease, opacity 0.15s ease; }
 .remove-btn:active { opacity: 0.6; }
+
+/* ── Tab bar (Workouts / Programs) ────────────────────── */
+.tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.tab-bar__tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem 0;
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--st-nav-inactive);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-bar__tab--active {
+    color: var(--st-white);
+    border-bottom-color: var(--st-neon);
+}
+
+.tab-bar__tab:hover {
+    color: var(--st-white);
+}
