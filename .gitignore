@@ -17,6 +17,7 @@ appsettings.Development.json
 
 # Documentation locale (Obsidian vault)
 vault/
+Obsidian
 
 # Scripts d'installation locaux
 dotnet-install.ps1
