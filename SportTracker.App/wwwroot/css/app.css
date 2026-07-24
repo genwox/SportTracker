@@ -848,7 +848,7 @@ code {
 /* ── Rest timer ───────────────────────────────────────── */
 .rest-timer {
     position: fixed;
-    bottom: 80px;
+    bottom: 68px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -911,7 +911,7 @@ code {
 /* ── Floating action button ───────────────────────────── */
 .fab-btn {
     position: fixed;
-    bottom: 90px;
+    bottom: 68px;
     right: 20px;
     width: 56px;
     height: 56px;
@@ -932,6 +932,77 @@ code {
 .fab-btn:hover {
     transform: scale(1.08);
     box-shadow: 0 6px 20px rgba(74, 144, 217, 0.5);
+}
+
+/* ── Fullscreen timer overlay ───────────────────────────── */
+.fs-timer {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.fs-timer__ring {
+    width: min(80vw, 300px);
+    height: min(80vw, 300px);
+}
+
+.fs-timer__ring-bg {
+    fill: none;
+    stroke: #1a1a1a;
+    stroke-width: 14;
+}
+
+.fs-timer__ring-progress {
+    fill: none;
+    stroke: #39ff14;
+    stroke-width: 14;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    transition: stroke-dashoffset 0.9s linear;
+}
+
+.fs-timer__content {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.fs-timer__time {
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: clamp(3rem, 15vw, 5rem);
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.fs-timer__label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #666;
+}
+
+.fs-timer__toggle {
+    background: #1a1a1a;
+    border: none;
+    color: #fff;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 /* ── Exercise Live page ─────────────────────────────────── */

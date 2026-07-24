@@ -35,12 +35,19 @@ public class WorkoutProgramRepository : IRepository<WorkoutProgram>
 
     public async Task UpdateAsync(WorkoutProgram entity)
     {
-        // Supprimer les exercices existants pour toutes les sessions du programme
-        // afin d'éviter les doublons quand EF Core traite les WorkoutProgramExercise avec Id = 0
         var existingExercises = await _context.WorkoutProgramExercises
             .Where(e => e.WorkoutProgramSession!.WorkoutProgramId == entity.Id)
             .ToListAsync();
         _context.WorkoutProgramExercises.RemoveRange(existingExercises);
+        await _context.SaveChangesAsync();
+
+        _context.ChangeTracker.Clear();
+
+        // Reset all exercise IDs so EF Core inserts them as new rows
+        // (the old rows were just deleted above)
+        foreach (var session in entity.Sessions)
+            foreach (var ex in session.Exercises)
+                ex.Id = 0;
 
         _context.WorkoutPrograms.Update(entity);
         await _context.SaveChangesAsync();

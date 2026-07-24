@@ -23,6 +23,10 @@
             <div class="st-skeleton st-skel-sm"></div>
         </div>
     }
+    else if (loadError is not null)
+    {
+        <div class="error-card">@loadError</div>
+    }
     else
     {
         @if (!string.IsNullOrEmpty(exerciseGifUrl))
@@ -58,10 +62,10 @@
 
         @if (restSeconds > 0 && (timerRunning || timerRemaining < restSeconds))
         {
-            <div class="rest-timer">
+            <div class="rest-timer" @onclick="() => showFullscreenTimer = true" style="cursor:pointer;">
                 <span class="rest-timer__label">repos</span>
                 <span class="rest-timer__time">@FormatTime(timerRemaining)</span>
-                <button class="rest-timer__btn" @onclick="ToggleTimer">
+                <button class="rest-timer__btn" @onclick:stopPropagation @onclick="ToggleTimer">
                     @if (timerRunning)
                     {
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -82,6 +86,35 @@
     }
 
 </div>
+
+@if (showFullscreenTimer)
+{
+    <div class="fs-timer" @onclick="() => showFullscreenTimer = false">
+        <svg class="fs-timer__ring" viewBox="0 0 280 280" @onclick:stopPropagation>
+            <circle class="fs-timer__ring-bg" cx="140" cy="140" r="120"/>
+            <circle class="fs-timer__ring-progress" cx="140" cy="140" r="120"
+                style="@($"stroke-dasharray:{TimerCircumferenceStr};stroke-dashoffset:{TimerDashOffsetStr}")"/>
+        </svg>
+        <div class="fs-timer__content" @onclick:stopPropagation>
+            <span class="fs-timer__time">@FormatTime(timerRemaining)</span>
+            <span class="fs-timer__label">repos</span>
+        </div>
+        <button class="fs-timer__toggle" @onclick:stopPropagation @onclick="ToggleTimer">
+            @if (timerRunning)
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+                </svg>
+            }
+            else
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+            }
+        </button>
+    </div>
+}
 
 @if (showSheet)
 {
@@ -138,6 +171,8 @@
     [Parameter] public int ExerciseId { get; set; }
 
     private bool loading = true;
+    private string? loadError;
+    private bool showFullscreenTimer;
     private string exerciseName = "";
     private string? exerciseGifUrl;
     private string? exerciseInstructions;
@@ -157,49 +192,59 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-        var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
-        await Task.WhenAll(programTask, historyTask);
-
-        var program = programTask.Result;
-        var history = historyTask.Result ?? new();
-
-        var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
-        if (session != null)
-            workoutProgramSessionId = session.Id;
-
-        var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
-        var exercise = pe?.Exercise;
-
-        exerciseName = exercise?.Name ?? "Exercice";
-        exerciseGifUrl = exercise?.GifUrl;
-        exerciseInstructions = exercise?.InstructionsFr;
-
-        if (pe is not null)
+        try
         {
-            var reps = pe.TargetRepsMin == pe.TargetRepsMax
-                ? $"{pe.TargetRepsMin}"
-                : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
-            var rest = pe.RestSeconds >= 60
-                ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
-                : $"{pe.RestSeconds}s";
-            schema = $"{pe.TargetSets}x{reps} et {rest} de pause";
-            restSeconds = pe.RestSeconds;
-        }
+            var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+            var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
+            await Task.WhenAll(programTask, historyTask);
 
-        var todayEntry = history.FirstOrDefault(h => h.Date.Date == DateTime.Today);
-        if (todayEntry != null)
-        {
-            todaySets = todayEntry.Sets.Select(s => new TodaySet
+            var program = programTask.Result;
+            var history = historyTask.Result ?? new();
+
+            var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
+            if (session != null)
+                workoutProgramSessionId = session.Id;
+
+            var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
+            var exercise = pe?.Exercise;
+
+            exerciseName = exercise?.Name ?? "Exercice";
+            exerciseGifUrl = exercise?.GifUrl;
+            exerciseInstructions = exercise?.InstructionsFr;
+
+            if (pe is not null)
             {
-                Order = s.Order,
-                Repetitions = s.Repetitions,
-                Weight = s.Weight
-            }).ToList();
-        }
+                var reps = pe.TargetRepsMin == pe.TargetRepsMax
+                    ? $"{pe.TargetRepsMin}"
+                    : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
+                var rest = pe.RestSeconds >= 60
+                    ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
+                    : $"{pe.RestSeconds}s";
+                schema = $"{pe.TargetSets}x{reps} et {rest} de pause";
+                restSeconds = pe.RestSeconds;
+            }
 
-        timerRemaining = restSeconds;
-        loading = false;
+            var todayEntry = history.FirstOrDefault(h => h.Date.Date == DateTime.Today);
+            if (todayEntry != null)
+            {
+                todaySets = todayEntry.Sets.Select(s => new TodaySet
+                {
+                    Order = s.Order,
+                    Repetitions = s.Repetitions,
+                    Weight = s.Weight
+                }).ToList();
+            }
+
+            timerRemaining = restSeconds;
+        }
+        catch (Exception ex)
+        {
+            loadError = $"Erreur de chargement : {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 
     private void OpenSheet()
@@ -302,6 +347,13 @@
         }
         InvokeAsync(StateHasChanged);
     }
+
+    private double TimerCircumference => 2 * Math.PI * 120;
+    private double TimerDashOffset => restSeconds > 0
+        ? TimerCircumference * (1.0 - Math.Clamp((double)timerRemaining / restSeconds, 0, 1))
+        : 0;
+    private string TimerCircumferenceStr => TimerCircumference.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+    private string TimerDashOffsetStr => TimerDashOffset.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
 
     private string FormatTime(int totalSeconds)
     {

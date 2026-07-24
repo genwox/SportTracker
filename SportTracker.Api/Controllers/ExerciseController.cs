@@ -39,17 +39,22 @@ public class ExerciseController : ControllerBase
         var exercise = await _exerciseRepository.GetByIdAsync(id);
         if (exercise == null) return NotFound();
 
-        var history = await _context.ExerciseSets
+        var sets = await _context.ExerciseSets
             .Include(s => s.WorkoutExercise)
                 .ThenInclude(we => we!.WorkoutSession)
             .Where(s => s.WorkoutExercise!.ExerciseId == id)
+            .OrderBy(s => s.WorkoutExercise!.WorkoutSession!.Date)
+            .ThenBy(s => s.Id)
+            .ToListAsync();
+
+        var history = sets
             .GroupBy(s => s.WorkoutExercise!.WorkoutSession!.Date.Date)
             .Select(g => new
             {
                 Date = g.Key,
                 TotalReps = g.Sum(s => s.Repetitions),
                 TotalVolume = g.Sum(s => s.Repetitions * s.Weight),
-                Sets = g.OrderBy(s => s.Id).Select((s, i) => new
+                Sets = g.Select((s, i) => new
                 {
                     Order = i + 1,
                     s.Repetitions,
@@ -57,7 +62,7 @@ public class ExerciseController : ControllerBase
                 }).ToList()
             })
             .OrderByDescending(h => h.Date)
-            .ToListAsync();
+            .ToList();
 
         return Ok(history);
     }
