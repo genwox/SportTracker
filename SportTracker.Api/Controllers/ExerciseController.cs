@@ -61,4 +61,71 @@ public class ExerciseController : ControllerBase
 
         return Ok(history);
     }
+
+    [HttpPost("{exerciseId}/log")]
+    public async Task<IActionResult> LogSetAsync(int exerciseId, [FromBody] LogSetRequest request)
+    {
+        var exercise = await _exerciseRepository.GetByIdAsync(exerciseId);
+        if (exercise == null) return NotFound();
+
+        var programSession = await _context.WorkoutProgramSessions
+            .FirstOrDefaultAsync(s => s.Id == request.WorkoutProgramSessionId);
+        if (programSession == null) return NotFound();
+
+        var today = DateTime.Today;
+        var workoutSession = await _context.WorkoutSessions
+            .Include(ws => ws.WorkoutExercises!)
+                .ThenInclude(we => we.ExerciseSets)
+            .FirstOrDefaultAsync(ws =>
+                ws.WorkoutProgramSessionId == request.WorkoutProgramSessionId &&
+                ws.Date.Date == today);
+
+        if (workoutSession == null)
+        {
+            workoutSession = new WorkoutSession
+            {
+                Name = $"{programSession.Name} — {today:dd/MM/yyyy}",
+                Date = today,
+                WorkoutProgramSessionId = request.WorkoutProgramSessionId,
+                Duration = TimeSpan.Zero,
+                WorkoutExercises = new List<WorkoutExercise>()
+            };
+            _context.WorkoutSessions.Add(workoutSession);
+        }
+
+        workoutSession.WorkoutExercises ??= new List<WorkoutExercise>();
+
+        var workoutExercise = workoutSession.WorkoutExercises
+            .FirstOrDefault(we => we.ExerciseId == exerciseId);
+
+        if (workoutExercise == null)
+        {
+            workoutExercise = new WorkoutExercise
+            {
+                ExerciseId = exerciseId,
+                ExerciseSets = new List<ExerciseSet>()
+            };
+            workoutSession.WorkoutExercises.Add(workoutExercise);
+        }
+
+        workoutExercise.ExerciseSets ??= new List<ExerciseSet>();
+
+        var newSet = new ExerciseSet
+        {
+            Repetitions = request.Repetitions,
+            Weight = request.Weight
+        };
+        workoutExercise.ExerciseSets.Add(newSet);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            order = workoutExercise.ExerciseSets.Count,
+            repetitions = newSet.Repetitions,
+            weight = newSet.Weight
+        });
+    }
+
+    public record LogSetRequest(int WorkoutProgramSessionId, int Repetitions, double Weight);
 }
