@@ -124,7 +124,7 @@
 
                 var schema = FormatSchema(pe);
 
-                <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/history" class="exercise-card">
+                <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/live" class="exercise-card">
                     @if (!string.IsNullOrEmpty(ex.GifUrl))
                     {
                         <img src="@ex.GifUrl" alt="@ex.Name" class="exercise-card__img" loading="lazy" />

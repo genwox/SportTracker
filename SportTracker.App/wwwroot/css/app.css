@@ -933,3 +933,118 @@ code {
     transform: scale(1.08);
     box-shadow: 0 6px 20px rgba(74, 144, 217, 0.5);
 }
+
+/* ── Exercise Live page ─────────────────────────────────── */
+.live-gif {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: var(--st-radius-card);
+    margin-bottom: 1rem;
+}
+
+.live-schema {
+    color: var(--st-nav-inactive);
+    font-size: 0.9rem;
+    margin: -0.5rem 0 0.75rem;
+}
+
+.live-instructions {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    opacity: 0.75;
+    margin-bottom: 1.25rem;
+}
+
+.history-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--st-dark);
+    text-decoration: none;
+    margin-left: auto;
+    padding: 4px 8px;
+}
+
+/* ── Bottom sheet ───────────────────────────────────────── */
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 100;
+}
+
+.sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--st-card-bg);
+    border-radius: 20px 20px 0 0;
+    padding: 1rem 1.25rem 2rem;
+    z-index: 101;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.sheet-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.sheet-close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--st-dark);
+    padding: 4px 8px;
+}
+
+.numpad-section {
+    margin-bottom: 1.25rem;
+}
+
+.numpad-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.numpad-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--st-dark);
+}
+
+.numpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.numpad-btn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--st-dark);
+    font-family: var(--st-font-body);
+}
+
+.numpad-btn:active {
+    background: var(--st-cyan);
+}
+
+.numpad-btn--pdc {
+    background: var(--st-neon);
+}
+
+.numpad-spacer {
+    display: block;
+}
