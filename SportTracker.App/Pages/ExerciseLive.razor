@@ -283,6 +283,7 @@
         else
         {
             if (timerRemaining <= 0) timerRemaining = restSeconds;
+            timer?.Dispose();
             timer = new System.Timers.Timer(1000);
             timer.Elapsed += OnTimerTick;
             timer.Start();
