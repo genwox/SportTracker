@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportTracker.Core.Enums;
 using SportTracker.Core.Models;
+using SportTracker.Data.Users;
 
 namespace SportTracker.Data;
 
-public class SportTrackerDbContext :  DbContext
+public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
 {
     public SportTrackerDbContext(DbContextOptions<SportTrackerDbContext> options)
     : base (options) {}
@@ -22,6 +24,7 @@ public class SportTrackerDbContext :  DbContext
 
     protected override void  OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         var converter = new ValueConverter<List<MuscleGroup>, string>(
             v => string.Join(',', v),
             v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)

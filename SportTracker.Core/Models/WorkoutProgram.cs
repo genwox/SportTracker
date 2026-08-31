@@ -7,4 +7,5 @@ public class WorkoutProgram
     public string? Objective { get; set; }
     public string ColorHex { get; set; } = "#4A90D9";
     public List<WorkoutProgramSession> Sessions { get; set; } = new();
+    public string UserId { get; set; } =  string.Empty;
 }

@@ -11,4 +11,5 @@ public class WorkoutSession : ISession
     public string Name { get; set; } = string.Empty;
     public int? WorkoutProgramSessionId { get; set; }
     public WorkoutProgramSession? WorkoutProgramSession { get; set; }
+    public string UserId { get; set; } =  string.Empty;
 }

@@ -1,5 +1,17 @@
 # SportTracker — Contexte projet
 
+## ⚠️ Avant toute tâche : consulter le vault Obsidian via QMD
+Le projet a un **coffre Obsidian** qui documente les tenants et aboutissants (décisions techniques, historique des étapes, journal de session, apprentissages).
+**Interroge-le systématiquement via QMD** (collection `obsidian`) pour comprendre le contexte avant d'agir — ne te fie pas au seul code.
+
+- Recherche : `mcp__plugin_qmd_qmd__query` / `search`, avec `collections: ["obsidian"]`.
+- Vault : `C:\Users\Damien\Side_Project\Obsidian\Obsidian\SportTracker\`
+  - `02-Decisions/` — arbitrages techniques (le *pourquoi*)
+  - `03-Features/` — une note par étape (le *quoi*)
+  - `04-Journal/` — journal par session
+  - `05-Apprentissages/` — concepts appris
+- **Après une session ou un changement notable** : mettre à jour le vault (journal + décisions/features concernées) puis **réindexer** (`qmd update && qmd embed`).
+
 ## Description
 Application PWA de suivi sportif multi-activités (musculation et cardio).
 Accessible depuis mobile (iOS, Android) et desktop via navigateur.
@@ -76,7 +88,22 @@ SportTracker/
 - [x] Timer de repos pré-rempli depuis `RestSeconds`
 - [x] Schéma cible structuré (TargetSets, TargetRepsMin/Max, RestSeconds)
 
-### Étape 5 — Docker + déploiement VPS ⏳ À faire
+### Étape 4d — Authentification & profils ⏳ En cours
+- Design arbitré (voir vault : décision *Authentification & multi-utilisateurs* + note *Étape 4d*)
+- **Bloc 1 — Backend Identity + modèle + migration ✅**
+  - [x] Package `Microsoft.AspNetCore.Identity.EntityFrameworkCore` dans `SportTracker.Data`
+  - [x] `ApplicationUser : IdentityUser` (`Data/Users/`)
+  - [x] `SportTrackerDbContext : IdentityDbContext<ApplicationUser>` (`base.OnModelCreating` en 1ʳᵉ ligne)
+  - [x] `string UserId` sur `WorkoutSession`, `CardioSession`, `WorkoutProgram` (Core pur)
+  - [x] Migration `AddIdentityAndUserScoping` appliquée (7 tables `AspNet*` + `UserId`)
+- **Bloc 2 — Endpoints & sécurisation** ⏳ À faire : `MapIdentityApi`, token ~30 j, `[Authorize]`, filtrage `UserId` → `404`, CORS resserré
+- **Bloc 3 — Front Blazor** ⏳ À faire : `localStorage`, `AuthenticationStateProvider`, `DelegatingHandler`, routes protégées
+
+### Étape 5 — Docker + déploiement VPS ✅
+- [x] Déployé sur VPS Hostinger via Docker + Traefik (HTTPS Let's Encrypt)
+- [x] App : `https://app.fmon-vps-n8n.fr` — API : `https://api.fmon-vps-n8n.fr`
+- ⚠️ Point ouvert pour l'auth : persister le trousseau Data Protection dans un volume
+
 ### Étape 6 — Intégration LLM ⏳ À faire
 
 ## Diagrammes

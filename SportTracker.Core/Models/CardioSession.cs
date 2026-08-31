@@ -13,4 +13,5 @@ public class CardioSession: ISession
     public double Distance { get; set; }
     public double ElevationGain { get; set; }
     public CardioType Type { get; set; }
+    public string UserId { get; set; } =  string.Empty;
 }
