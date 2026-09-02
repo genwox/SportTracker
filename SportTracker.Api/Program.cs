@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SportTracker.Data.Seed;
@@ -33,6 +34,14 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
 
 builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme,
     options => options.BearerTokenExpiration =  TimeSpan.FromDays(30));
+
+// Data Protection : les bearer tokens Identity sont chiffrés avec ce trousseau.
+// En prod (Docker), on le persiste dans un volume monté sur /keys, sinon chaque
+// redéploiement régénère la clé et déconnecte tout le monde. SetApplicationName
+// stabilise le "purpose" du chiffrement entre les redémarrages.
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("SportTracker");
+if (builder.Environment.IsProduction())
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo("/keys"));
 
 
 builder.Services.
