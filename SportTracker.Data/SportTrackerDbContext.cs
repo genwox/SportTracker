@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportTracker.Core.Enums;
+using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
 using SportTracker.Data.Users;
 
@@ -10,9 +11,14 @@ namespace SportTracker.Data;
 
 public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
 {
-    public SportTrackerDbContext(DbContextOptions<SportTrackerDbContext> options)
-    : base (options) {}
-    
+    private readonly ICurrentUserService _currentUser;
+
+    public SportTrackerDbContext(DbContextOptions<SportTrackerDbContext> options, ICurrentUserService currentUser)
+        : base(options)
+    {
+        _currentUser = currentUser;
+    }
+
     public DbSet<WorkoutExercise>  WorkoutExercises { get; set; }
     public DbSet<WorkoutSession> WorkoutSessions { get; set; }
     public DbSet<CardioSession> CardioSessions { get; set; }
@@ -61,5 +67,25 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(ws => ws.WorkoutProgramSessionId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        modelBuilder.Entity<WorkoutSession>().HasQueryFilter(ws => ws.UserId == _currentUser.UserId);
+        modelBuilder.Entity<CardioSession>().HasQueryFilter(cs => cs.UserId == _currentUser.UserId);
+        modelBuilder.Entity<WorkoutProgram>().HasQueryFilter(wp => wp.UserId == _currentUser.UserId);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        StampUserId();
+        return base.SaveChangesAsync(ct);
+    }
+
+    private void StampUserId()
+    {
+        var userId = _currentUser.UserId;
+        if(userId == null)
+        {return;}
+        foreach(var entry in ChangeTracker.Entries<IUserOwned>())
+            if(entry.State == EntityState.Added)
+                entry.Entity.UserId = userId;
     }
 }

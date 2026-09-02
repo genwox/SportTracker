@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
@@ -5,6 +6,7 @@ using SportTracker.Core.Models;
 namespace SportTracker.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/programs")]
 public class WorkoutProgramController : ControllerBase
 {

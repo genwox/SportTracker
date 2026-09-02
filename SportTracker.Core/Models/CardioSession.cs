@@ -4,7 +4,7 @@ using SportTracker.Core.Models;
 
 namespace SportTracker.Core.Models;
 
-public class CardioSession: ISession
+public class CardioSession: ISession, IUserOwned
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

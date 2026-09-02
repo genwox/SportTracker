@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportTracker.Core.Interfaces;
@@ -7,6 +8,7 @@ using SportTracker.Data;
 namespace SportTracker.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/exercises")]
 public class ExerciseController : ControllerBase
 {
@@ -19,6 +21,8 @@ public class ExerciseController : ControllerBase
         _context = context;
     }
 
+    // Catalogue global partagé : consultable sans compte.
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -39,27 +43,32 @@ public class ExerciseController : ControllerBase
         var exercise = await _exerciseRepository.GetByIdAsync(id);
         if (exercise == null) return NotFound();
 
-        var sets = await _context.ExerciseSets
-            .Include(s => s.WorkoutExercise)
-                .ThenInclude(we => we!.WorkoutSession)
-            .Where(s => s.WorkoutExercise!.ExerciseId == id)
-            .OrderBy(s => s.WorkoutExercise!.WorkoutSession!.Date)
-            .ThenBy(s => s.Id)
+        // Racine = WorkoutSessions (filtrée par UserId via le query filter global) :
+        // l'historique est donc automatiquement borné à l'utilisateur courant.
+        var sessions = await _context.WorkoutSessions
+            .Include(ws => ws.WorkoutExercises!)
+                .ThenInclude(we => we.ExerciseSets)
+            .Where(ws => ws.WorkoutExercises!.Any(we => we.ExerciseId == id))
             .ToListAsync();
 
-        var history = sets
-            .GroupBy(s => s.WorkoutExercise!.WorkoutSession!.Date.Date)
+        var history = sessions
+            .SelectMany(ws => ws.WorkoutExercises!
+                .Where(we => we.ExerciseId == id)
+                .SelectMany(we => we.ExerciseSets ?? new List<ExerciseSet>())
+                .Select(s => new { ws.Date, Set = s }))
+            .GroupBy(x => x.Date.Date)
             .Select(g => new
             {
                 Date = g.Key,
-                TotalReps = g.Sum(s => s.Repetitions),
-                TotalVolume = g.Sum(s => s.Repetitions * s.Weight),
-                Sets = g.Select((s, i) => new
-                {
-                    Order = i + 1,
-                    s.Repetitions,
-                    s.Weight
-                }).ToList()
+                TotalReps = g.Sum(x => x.Set.Repetitions),
+                TotalVolume = g.Sum(x => x.Set.Repetitions * x.Set.Weight),
+                Sets = g.OrderBy(x => x.Set.Id)
+                    .Select((x, i) => new
+                    {
+                        Order = i + 1,
+                        x.Set.Repetitions,
+                        x.Set.Weight
+                    }).ToList()
             })
             .OrderByDescending(h => h.Date)
             .ToList();
@@ -73,7 +82,10 @@ public class ExerciseController : ControllerBase
         var exercise = await _exerciseRepository.GetByIdAsync(exerciseId);
         if (exercise == null) return NotFound();
 
-        var programSession = await _context.WorkoutProgramSessions
+        // On traverse WorkoutPrograms (racine filtrée par UserId) : une session de
+        // carnet appartenant à un autre utilisateur reste introuvable → 404.
+        var programSession = await _context.WorkoutPrograms
+            .SelectMany(p => p.Sessions)
             .FirstOrDefaultAsync(s => s.Id == request.WorkoutProgramSessionId);
         if (programSession == null) return NotFound();
 

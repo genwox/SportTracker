@@ -2,7 +2,7 @@
 
 namespace SportTracker.Core.Models;
 
-public class WorkoutSession : ISession
+public class WorkoutSession : ISession, IUserOwned
 {
     public int Id { get; set; }
     public List<WorkoutExercise>? WorkoutExercises { get; set; }

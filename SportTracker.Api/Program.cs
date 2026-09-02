@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SportTracker.Data.Seed;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using SportTracker.Api.Services;
 using SportTracker.Core.Enums;
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
 using SportTracker.Data;
 using SportTracker.Data.Repository;
+using SportTracker.Data.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +24,17 @@ builder.Services.AddDbContext<SportTrackerDbContext>(
     options =>  options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddEntityFrameworkStores<SportTrackerDbContext>();
+
+builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme,
+    options => options.BearerTokenExpiration =  TimeSpan.FromDays(30));
+
+
 builder.Services.
     AddScoped<IRepository<WorkoutSession>, WorkoutSessionRepository>();
 builder.Services.
@@ -29,14 +44,21 @@ builder.Services.
 builder.Services.
     AddScoped<IRepository<WorkoutProgram>, WorkoutProgramRepository>();
 
+var origins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
+
+
 builder.Services.AddCors(options => options.AddPolicy("Frontend",
-    policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    policy => policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
-app.UseCors("Frontend");
+
 // Configure the HTTP request pipeline.
+app.UseCors("Frontend");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
+app.MapIdentityApi<ApplicationUser>();
 
 if (app.Environment.IsProduction())
     app.UseHttpsRedirection();

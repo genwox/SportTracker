@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
 
 namespace SportTracker.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/workoutsessions")]
+
 public class WorkoutSessionController : ControllerBase
 {
     private readonly  IRepository<WorkoutSession> _workoutSessionRepository;

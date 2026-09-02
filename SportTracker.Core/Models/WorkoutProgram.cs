@@ -1,6 +1,8 @@
+using SportTracker.Core.Interfaces;
+
 namespace SportTracker.Core.Models;
 
-public class WorkoutProgram
+public class WorkoutProgram : IUserOwned
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
