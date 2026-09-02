@@ -1,0 +1,78 @@
+@page "/login"
+@layout EmptyLayout
+@attribute [AllowAnonymous]
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="auth-page">
+    <div class="auth-brand">
+        <span class="title-eyebrow">Bon retour</span>
+        <h1 class="auth-title">SportTracker</h1>
+    </div>
+
+    <EditForm Model="model" OnValidSubmit="HandleLogin" class="auth-form">
+        <DataAnnotationsValidator />
+
+        @if (error is not null)
+        {
+            <div class="error-card">@error</div>
+        }
+
+        <div class="field-group">
+            <label class="field-label">EMAIL</label>
+            <InputText @bind-Value="model.Email" type="email" autocomplete="username"
+                       class="field-input" placeholder="toi@exemple.fr" />
+            <ValidationMessage For="() => model.Email" />
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">MOT DE PASSE</label>
+            <InputText @bind-Value="model.Password" type="password" autocomplete="current-password"
+                       class="field-input" placeholder="••••••••" />
+            <ValidationMessage For="() => model.Password" />
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="submit-btn" disabled="@busy">
+                @(busy ? "Connexion…" : "Se connecter")
+            </button>
+        </div>
+    </EditForm>
+
+    <p class="auth-switch">
+        Pas encore de compte ?
+        <a href="/register">Créer un compte</a>
+    </p>
+</div>
+
+@code {
+    private readonly Credentials model = new();
+    private bool busy;
+    private string? error;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private async Task HandleLogin()
+    {
+        busy = true;
+        error = null;
+
+        error = await Auth.LoginAsync(model.Email, model.Password);
+
+        busy = false;
+
+        if (error is null)
+            Nav.NavigateTo(string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl);
+    }
+
+    private sealed class Credentials
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email requis")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email invalide")]
+        public string Email { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Mot de passe requis")]
+        public string Password { get; set; } = "";
+    }
+}

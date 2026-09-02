@@ -1119,3 +1119,82 @@ code {
 .numpad-spacer {
     display: block;
 }
+
+/* ── Authentification (login / register) ───────────────── */
+.auth-main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-loading {
+    padding: 52px 20px;
+}
+
+.auth-page {
+    padding: 40px 24px;
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.auth-brand {
+    margin-bottom: 32px;
+}
+
+.auth-title {
+    font-family: var(--st-font-display);
+    font-size: 40px;
+    font-weight: 900;
+    color: var(--st-dark);
+    margin: 0;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.auth-form .form-actions {
+    margin-top: 10px;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--st-dark);
+}
+
+.auth-switch a {
+    font-weight: 800;
+    text-decoration: underline;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    background: var(--st-card-bg);
+    color: #c0392b;
+    font-family: var(--st-font-body);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.logout-btn:hover {
+    background: #fff0f0;
+}
