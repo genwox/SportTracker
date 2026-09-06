@@ -161,7 +161,9 @@ code {
 
 @keyframes st-page-in {
     from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    /* `none` (pas `translateY(0)`) : un transform résiduel piégerait les
+       position:fixed descendants (FAB, feuille) dans le conteneur de page. */
+    to   { opacity: 1; transform: none; }
 }
 
 @keyframes st-shimmer {
@@ -177,7 +179,12 @@ code {
 .profile-page,
 .detail-page,
 .form-page {
-    animation: st-page-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+    /* `backwards` (et non `both`) : `both` retiendrait la valeur animée du
+       transform sous forme de matrice identité (≠ none), ce qui crée un bloc
+       conteneur et PIÈGE les position:fixed descendants (FAB, feuille). Avec
+       `backwards`, l'élément revient à son style de base (transform: none réel)
+       une fois l'animation finie → les éléments fixes s'ancrent au viewport. */
+    animation: st-page-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Skeleton shimmer */
@@ -939,7 +946,7 @@ code {
     position: fixed;
     inset: 0;
     background: #000;
-    z-index: 200;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1017,7 +1024,7 @@ code {
 .live-schema {
     color: var(--st-nav-inactive);
     font-size: 0.9rem;
-    margin: -0.5rem 0 0.75rem;
+    margin: 0.25rem 0 0.75rem;
 }
 
 .live-instructions {
@@ -1041,7 +1048,7 @@ code {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: 100;
+    z-index: 900;
 }
 
 .sheet {
@@ -1051,8 +1058,8 @@ code {
     right: 0;
     background: var(--st-card-bg);
     border-radius: 20px 20px 0 0;
-    padding: 1rem 1.25rem 2rem;
-    z-index: 101;
+    padding: 1rem 1.25rem calc(2rem + env(safe-area-inset-bottom, 0px));
+    z-index: 901;
     max-height: 90vh;
     overflow-y: auto;
 }

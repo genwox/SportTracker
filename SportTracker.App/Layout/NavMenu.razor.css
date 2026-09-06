@@ -6,6 +6,8 @@
     border-top: 1px solid rgba(255, 255, 255, 0.35);
     background: var(--st-cyan);
     flex-shrink: 0;
+    position: relative;
+    z-index: 10;
 }
 
 .bottom-nav ::deep a {
