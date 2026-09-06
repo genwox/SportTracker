@@ -24,7 +24,10 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
 
     public async  Task<IEnumerable<WorkoutSession>> GetAllAsync()
     {
-        return await _context.WorkoutSessions.ToListAsync();
+        return await _context.WorkoutSessions
+            .Include(ws => ws.WorkoutExercises)!
+                .ThenInclude(we => we.ExerciseSets)
+            .ToListAsync();
     }
 
     public async Task AddAsync(WorkoutSession entity)
