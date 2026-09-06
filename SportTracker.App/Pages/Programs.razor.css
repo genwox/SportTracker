@@ -1,0 +1,104 @@
+/* ── Programs (Carnets) — direction A ────────────────────── */
+
+.prog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.prog-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--st-dark);
+    border-radius: var(--st-radius-card);
+    padding: 18px;
+    text-decoration: none;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.prog-card:hover { background: #1f3619; text-decoration: none; }
+.prog-card:active { transform: scale(0.98); }
+
+.prog-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.prog-card__badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 22px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.prog-card__chevron {
+    color: rgba(244, 255, 224, 0.45);
+    flex-shrink: 0;
+}
+
+.prog-card__name {
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 26px;
+    line-height: 1.0;
+    letter-spacing: -0.5px;
+    color: #F4FFE0;
+    margin: 0;
+}
+
+.prog-card__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.prog-pill {
+    background: rgba(244, 255, 224, 0.08);
+    color: rgba(244, 255, 224, 0.9);
+    padding: 5px 12px;
+    border-radius: var(--st-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.prog-pill--obj {
+    background: var(--st-neon);
+    color: var(--st-dark);
+}
+
+.prog-new {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border-radius: var(--st-radius-card);
+    border: 2px dashed rgba(23, 39, 19, 0.35);
+    background: transparent;
+    color: var(--st-dark);
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.prog-new:hover {
+    background: rgba(23, 39, 19, 0.05);
+    border-color: rgba(23, 39, 19, 0.5);
+    text-decoration: none;
+    color: var(--st-dark);
+}

@@ -1,0 +1,303 @@
+/* ── ExerciseLive — direction A « pavé central » ─────────── */
+
+.live-page {
+    padding-bottom: 210px; /* place pour CTA + FAB flottants + nav */
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.live-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+/* Header */
+.live-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.live-header__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.live-eyebrow {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(23, 39, 19, 0.8);
+}
+
+.live-dots {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.live-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.live-dot--done {
+    background: var(--st-neon);
+    color: var(--st-dark);
+}
+
+.live-dot--active {
+    border: 2px solid var(--st-dark);
+    background: rgba(255, 255, 255, 0.25);
+    color: var(--st-dark);
+}
+
+.live-dot--todo {
+    border: 1px solid rgba(23, 39, 19, 0.3);
+    color: rgba(23, 39, 19, 0.4);
+}
+
+.live-title {
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 1.0;
+    letter-spacing: -1px;
+    color: var(--st-dark);
+    margin: 2px 0 0;
+}
+
+.live-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.live-pill {
+    background: rgba(23, 39, 19, 0.1);
+    color: var(--st-dark);
+    padding: 5px 12px;
+    border-radius: var(--st-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* Dernière fois */
+.live-lasttime {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.live-lasttime__label {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(23, 39, 19, 0.6);
+}
+
+.live-lasttime__value {
+    font-weight: 700;
+    font-size: 18px;
+    color: rgba(23, 39, 19, 0.9);
+}
+
+/* Pavé central verre dépoli */
+.glass-hero {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.live-pad {
+    border-radius: 30px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.live-stepper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-stepper__label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(23, 39, 19, 0.7);
+}
+
+.live-stepper__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 18px;
+    padding: 8px;
+}
+
+.live-step-btn {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 14px;
+    background: rgba(23, 39, 19, 0.07);
+    color: var(--st-dark);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.live-step-btn:hover { background: rgba(23, 39, 19, 0.12); }
+.live-step-btn:active { transform: scale(0.92); }
+
+.live-stepper__value {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 58px;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--st-dark);
+    text-align: center;
+    padding: 0;
+}
+
+.live-stepper__value:active { opacity: 0.7; }
+
+/* Chip timer intégré */
+.live-restchip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    background: rgba(23, 39, 19, 0.06);
+    border: 1px solid rgba(23, 39, 19, 0.1);
+    border-radius: 16px;
+    padding: 12px;
+    cursor: pointer;
+    color: var(--st-dark);
+    transition: background 0.15s ease;
+}
+
+.live-restchip:hover { background: rgba(23, 39, 19, 0.1); }
+
+.live-restchip__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+}
+
+.live-restchip__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(23, 39, 19, 0.6);
+}
+
+.live-restchip__time {
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 20px;
+    margin-top: 3px;
+    color: var(--st-dark);
+}
+
+/* Éléments flottants (ancrés au viewport, au-dessus de la nav) */
+.live-floating {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    max-width: 480px;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 40;
+    pointer-events: none;
+}
+
+.live-fab {
+    align-self: flex-end;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--st-cyan);
+    background: var(--st-dark);
+    color: var(--st-neon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    transition: transform 0.1s ease;
+}
+
+.live-fab:active { transform: scale(0.92); }
+
+.live-cta {
+    width: 100%;
+    border: none;
+    border-radius: var(--st-radius-pill);
+    background: var(--st-neon);
+    color: var(--st-dark);
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 21px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 16px;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 8px 25px rgba(212, 245, 60, 0.4);
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.live-cta:hover:not(:disabled) { background: #c4e530; }
+.live-cta:active:not(:disabled) { transform: scale(0.98); }
+.live-cta:disabled { opacity: 0.65; cursor: not-allowed; }

@@ -7,25 +7,20 @@
 
     <div class="history-header">
         <h1 class="history-title">
-            <span class="title-eyebrow">Track your</span>
-            History
+            <span class="title-eyebrow">Ton</span>
+            Historique
         </h1>
-        <button class="filter-btn @(filterOpen ? "filter-btn--active" : "")" @onclick="ToggleFilter">
-            FILTER BY TYPE
-        </button>
     </div>
 
-    @if (filterOpen)
-    {
-        <div class="filter-chips">
-            @foreach (var f in filters)
-            {
-                <button class="chip @(activeFilter == f ? "chip--active" : "")" @onclick="() => activeFilter = f">
-                    @f
-                </button>
-            }
-        </div>
-    }
+    <div class="seg">
+        @foreach (var f in filters)
+        {
+            var filter = f;
+            <button class="seg__btn @(activeFilter == filter ? "seg__btn--active" : "")" @onclick="() => activeFilter = filter">
+                @filter
+            </button>
+        }
+    </div>
 
     @if (allItems == null)
     {
@@ -77,10 +72,9 @@
         string DetailUrl, string IconBg, string IconSvg, string Kind);
 
     private List<HistoryItem>? allItems;
-    private bool filterOpen = false;
-    private string activeFilter = "Tout";
+    private string activeFilter = "Tous";
 
-    private static readonly string[] filters = ["Tout", "Muscu", "Cardio"];
+    private static readonly string[] filters = ["Tous", "Muscu", "Cardio"];
 
     private IEnumerable<HistoryItem> FilteredItems => activeFilter switch
     {
@@ -132,8 +126,6 @@
 
         allItems = items;
     }
-
-    private void ToggleFilter() => filterOpen = !filterOpen;
 
     private static string GetPeriodLabel(DateTime date)
     {

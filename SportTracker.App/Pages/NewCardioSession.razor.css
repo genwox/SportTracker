@@ -9,6 +9,9 @@
 .field-input { width: 100%; background: var(--st-card-bg); border: none; border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600; color: var(--st-dark); font-family: var(--st-font-body); outline: none; box-sizing: border-box; }
 .field-input:focus { box-shadow: 0 0 0 2px var(--st-neon); }
 .field-input--select { appearance: none; cursor: pointer; }
+.seg-field { display: flex; gap: 6px; background: var(--st-dark); border-radius: var(--st-radius-pill); padding: 5px; }
+.seg-field__btn { flex: 1; padding: 10px 6px; border: none; border-radius: 15px; background: transparent; color: rgba(244,255,224,0.75); font-family: var(--st-font-display); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.seg-field__btn--active { background: var(--st-neon); color: var(--st-dark); }
 .error-card { background: #fff0f0; border-radius: 12px; padding: 12px 16px; color: #c0392b; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 .form-actions { display: flex; gap: 10px; }
 .submit-btn { flex: 1; background: var(--st-neon); border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 800; color: var(--st-dark); cursor: pointer; font-family: var(--st-font-body); transition: background 0.15s; }

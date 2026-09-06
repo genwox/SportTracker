@@ -1,5 +1,7 @@
 @page "/cardiosessions/{Id:int}"
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
+@using System.Globalization
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -38,24 +40,31 @@ else
     </div>
 
     <div class="hero-card">
-        <p class="hero-label">@session.Type.ToString().ToUpper()</p>
-        <p class="hero-value">@session.Distance.ToString("F1")</p>
+        <p class="hero-label">@TypeLabel(session.Type).ToUpper()</p>
+        <p class="hero-value">@session.Distance.ToString("0.#", frFR)</p>
         <p class="hero-unit">kilomètres</p>
     </div>
 
     <div class="stats-grid">
         <div class="stat-tile">
-            <p class="stat-tile__val">@session.Duration.Hours h @session.Duration.Minutes min</p>
+            <p class="stat-tile__val">@FormatDuration(session.Duration)</p>
             <p class="stat-tile__lbl">Durée</p>
         </div>
+        @if (session.Distance > 0 && session.Duration.TotalSeconds > 0)
+        {
+            <div class="stat-tile">
+                <p class="stat-tile__val">@Pace(session.Duration, session.Distance) <span class="stat-tile__unit">/km</span></p>
+                <p class="stat-tile__lbl">Allure</p>
+            </div>
+        }
         <div class="stat-tile">
-            <p class="stat-tile__val">@session.Date.ToString("dd MMM yyyy")</p>
+            <p class="stat-tile__val">@Capitalize(session.Date.ToString("ddd dd MMM", frFR))</p>
             <p class="stat-tile__lbl">Date</p>
         </div>
         @if (session.ElevationGain > 0)
         {
             <div class="stat-tile">
-                <p class="stat-tile__val">@session.ElevationGain m</p>
+                <p class="stat-tile__val">@session.ElevationGain <span class="stat-tile__unit">m</span></p>
                 <p class="stat-tile__lbl">Dénivelé</p>
             </div>
         }
@@ -67,6 +76,7 @@ else
 @code {
     [Parameter] public int Id { get; set; }
 
+    private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
     private CardioSession? session;
     private bool notFound;
 
@@ -78,4 +88,25 @@ else
         else
             session = await response.Content.ReadFromJsonAsync<CardioSession>();
     }
+
+    private static string TypeLabel(CardioType t) => t switch
+    {
+        CardioType.Run  => "Course à pied",
+        CardioType.Walk => "Marche",
+        CardioType.Swim => "Natation",
+        CardioType.Bike => "Vélo",
+        _               => t.ToString()
+    };
+
+    private static string FormatDuration(TimeSpan d)
+        => d.TotalHours >= 1 ? $"{(int)d.TotalHours}h{d.Minutes:D2}" : $"{d.Minutes}:{d.Seconds:D2}";
+
+    private static string Pace(TimeSpan d, double distanceKm)
+    {
+        var secPerKm = d.TotalSeconds / distanceKm;
+        return $"{(int)(secPerKm / 60)}:{(int)(secPerKm % 60):D2}";
+    }
+
+    private static string Capitalize(string s)
+        => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
 }

@@ -1,12 +1,13 @@
 @page "/programs/{ProgramId:int}/sessions/{SessionId:int}/exercises/{ExerciseId:int}/live"
 @using SportTracker.Core.Models
 @using System.Timers
+@using System.Globalization
 @inject HttpClient Http
 @implements IDisposable
 
-<div class="workouts-page">
+<div class="workouts-page live-page">
 
-    <div class="form-header">
+    <div class="live-topbar">
         <a href="/programs/@ProgramId/sessions/@SessionId" class="back-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"/>
@@ -18,9 +19,9 @@
     @if (loading)
     {
         <div class="st-skel-block">
+            <div class="st-skeleton st-skel-sm"></div>
             <div class="st-skeleton st-skel-tall"></div>
             <div class="st-skeleton st-skel-med"></div>
-            <div class="st-skeleton st-skel-sm"></div>
         </div>
     }
     else if (loadError is not null)
@@ -29,63 +30,103 @@
     }
     else
     {
-        @if (!string.IsNullOrEmpty(exerciseGifUrl))
-        {
-            <img src="@exerciseGifUrl" alt="@exerciseName" class="live-gif" />
-        }
+        <header class="live-header">
+            <div class="live-header__top">
+                @if (exerciseTotal > 0)
+                {
+                    <span class="live-eyebrow">Exercice @exerciseIndex / @exerciseTotal</span>
+                }
+                else
+                {
+                    <span class="live-eyebrow">En direct</span>
+                }
+                @if (indicatorCount > 0)
+                {
+                    <div class="live-dots">
+                        @for (var i = 1; i <= indicatorCount; i++)
+                        {
+                            var state = i <= todaySets.Count ? "done" : (i == ActiveOrder ? "active" : "todo");
+                            <span class="live-dot live-dot--@state">
+                                @if (state == "done")
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                }
+                                else
+                                {
+                                    @i
+                                }
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
 
-        <h1 class="workouts-title">@exerciseName</h1>
+            <h1 class="live-title">@exerciseName</h1>
 
-        @if (schema is not null)
-        {
-            <p class="live-schema">@schema</p>
-        }
-
-        @if (!string.IsNullOrEmpty(exerciseInstructions))
-        {
-            <p class="live-instructions">@exerciseInstructions</p>
-        }
-
-        @if (todaySets.Any())
-        {
-            <div class="section-label">AUJOURD'HUI</div>
-            @foreach (var set in todaySets)
+            @if (schemaPills.Count > 0)
             {
-                <div class="history-set-row">
-                    <span class="history-set-row__label">Série @set.Order</span>
-                    <span class="history-set-row__value">
-                        <strong>@set.Repetitions</strong> reps × <strong>@set.Weight</strong> kg
-                    </span>
+                <div class="live-pills">
+                    @foreach (var pill in schemaPills)
+                    {
+                        <span class="live-pill">@pill</span>
+                    }
                 </div>
             }
-        }
+        </header>
 
-        @if (restSeconds > 0 && (timerRunning || timerRemaining < restSeconds))
+        @if (LastTimeText is not null)
         {
-            <div class="rest-timer" @onclick="() => showFullscreenTimer = true" style="cursor:pointer;">
-                <span class="rest-timer__label">repos</span>
-                <span class="rest-timer__time">@FormatTime(timerRemaining)</span>
-                <button class="rest-timer__btn" @onclick:stopPropagation @onclick="ToggleTimer">
-                    @if (timerRunning)
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-                        </svg>
-                    }
-                    else
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                    }
-                </button>
-            </div>
+            <section class="live-lasttime">
+                <span class="live-lasttime__label">Dernière fois@(lastTimeOrderLabel)</span>
+                <span class="live-lasttime__value">@LastTimeText</span>
+            </section>
         }
 
-        <button type="button" class="fab-btn" @onclick="OpenSheet">+</button>
+        <section class="live-pad glass-hero">
+            <div class="live-stepper">
+                <span class="live-stepper__label">Poids (kg)</span>
+                <div class="live-stepper__row">
+                    <button type="button" class="live-step-btn" @onclick="() => AdjustWeight(-weightStep)" aria-label="Diminuer le poids">−</button>
+                    <button type="button" class="live-stepper__value" @onclick="OpenSheet">@FormatWeight(weightCurrent)</button>
+                    <button type="button" class="live-step-btn" @onclick="() => AdjustWeight(weightStep)" aria-label="Augmenter le poids">+</button>
+                </div>
+            </div>
+
+            <div class="live-stepper">
+                <span class="live-stepper__label">Reps</span>
+                <div class="live-stepper__row">
+                    <button type="button" class="live-step-btn" @onclick="() => AdjustReps(-1)" aria-label="Diminuer les reps">−</button>
+                    <button type="button" class="live-stepper__value" @onclick="OpenSheet">@repsCurrent</button>
+                    <button type="button" class="live-step-btn" @onclick="() => AdjustReps(1)" aria-label="Augmenter les reps">+</button>
+                </div>
+            </div>
+
+            @if (restSeconds > 0)
+            {
+                <button type="button" class="live-restchip" @onclick="OpenFullscreenTimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+                    <span class="live-restchip__text">
+                        <span class="live-restchip__label">@(timerRunning || timerRemaining < restSeconds ? "Repos" : "Repos prévu")</span>
+                        <span class="live-restchip__time">@FormatTime(timerRunning || timerRemaining < restSeconds ? timerRemaining : restSeconds)</span>
+                    </span>
+                </button>
+            }
+        </section>
     }
 
 </div>
+
+@if (!loading && loadError is null)
+{
+    <div class="live-floating">
+        <button type="button" class="live-fab" @onclick="OpenSheet" aria-label="Saisie précise">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+        </button>
+        <button type="button" class="live-cta" @onclick="ValidateSetAsync" disabled="@isSaving">
+            @(isSaving ? "Enregistrement…" : $"Valider la série {ActiveOrder}")
+        </button>
+    </div>
+}
 
 @if (showFullscreenTimer)
 {
@@ -159,8 +200,8 @@
             </div>
         </div>
 
-        <button type="button" class="submit-btn" @onclick="ValidateSetAsync" disabled="@isSaving">
-            @(isSaving ? "Enregistrement..." : "Valider la série")
+        <button type="button" class="submit-btn" @onclick="ApplyNumpad">
+            Appliquer
         </button>
     </div>
 }
@@ -176,19 +217,33 @@
     private string exerciseName = "";
     private string? exerciseGifUrl;
     private string? exerciseInstructions;
-    private string? schema;
     private int restSeconds;
     private int workoutProgramSessionId;
 
+    private int exerciseIndex;
+    private int exerciseTotal;
+    private int targetSets;
+    private readonly List<string> schemaPills = new();
+
     private List<TodaySet> todaySets = new();
+    private List<HistoryEntry> history = new();
+
     private bool showSheet;
     private string repsInput = "";
     private string weightInput = "";
     private bool isSaving;
 
+    // Central pad current values (source de vérité pour la validation)
+    private double weightCurrent;
+    private int repsCurrent;
+    private const double weightStep = 2.5;
+
     private int timerRemaining;
     private bool timerRunning;
     private System.Timers.Timer? timer;
+
+    private int ActiveOrder => todaySets.Count + 1;
+    private int indicatorCount => Math.Max(targetSets, ActiveOrder);
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,13 +254,18 @@
             await Task.WhenAll(programTask, historyTask);
 
             var program = programTask.Result;
-            var history = historyTask.Result ?? new();
+            history = historyTask.Result ?? new();
 
             var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
             if (session != null)
                 workoutProgramSessionId = session.Id;
 
-            var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
+            var exercises = session?.Exercises.ToList() ?? new();
+            exerciseTotal = exercises.Count;
+            var idx = exercises.FindIndex(e => e.ExerciseId == ExerciseId);
+            exerciseIndex = idx >= 0 ? idx + 1 : 0;
+
+            var pe = exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
             var exercise = pe?.Exercise;
 
             exerciseName = exercise?.Name ?? "Exercice";
@@ -214,14 +274,15 @@
 
             if (pe is not null)
             {
-                var reps = pe.TargetRepsMin == pe.TargetRepsMax
-                    ? $"{pe.TargetRepsMin}"
-                    : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
-                var rest = pe.RestSeconds >= 60
-                    ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
-                    : $"{pe.RestSeconds}s";
-                schema = $"{pe.TargetSets}x{reps} et {rest} de pause";
+                targetSets = pe.TargetSets;
                 restSeconds = pe.RestSeconds;
+
+                var reps = pe.TargetRepsMin == pe.TargetRepsMax
+                    ? $"{pe.TargetRepsMin} reps"
+                    : $"{pe.TargetRepsMin}-{pe.TargetRepsMax} reps";
+                schemaPills.Add($"{pe.TargetSets} séries");
+                schemaPills.Add(reps);
+                schemaPills.Add($"Repos {FormatRest(pe.RestSeconds)}");
             }
 
             var todayEntry = history.FirstOrDefault(h => h.Date.Date == DateTime.Today);
@@ -236,6 +297,7 @@
             }
 
             timerRemaining = restSeconds;
+            InitCurrentValues(pe);
         }
         catch (Exception ex)
         {
@@ -247,11 +309,64 @@
         }
     }
 
+    private void InitCurrentValues(WorkoutProgramExercise? pe)
+    {
+        var lastToday = todaySets.LastOrDefault();
+        if (lastToday != null)
+        {
+            weightCurrent = lastToday.Weight;
+            repsCurrent = lastToday.Repetitions;
+            return;
+        }
+
+        var lastEntry = history.Where(h => h.Date.Date != DateTime.Today)
+                               .OrderByDescending(h => h.Date)
+                               .FirstOrDefault();
+        var refSet = lastEntry?.Sets.OrderBy(s => s.Order).FirstOrDefault();
+        if (refSet != null)
+        {
+            weightCurrent = refSet.Weight;
+            repsCurrent = refSet.Repetitions;
+        }
+        else
+        {
+            weightCurrent = 20;
+            repsCurrent = pe?.TargetRepsMin > 0 ? pe.TargetRepsMin : 10;
+        }
+    }
+
+    // ── Dernière fois (séance précédente) ─────────────────────
+    private string lastTimeOrderLabel = "";
+    private string? LastTimeText
+    {
+        get
+        {
+            var lastEntry = history.Where(h => h.Date.Date != DateTime.Today)
+                                   .OrderByDescending(h => h.Date)
+                                   .FirstOrDefault();
+            if (lastEntry == null || lastEntry.Sets.Count == 0) return null;
+
+            var match = lastEntry.Sets.FirstOrDefault(s => s.Order == ActiveOrder)
+                        ?? lastEntry.Sets.OrderByDescending(s => s.Order).First();
+            lastTimeOrderLabel = $" (Série {match.Order})";
+            return $"{FormatWeight(match.Weight)} kg × {match.Repetitions}";
+        }
+    }
+
+    private void AdjustWeight(double delta)
+    {
+        weightCurrent = Math.Max(0, Math.Round((weightCurrent + delta) * 100) / 100);
+    }
+
+    private void AdjustReps(int delta)
+    {
+        repsCurrent = Math.Max(0, repsCurrent + delta);
+    }
+
     private void OpenSheet()
     {
-        var last = todaySets.LastOrDefault();
-        repsInput = last != null ? last.Repetitions.ToString() : "";
-        weightInput = last != null ? last.Weight.ToString("0.##") : "";
+        repsInput = repsCurrent > 0 ? repsCurrent.ToString() : "";
+        weightInput = weightCurrent > 0 ? weightCurrent.ToString("0.##", CultureInfo.InvariantCulture) : "";
         showSheet = true;
     }
 
@@ -275,17 +390,27 @@
             weightInput += key;
     }
 
+    private void ApplyNumpad()
+    {
+        if (int.TryParse(repsInput, out var reps) && reps >= 0)
+            repsCurrent = reps;
+        if (double.TryParse(weightInput, NumberStyles.Any, CultureInfo.InvariantCulture, out var weight) && weight >= 0)
+            weightCurrent = weight;
+        showSheet = false;
+    }
+
+    private void OpenFullscreenTimer() => showFullscreenTimer = true;
+
     private async Task ValidateSetAsync()
     {
-        if (!int.TryParse(repsInput, out var reps) || reps <= 0) return;
-        if (!double.TryParse(weightInput, out var weight)) return;
+        if (repsCurrent <= 0) return;
 
         isSaving = true;
         try
         {
             var response = await Http.PostAsJsonAsync(
                 $"api/exercises/{ExerciseId}/log",
-                new { workoutProgramSessionId, repetitions = reps, weight });
+                new { workoutProgramSessionId, repetitions = repsCurrent, weight = weightCurrent });
 
             if (response.IsSuccessStatusCode)
             {
@@ -297,7 +422,6 @@
                         Repetitions = result.Repetitions,
                         Weight = result.Weight
                     });
-                showSheet = false;
                 StartTimer();
             }
         }
@@ -352,8 +476,8 @@
     private double TimerDashOffset => restSeconds > 0
         ? TimerCircumference * (1.0 - Math.Clamp((double)timerRemaining / restSeconds, 0, 1))
         : 0;
-    private string TimerCircumferenceStr => TimerCircumference.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
-    private string TimerDashOffsetStr => TimerDashOffset.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+    private string TimerCircumferenceStr => TimerCircumference.ToString("F2", CultureInfo.InvariantCulture);
+    private string TimerDashOffsetStr => TimerDashOffset.ToString("F2", CultureInfo.InvariantCulture);
 
     private string FormatTime(int totalSeconds)
     {
@@ -361,6 +485,20 @@
         var s = totalSeconds % 60;
         return $"{m:D2}:{s:D2}";
     }
+
+    private string FormatRest(int seconds)
+    {
+        if (seconds >= 60)
+        {
+            var m = seconds / 60;
+            var s = seconds % 60;
+            return s > 0 ? $"{m}min{s:D2}" : $"{m}min";
+        }
+        return $"{seconds}s";
+    }
+
+    private string FormatWeight(double w)
+        => w % 1 == 0 ? w.ToString("0", CultureInfo.InvariantCulture) : w.ToString("0.##", CultureInfo.InvariantCulture);
 
     public void Dispose()
     {

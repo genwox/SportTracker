@@ -2,7 +2,7 @@
 @using SportTracker.Core.Models
 @inject HttpClient Http
 
-<div class="workouts-page">
+<div class="workouts-page pd-page">
 
     <div class="form-header">
         <a href="/programs" class="back-link">
@@ -21,41 +21,52 @@
     }
     else
     {
-        <h1 class="workouts-title">
-            <span class="title-eyebrow">Séances</span>
-            @program.Name
-        </h1>
-
-        @if (!string.IsNullOrEmpty(program.Objective))
-        {
-            <p class="program-detail__objective">@program.Objective</p>
-        }
+        <section class="pd-hero glass-hero">
+            <span class="pd-hero__eyebrow">Carnet</span>
+            <h1 class="pd-hero__name">@program.Name</h1>
+            <div class="pd-hero__pills">
+                @if (!string.IsNullOrWhiteSpace(program.Objective))
+                {
+                    <span class="pd-pill pd-pill--obj">@program.Objective</span>
+                }
+                <span class="pd-pill">@sessionCount @(sessionCount > 1 ? "séances" : "séance")</span>
+                <span class="pd-pill">@exerciseCount @(exerciseCount > 1 ? "exercices" : "exercice")</span>
+            </div>
+        </section>
 
         @if (!program.Sessions.Any())
         {
             <div class="empty-state">
                 <p class="empty-title">Aucune séance</p>
                 <p class="empty-sub">Ce carnet ne contient pas encore de séance.</p>
+                <a href="/programs/@ProgramId/sessions/new" class="empty-cta">+ Nouvelle séance</a>
             </div>
         }
         else
         {
-            <div class="programs-list">
+            <div class="pd-section-label">Séances</div>
+            <div class="pd-list">
+                @{ var idx = 0; }
                 @foreach (var session in program.Sessions.OrderBy(s => s.Order))
                 {
-                    <a href="/programs/@ProgramId/sessions/@session.Id" class="program-card">
-                        <div class="program-card__pill" style="background-color: @program.ColorHex">
-                            @session.Name.Substring(0, 1).ToUpper()
+                    idx++;
+                    <a href="/programs/@ProgramId/sessions/@session.Id" class="pd-session">
+                        <span class="pd-session__num" style="background-color:@program.ColorHex">@idx</span>
+                        <div class="pd-session__text">
+                            <h2 class="pd-session__name">@session.Name</h2>
+                            <span class="pd-session__meta">@session.Exercises.Count @(session.Exercises.Count > 1 ? "exercices" : "exercice")</span>
                         </div>
-                        <div class="program-card__info">
-                            <h2 class="program-card__name">@session.Name</h2>
-                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </a>
                 }
             </div>
-        }
 
-        <a href="/programs/@ProgramId/sessions/new" class="fab-btn">+</a>
+            <a href="/programs/@ProgramId/sessions/@firstSessionId" class="pd-cta">Démarrer la prochaine séance</a>
+            <a href="/programs/@ProgramId/sessions/new" class="pd-new">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouvelle séance
+            </a>
+        }
     }
 
 </div>
@@ -63,6 +74,10 @@
 @code {
     [Parameter] public int ProgramId { get; set; }
     private WorkoutProgram? program;
+
+    private int sessionCount => program?.Sessions.Count ?? 0;
+    private int exerciseCount => program?.Sessions.Sum(s => s.Exercises.Count) ?? 0;
+    private int firstSessionId => program?.Sessions.OrderBy(s => s.Order).FirstOrDefault()?.Id ?? 0;
 
     protected override async Task OnInitializedAsync()
     {

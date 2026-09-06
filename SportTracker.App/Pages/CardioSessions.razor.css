@@ -1,0 +1,114 @@
+/* ── CardioSessions — direction A ────────────────────────── */
+
+.cardio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cardio-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: linear-gradient(145deg, #1e3a14 0%, var(--st-dark) 100%);
+    border-radius: var(--st-radius-card);
+    padding: 18px;
+    text-decoration: none;
+    transition: transform 0.1s ease;
+}
+
+.cardio-card:hover { transform: translateY(-2px); text-decoration: none; }
+.cardio-card:active { transform: scale(0.98); }
+
+.cardio-card__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cardio-card__icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: rgba(120, 232, 228, 0.14);
+    color: var(--st-neon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardio-card__headtext {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.cardio-card__type {
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 18px;
+    color: #F4FFE0;
+    line-height: 1.1;
+}
+
+.cardio-card__date {
+    font-size: 12px;
+    color: rgba(244, 255, 224, 0.55);
+    margin-top: 1px;
+}
+
+.cardio-card__chevron {
+    color: rgba(244, 255, 224, 0.45);
+    flex-shrink: 0;
+}
+
+.cardio-card__body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cardio-card__dist {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    color: #F4FFE0;
+}
+
+.cardio-card__distval {
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 46px;
+    line-height: 0.9;
+    letter-spacing: -1.5px;
+}
+
+.cardio-card__distunit {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: rgba(244, 255, 224, 0.7);
+}
+
+.cardio-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.cardio-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(212, 245, 60, 0.16);
+    color: var(--st-neon);
+    padding: 6px 12px;
+    border-radius: var(--st-radius-pill);
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+}

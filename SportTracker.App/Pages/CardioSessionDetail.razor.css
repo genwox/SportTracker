@@ -89,6 +89,12 @@
     margin-bottom: 4px;
 }
 
+.stat-tile__unit {
+    font-size: 14px;
+    color: var(--st-nav-inactive);
+    font-weight: 700;
+}
+
 .stat-tile__lbl {
     font-size: 11px;
     font-weight: 700;

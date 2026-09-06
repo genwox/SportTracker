@@ -1,5 +1,6 @@
 @page "/workoutsessions/{Id:int}"
 @using SportTracker.Core.Models
+@using System.Globalization
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -31,25 +32,17 @@ else
                 <polyline points="15 18 9 12 15 6"/>
             </svg>
         </a>
-        <h1 class="detail-title">@session!.Name</h1>
+        <span class="wsd-date">@Capitalize(session!.Date.ToString("ddd dd MMM yyyy", frFR))</span>
     </div>
 
-    <div class="meta-card">
-        <div class="meta-grid">
-            <div class="meta-item">
-                <p class="meta-val">@session.Date.ToString("dd MMM yyyy")</p>
-                <p class="meta-lbl">Date</p>
-            </div>
-            <div class="meta-item">
-                <p class="meta-val">@session.Duration.Hours h @session.Duration.Minutes min</p>
-                <p class="meta-lbl">Durée</p>
-            </div>
-            <div class="meta-item">
-                <p class="meta-val">@(session.WorkoutExercises?.Count ?? 0)</p>
-                <p class="meta-lbl">Exercices</p>
-            </div>
+    <section class="wsd-hero glass-hero">
+        <h1 class="wsd-name">@session.Name</h1>
+        <div class="wsd-pills">
+            <span class="wsd-pill">@FormatDuration(session.Duration)</span>
+            <span class="wsd-pill">@FormatVolume(TotalVolume) volume</span>
+            <span class="wsd-pill">@(session.WorkoutExercises?.Count ?? 0) exercices</span>
         </div>
-    </div>
+    </section>
 
     @if (session.WorkoutExercises is null || !session.WorkoutExercises.Any())
     {
@@ -69,20 +62,12 @@ else
                     }
                     else
                     {
-                        <div class="sets-header">
-                            <span>SÉRIE</span>
-                            <span>POIDS</span>
-                            <span>REPS</span>
+                        <div class="set-pills">
+                            @foreach (var set in we.ExerciseSets)
+                            {
+                                <span class="set-pill">@FormatWeight(set.Weight)<span class="set-pill__x">×</span>@set.Repetitions</span>
+                            }
                         </div>
-                        @for (int i = 0; i < we.ExerciseSets.Count; i++)
-                        {
-                            var set = we.ExerciseSets[i];
-                            <div class="set-row @(i % 2 == 0 ? "" : "set-row--alt")">
-                                <span class="set-num">@(i + 1)</span>
-                                <span class="set-val">@set.Weight kg</span>
-                                <span class="set-val">× @set.Repetitions</span>
-                            </div>
-                        }
                     }
                 </div>
             }
@@ -95,8 +80,13 @@ else
 @code {
     [Parameter] public int Id { get; set; }
 
+    private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
     private WorkoutSession? session;
     private bool notFound;
+
+    private double TotalVolume => session?.WorkoutExercises?
+        .SelectMany(e => e.ExerciseSets ?? new())
+        .Sum(s => s.Weight * s.Repetitions) ?? 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,4 +96,16 @@ else
         else
             session = await response.Content.ReadFromJsonAsync<WorkoutSession>();
     }
+
+    private static string FormatDuration(TimeSpan d)
+        => d.TotalHours >= 1 ? $"{(int)d.TotalHours}h{d.Minutes:D2}" : $"{d.Minutes} min";
+
+    private static string FormatVolume(double kg)
+        => kg >= 1000 ? $"{(kg / 1000).ToString("0.#", frFR)} t" : $"{kg.ToString("0", frFR)} kg";
+
+    private static string FormatWeight(double w)
+        => w % 1 == 0 ? w.ToString("0", frFR) : w.ToString("0.#", frFR);
+
+    private static string Capitalize(string s)
+        => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
 }

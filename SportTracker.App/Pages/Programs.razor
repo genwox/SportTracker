@@ -5,13 +5,13 @@
 <div class="workouts-page">
 
     <div class="tab-bar">
-        <a href="/workoutsessions" class="tab-bar__tab">Seances</a>
+        <a href="/workoutsessions" class="tab-bar__tab">Séances</a>
         <a href="/programs" class="tab-bar__tab tab-bar__tab--active">Carnets</a>
     </div>
 
     <div class="workouts-header">
         <h1 class="workouts-title">
-            <span class="title-eyebrow">Mes</span>
+            <span class="title-eyebrow">Tes</span>
             Carnets
         </h1>
         <a href="/programs/new" class="new-btn">+ Nouveau</a>
@@ -35,22 +35,33 @@
     }
     else
     {
-        <div class="programs-list">
+        <div class="prog-list">
             @foreach (var program in programs)
             {
-                <a href="/programs/@program.Id" class="program-card">
-                    <div class="program-card__pill" style="background-color: @program.ColorHex">
-                        @program.Name.Substring(0, 1).ToUpper()
+                var sessionCount = program.Sessions.Count;
+                var exerciseCount = program.Sessions.Sum(s => s.Exercises.Count);
+                var initial = program.Name.Length > 0 ? program.Name[..1].ToUpper() : "?";
+                <a href="/programs/@program.Id" class="prog-card">
+                    <div class="prog-card__top">
+                        <div class="prog-card__badge" style="background-color:@program.ColorHex">@initial</div>
+                        <svg class="prog-card__chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
-                    <div class="program-card__info">
-                        <h2 class="program-card__name">@program.Name</h2>
-                        @if (!string.IsNullOrEmpty(program.Objective))
+                    <h2 class="prog-card__name">@program.Name</h2>
+                    <div class="prog-card__pills">
+                        @if (!string.IsNullOrWhiteSpace(program.Objective))
                         {
-                            <p class="program-card__objective">@program.Objective</p>
+                            <span class="prog-pill prog-pill--obj">@program.Objective</span>
                         }
+                        <span class="prog-pill">@sessionCount @(sessionCount > 1 ? "séances" : "séance")</span>
+                        <span class="prog-pill">@exerciseCount @(exerciseCount > 1 ? "exercices" : "exercice")</span>
                     </div>
                 </a>
             }
+
+            <a href="/programs/new" class="prog-new">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouveau carnet
+            </a>
         </div>
     }
 

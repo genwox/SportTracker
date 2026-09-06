@@ -1140,39 +1140,56 @@ code {
 }
 
 .auth-page {
-    padding: 40px 24px;
-    max-width: 460px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding: 32px 24px;
+    max-width: 440px;
     width: 100%;
     margin: 0 auto;
 }
 
 .auth-brand {
-    margin-bottom: 32px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .auth-title {
     font-family: var(--st-font-display);
-    font-size: 40px;
+    font-size: 44px;
     font-weight: 900;
     color: var(--st-dark);
     margin: 0;
     line-height: 1;
+    letter-spacing: -1px;
     text-transform: uppercase;
 }
 
+/* Carte verre dépoli autour du formulaire */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    border-radius: var(--st-radius-card);
+    padding: 24px 20px;
 }
 
 .auth-form .form-actions {
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .auth-switch {
     text-align: center;
-    margin-top: 22px;
+    margin-top: 2px;
     font-size: 14px;
     font-weight: 600;
     color: var(--st-dark);

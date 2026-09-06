@@ -1,95 +1,81 @@
 @page "/programs/{ProgramId:int}/sessions/{SessionId:int}/exercises/{ExerciseId:int}/history"
 @using SportTracker.Core.Models
-@using System.Timers
+@using System.Globalization
 @inject HttpClient Http
-@implements IDisposable
 
-<div class="workouts-page">
+<div class="workouts-page eh-page">
 
     <div class="form-header">
-        <a href="/programs/@ProgramId/sessions/@SessionId" class="back-link">
+        <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ExerciseId/live" class="back-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"/>
             </svg>
         </a>
+        <h1 class="eh-title">@exerciseName</h1>
     </div>
 
     @if (loading)
     {
         <div class="st-skel-block">
+            <div class="st-skeleton st-skel-tall"></div>
             <div class="st-skeleton st-skel-med"></div>
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skeleton st-skel-tall"></div>
+        </div>
+    }
+    else if (!history.Any())
+    {
+        <div class="empty-state">
+            <p class="empty-title">Aucun historique</p>
+            <p class="empty-sub">Les données apparaîtront après ta première séance.</p>
         </div>
     }
     else
     {
-        <div class="history-header">
-            @if (!string.IsNullOrEmpty(exerciseGifUrl))
-            {
-                <img src="@exerciseGifUrl" alt="@exerciseName" class="history-header__img" />
-            }
-            <div>
-                <h1 class="history-header__name">@exerciseName</h1>
-                @if (schema is not null)
-                {
-                    <p class="history-header__schema">@schema</p>
-                }
+        <section class="eh-hero glass-hero">
+            <div class="eh-hero__head">
+                <span class="eh-hero__label">1RM estimé</span>
+                <div class="eh-hero__record">
+                    <span class="eh-hero__recval">@FormatWeight(record)</span>
+                    <span class="eh-hero__recunit">kg</span>
+                </div>
             </div>
-        </div>
-
-        @if (history.Any())
-        {
-            @foreach (var entry in history)
+            @if (points.Count >= 2)
             {
-                <div class="history-block">
-                    <div class="history-block__header">
-                        <span class="history-block__date">@entry.Date.ToString("dd/MM")<br/>@entry.Date.ToString("yyyy")</span>
-                        <span class="history-block__stat">Total</span>
-                        <span class="history-block__stat">@entry.TotalReps<br/><small>reps</small></span>
-                        <span class="history-block__stat">@entry.TotalVolume<br/><small>kg</small></span>
-                    </div>
-                    @foreach (var set in entry.Sets)
-                    {
-                        <div class="history-set-row">
-                            <span class="history-set-row__label">Serie @set.Order</span>
-                            <span class="history-set-row__value">
-                                <strong>@set.Repetitions</strong> reps x <strong>@set.Weight</strong> kg
-                            </span>
-                        </div>
+                <svg class="eh-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+                    <polyline points="@Sparkline" fill="none" stroke="#D4F53C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    @{
+                        var last = ChartPoint(points.Count - 1);
                     }
+                    <circle cx="@last.x.ToString(inv)" cy="@last.y.ToString(inv)" r="4" fill="#172713"/>
+                </svg>
+            }
+        </section>
+
+        <div class="eh-section-label">Historique</div>
+        <div class="eh-list">
+            @foreach (var entry in history.OrderByDescending(h => h.Date))
+            {
+                var e1rm = MaxOneRm(entry);
+                var isRecord = Math.Abs(e1rm - record) < 0.01;
+                <div class="eh-entry @(isRecord ? "eh-entry--record" : "")">
+                    <div class="eh-entry__top">
+                        <span class="eh-entry__date">@Capitalize(entry.Date.ToString("ddd dd MMM", frFR))</span>
+                        <span class="eh-entry__1rm">
+                            @if (isRecord)
+                            {
+                                <span class="eh-entry__badge">Record</span>
+                            }
+                            @FormatWeight(e1rm) kg
+                        </span>
+                    </div>
+                    <div class="eh-entry__sets">
+                        @foreach (var set in entry.Sets.OrderBy(s => s.Order))
+                        {
+                            <span class="eh-set">@FormatWeight(set.Weight)<span class="eh-set__x">×</span>@set.Repetitions</span>
+                        }
+                    </div>
                 </div>
             }
-        }
-        else
-        {
-            <div class="empty-state">
-                <p class="empty-title">Aucun historique</p>
-                <p class="empty-sub">Les donnees apparaitront apres ta premiere seance.</p>
-            </div>
-        }
-
-        @if (restSeconds > 0)
-        {
-            <div class="rest-timer">
-                <span class="rest-timer__label">repos</span>
-                <span class="rest-timer__time">@FormatTime(timerRemaining)</span>
-                <button class="rest-timer__btn" @onclick="ToggleTimer">
-                    @if (timerRunning)
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-                        </svg>
-                    }
-                    else
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                    }
-                </button>
-            </div>
-        }
+        </div>
     }
 
 </div>
@@ -99,22 +85,20 @@
     [Parameter] public int SessionId { get; set; }
     [Parameter] public int ExerciseId { get; set; }
 
+    private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
+    private static readonly CultureInfo inv = CultureInfo.InvariantCulture;
+
     private bool loading = true;
     private string exerciseName = "";
-    private string? exerciseGifUrl;
-    private string? schema;
-    private int restSeconds;
     private List<HistoryEntry> history = new();
 
-    private int timerRemaining;
-    private bool timerRunning;
-    private System.Timers.Timer? timer;
+    private double record;
+    private List<double> points = new();
 
     protected override async Task OnInitializedAsync()
     {
         var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
         var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
-
         await Task.WhenAll(programTask, historyTask);
 
         var program = programTask.Result;
@@ -122,70 +106,41 @@
 
         var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
         var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
-        var exercise = pe?.Exercise;
+        exerciseName = pe?.Exercise?.Name ?? "Exercice";
 
-        exerciseName = exercise?.Name ?? "Exercice";
-        exerciseGifUrl = exercise?.GifUrl;
+        points = history.OrderBy(h => h.Date).Select(MaxOneRm).ToList();
+        record = points.Count > 0 ? points.Max() : 0;
 
-        if (pe is not null)
-        {
-            var reps = pe.TargetRepsMin == pe.TargetRepsMax
-                ? $"{pe.TargetRepsMin}"
-                : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
-            var rest = pe.RestSeconds >= 60
-                ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
-                : $"{pe.RestSeconds}s";
-            schema = $"{pe.TargetSets}x{reps} et {rest} de pause";
-            restSeconds = pe.RestSeconds;
-        }
-
-        timerRemaining = restSeconds;
         loading = false;
     }
 
-    private void ToggleTimer()
+    // Epley : 1RM ≈ poids × (1 + reps/30)
+    private static double MaxOneRm(HistoryEntry entry)
+        => entry.Sets.Count == 0 ? 0 : entry.Sets.Max(s => s.Weight * (1 + s.Repetitions / 30.0));
+
+    private (double x, double y) ChartPoint(int i)
     {
-        if (timerRunning)
+        if (points.Count < 2) return (0, 45);
+        var min = points.Min();
+        var max = points.Max();
+        var range = max - min < 0.01 ? 1 : max - min;
+        var x = 300.0 * i / (points.Count - 1);
+        var y = 80 - (points[i] - min) / range * 70 + 5; // marge haut/bas
+        return (x, y);
+    }
+
+    private string Sparkline
+        => string.Join(" ", Enumerable.Range(0, points.Count).Select(i =>
         {
-            timer?.Stop();
-            timerRunning = false;
-        }
-        else
-        {
-            if (timerRemaining <= 0)
-                timerRemaining = restSeconds;
+            var p = ChartPoint(i);
+            return $"{p.x.ToString("0.#", inv)},{p.y.ToString("0.#", inv)}";
+        }));
 
-            timer = new System.Timers.Timer(1000);
-            timer.Elapsed += OnTimerTick;
-            timer.Start();
-            timerRunning = true;
-        }
-    }
+    private static string FormatWeight(double w)
+        => w % 1 == 0 ? w.ToString("0", frFR) : w.ToString("0.#", frFR);
 
-    private void OnTimerTick(object? sender, ElapsedEventArgs e)
-    {
-        timerRemaining--;
-        if (timerRemaining <= 0)
-        {
-            timer?.Stop();
-            timerRunning = false;
-            timerRemaining = restSeconds;
-        }
-        InvokeAsync(StateHasChanged);
-    }
-
-    private string FormatTime(int totalSeconds)
-    {
-        var m = totalSeconds / 60;
-        var s = totalSeconds % 60;
-        return $"{m:D2}:{s:D2}";
-    }
-
-    public void Dispose()
-    {
-        timer?.Stop();
-        timer?.Dispose();
-    }
+    private static string Capitalize(string s)
+        => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
 
     private class HistoryEntry
     {

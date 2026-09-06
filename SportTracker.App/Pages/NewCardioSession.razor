@@ -23,20 +23,20 @@
             <InputText class="field-input" @bind-Value="form.Name" placeholder="Ex : Run matinal" />
         </div>
 
-        <div class="field-row">
-            <div class="field-group">
-                <label class="field-label">Date</label>
-                <InputDate class="field-input" @bind-Value="form.Date" />
+        <div class="field-group">
+            <label class="field-label">Type</label>
+            <div class="seg-field">
+                @foreach (var type in Enum.GetValues<CardioType>())
+                {
+                    var t = type;
+                    <button type="button" class="seg-field__btn @(form.Type == t ? "seg-field__btn--active" : "")" @onclick="() => form.Type = t">@TypeLabel(t)</button>
+                }
             </div>
-            <div class="field-group">
-                <label class="field-label">Type</label>
-                <InputSelect class="field-input field-input--select" @bind-Value="form.Type">
-                    @foreach (var type in Enum.GetValues<CardioType>())
-                    {
-                        <option value="@type">@type</option>
-                    }
-                </InputSelect>
-            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Date</label>
+            <InputDate class="field-input" @bind-Value="form.Date" />
         </div>
 
         <div class="field-row">
@@ -75,6 +75,15 @@
     private int durationMinutes = 30;
     private bool isSaving;
     private string? errorMessage;
+
+    private static string TypeLabel(CardioType t) => t switch
+    {
+        CardioType.Run  => "Course",
+        CardioType.Walk => "Marche",
+        CardioType.Swim => "Natation",
+        CardioType.Bike => "Vélo",
+        _               => t.ToString()
+    };
 
     private async Task HandleSubmit()
     {

@@ -1,0 +1,143 @@
+/* ── ExerciseHistory — direction A ───────────────────────── */
+
+.eh-page { display: flex; flex-direction: column; gap: 16px; }
+
+.eh-title {
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    color: var(--st-dark);
+    margin: 0;
+}
+
+.glass-hero {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.eh-hero {
+    border-radius: var(--st-radius-card);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.eh-hero__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.eh-hero__label {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(23, 39, 19, 0.7);
+}
+
+.eh-hero__record { display: flex; align-items: baseline; gap: 4px; }
+
+.eh-hero__recval {
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    color: var(--st-dark);
+}
+
+.eh-hero__recunit {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: rgba(23, 39, 19, 0.6);
+}
+
+.eh-chart {
+    width: 100%;
+    height: 90px;
+    display: block;
+}
+
+.eh-section-label {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(23, 39, 19, 0.7);
+    margin: 2px 0 -4px 2px;
+}
+
+.eh-list { display: flex; flex-direction: column; gap: 10px; }
+
+.eh-entry {
+    background: var(--st-dark);
+    border-radius: var(--st-radius-card);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.eh-entry--record {
+    border: 1px solid var(--st-neon);
+}
+
+.eh-entry__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.eh-entry__date {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(244, 255, 224, 0.85);
+}
+
+.eh-entry__1rm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 17px;
+    color: var(--st-neon);
+}
+
+.eh-entry__badge {
+    background: var(--st-neon);
+    color: var(--st-dark);
+    padding: 2px 8px;
+    border-radius: var(--st-radius-pill);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.eh-entry__sets { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.eh-set {
+    background: rgba(244, 255, 224, 0.1);
+    color: rgba(244, 255, 224, 0.9);
+    padding: 4px 10px;
+    border-radius: var(--st-radius-pill);
+    font-family: var(--st-font-display);
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.eh-set__x { color: rgba(244, 255, 224, 0.5); margin: 0 1px; }

@@ -22,49 +22,33 @@
     flex-direction: column;
 }
 
-.filter-btn {
-    padding: 7px 14px;
-    border-radius: var(--st-radius-pill);
-    border: 2px solid var(--st-neon);
-    background: transparent;
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--st-neon);
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: var(--st-font-body);
-}
-
-.filter-btn--active {
-    background: var(--st-neon);
-    color: var(--st-dark);
-}
-
-.filter-chips {
-    background: var(--st-card-bg);
-    border-radius: 16px;
-    padding: 12px 14px;
-    margin-bottom: 16px;
+/* Segmented control (filtre par type) — remplace l'ancien bouton peu lisible */
+.seg {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.chip {
-    padding: 6px 14px;
+    gap: 6px;
+    background: var(--st-dark);
     border-radius: var(--st-radius-pill);
-    font-size: 12px;
-    font-weight: 700;
-    background: #f3f3f3;
-    color: #888;
-    border: none;
-    cursor: pointer;
-    font-family: var(--st-font-body);
-    transition: all 0.15s;
+    padding: 5px;
+    margin-bottom: 20px;
 }
 
-.chip--active {
+.seg__btn {
+    flex: 1;
+    padding: 9px 8px;
+    border: none;
+    border-radius: 16px;
+    background: transparent;
+    color: rgba(244, 255, 224, 0.75);
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.seg__btn--active {
     background: var(--st-neon);
     color: var(--st-dark);
 }
