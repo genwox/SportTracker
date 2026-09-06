@@ -74,6 +74,18 @@
             }
         </header>
 
+        @if (!string.IsNullOrEmpty(exerciseGifUrl))
+        {
+            <button type="button" class="live-movement" @onclick="() => showGif = true">
+                <img src="@exerciseGifUrl" alt="@exerciseName" class="live-movement__thumb" loading="lazy" />
+                <span class="live-movement__text">
+                    <span class="live-movement__title">Voir le mouvement</span>
+                    <span class="live-movement__hint">Appuie pour agrandir le GIF</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+            </button>
+        }
+
         @if (LastTimeText is not null)
         {
             <section class="live-lasttime">
@@ -157,6 +169,21 @@
     </div>
 }
 
+@if (showGif && !string.IsNullOrEmpty(exerciseGifUrl))
+{
+    <div class="gif-viewer" @onclick="() => showGif = false">
+        <button type="button" class="gif-viewer__close" @onclick="() => showGif = false" aria-label="Fermer">✕</button>
+        <div class="gif-viewer__inner" @onclick:stopPropagation>
+            <img src="@exerciseGifUrl" alt="@exerciseName" class="gif-viewer__img" />
+            <h2 class="gif-viewer__title">@exerciseName</h2>
+            @if (!string.IsNullOrEmpty(exerciseInstructions))
+            {
+                <p class="gif-viewer__instructions">@exerciseInstructions</p>
+            }
+        </div>
+    </div>
+}
+
 @if (showSheet)
 {
     <div class="sheet-backdrop" @onclick="CloseSheet"></div>
@@ -214,6 +241,7 @@
     private bool loading = true;
     private string? loadError;
     private bool showFullscreenTimer;
+    private bool showGif;
     private string exerciseName = "";
     private string? exerciseGifUrl;
     private string? exerciseInstructions;
