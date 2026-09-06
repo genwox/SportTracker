@@ -111,10 +111,19 @@
     }
     else
     {
-        <h1 class="workouts-title">
-            <span class="title-eyebrow">Exercices</span>
-            @session.Name
-        </h1>
+        <section class="psd-hero glass-hero">
+            <span class="psd-hero__eyebrow">Séance</span>
+            <h1 class="psd-hero__name">@session.Name</h1>
+            <div class="psd-hero__pills">
+                <span class="psd-pill">@exerciseCount @(exerciseCount > 1 ? "exercices" : "exercice")</span>
+                @if (totalSets > 0)
+                {
+                    <span class="psd-pill">@totalSets @(totalSets > 1 ? "séries" : "série")</span>
+                }
+            </div>
+        </section>
+
+        <div class="psd-section-label">Exercices</div>
 
         <div class="exercise-list">
             @foreach (var pe in session.Exercises.OrderBy(e => e.Order))
@@ -144,6 +153,11 @@
                 </a>
             }
         </div>
+
+        @if (firstLiveExerciseId > 0)
+        {
+            <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@firstLiveExerciseId/live" class="psd-cta">Démarrer en live</a>
+        }
     }
 
 </div>
@@ -161,6 +175,13 @@
     private bool showDropdown;
     private bool isSaving;
     private string? errorMessage;
+
+    private int exerciseCount => session?.Exercises.Count(e => e.Exercise != null) ?? 0;
+    private int totalSets => session?.Exercises.Where(e => e.Exercise != null).Sum(e => e.TargetSets) ?? 0;
+    private int firstLiveExerciseId => session?.Exercises
+        .Where(e => e.Exercise != null)
+        .OrderBy(e => e.Order)
+        .FirstOrDefault()?.ExerciseId ?? 0;
 
     protected override async Task OnInitializedAsync()
     {

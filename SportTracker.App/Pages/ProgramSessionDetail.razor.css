@@ -1,0 +1,85 @@
+/* ── ProgramSessionDetail — direction A ──────────────────── */
+
+.glass-hero {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.psd-hero {
+    border-radius: var(--st-radius-card);
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.psd-hero__eyebrow {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(23, 39, 19, 0.7);
+}
+
+.psd-hero__name {
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 32px;
+    line-height: 1.0;
+    letter-spacing: -0.5px;
+    color: var(--st-dark);
+    margin: -4px 0 0;
+}
+
+.psd-hero__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.psd-pill {
+    background: rgba(23, 39, 19, 0.1);
+    color: var(--st-dark);
+    padding: 5px 12px;
+    border-radius: var(--st-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.psd-section-label {
+    font-family: var(--st-font-display);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(23, 39, 19, 0.7);
+    margin: 14px 0 -2px 2px;
+}
+
+.psd-cta {
+    display: block;
+    text-align: center;
+    background: var(--st-neon);
+    color: var(--st-dark);
+    border-radius: var(--st-radius-pill);
+    padding: 15px;
+    font-family: var(--st-font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(212, 245, 60, 0.4);
+    margin-top: 14px;
+    transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.psd-cta:hover { filter: brightness(1.05); text-decoration: none; color: var(--st-dark); }
+.psd-cta:active { transform: scale(0.98); }
