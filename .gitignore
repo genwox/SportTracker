@@ -22,5 +22,9 @@ Obsidian
 # Scripts d'installation locaux
 dotnet-install.ps1
 
+# Sorties d'outils locaux (graphes de code)
+.codegraph/
+graphify-out/
+
 # Dataset exercises (17 MB — téléchargé via Dockerfile en prod)
 SportTracker.Data/Seed/exercises.json
