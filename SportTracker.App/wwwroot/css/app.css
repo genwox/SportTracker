@@ -178,7 +178,8 @@ code {
 .progress-page,
 .profile-page,
 .detail-page,
-.form-page {
+.form-page,
+.auth-page {
     /* `backwards` (et non `both`) : `both` retiendrait la valeur animée du
        transform sous forme de matrice identité (≠ none), ce qui crée un bloc
        conteneur et PIÈGE les position:fixed descendants (FAB, feuille). Avec
@@ -250,6 +251,44 @@ code {
 .set-input    { transition: box-shadow 0.15s ease; }
 .remove-btn   { transition: background 0.15s ease, opacity 0.15s ease; }
 .remove-btn:active { opacity: 0.6; }
+
+/* ── Fluidité tactile (couche CSS — étape 4e) ───────────────
+   Objectif : gestes plus nets sur mobile, sans JS.
+   `-webkit-tap-highlight-color` est héritable → posé sur html, il
+   supprime le flash gris au tap dans toute l'app. */
+html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+}
+
+/* `manipulation` : coupe le délai de ~300 ms et le double-tap-zoom
+   sur les éléments réellement interactifs (pas le texte). */
+a, button, [role="button"], .bottom-nav__item,
+input, select, textarea, .seg-btn {
+    touch-action: manipulation;
+}
+
+/* Retour au tap uniforme sur les cartes/éléments cliquables globaux */
+.exercise-card {
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.15s ease;
+}
+.exercise-card:active { transform: scale(0.98); }
+
+.bottom-nav__item {
+    transition: transform 0.12s ease, color 0.15s ease;
+}
+.bottom-nav__item:active { transform: scale(0.9); }
+
+/* Accessibilité : respecte la préférence système « animations réduites ». */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
 
 /* ── Shared page layout (global — used by multiple pages) ── */
 .workouts-page {
