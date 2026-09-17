@@ -1,6 +1,6 @@
 # Passation lot 2 — musculation UI V4
 
-Statut : implémenté. Branche : `feat/ui-v4`. Commit : `a679332d16ce511f1c40604dc341d495b7dcb841` (`feat(ui): porte la musculation V4`).
+Statut : implémenté. Branche : `feat/ui-v4`. Commit : `a49665e82dbcffc64acfb462d1e3b538f9f3f0c9` (`feat(ui): porte la musculation V4`).
 
 Modifications : les routes `/workoutsessions`, `/workoutsessions/new` et `/workoutsessions/{id}` sont portées depuis les frames Pencil ST1 V4 `XWc5M`, `RhUlZ` et `O63J6l`. Elles utilisent les composants partagés V4 et leurs styles scoped. La liste affiche ses cartes compactes, le formulaire conserve la recherche d'exercices et les séries dynamiques, et le détail présente le bilan (durée, volume, exercices) et les séries.
 
