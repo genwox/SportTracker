@@ -12,11 +12,33 @@
         <div class="v4-form-grid"><div class="v4-field"><label for="cardio-date">Date</label><InputDate id="cardio-date" class="v4-input" @bind-Value="form.Date" /></div><div class="v4-field"><label for="cardio-duration">Durée (min)</label><InputNumber id="cardio-duration" class="v4-input" @bind-Value="durationMinutes" min="1" /></div></div>
         <div class="v4-form-grid"><div class="v4-field"><label for="cardio-distance">Distance (km)</label><InputNumber id="cardio-distance" class="v4-input" @bind-Value="form.Distance" min="0" step="0.1" /></div><div class="v4-field"><label for="cardio-elevation">Dénivelé (m)</label><InputNumber id="cardio-elevation" class="v4-input" @bind-Value="form.ElevationGain" min="0" /></div></div></V4Card>
         @if (errorMessage is not null) { <V4State Title="Enregistrement impossible" Message="@errorMessage" IsError="true" /> }
-        <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : "Enregistrer la sortie")</V4Button><a href="/cardiosessions">Annuler</a></div>
+        <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : errorMessage is not null ? "Réessayer l’enregistrement" : "Enregistrer la sortie")</V4Button><a href="/cardiosessions">Annuler</a></div>
     </EditForm>
 </main>
 @code {
     private CardioSession form = new() { Date = DateTime.Today, Type = CardioType.Run }; private int durationMinutes = 30; private bool isSaving; private string? errorMessage;
     private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() };
-    private async Task HandleSubmit() { if (durationMinutes < 1) { errorMessage = "Indique une durée d’au moins une minute."; return; } isSaving = true; errorMessage = null; form.Duration = TimeSpan.FromMinutes(durationMinutes); try { var response = await Http.PostAsJsonAsync("api/cardiosessions", form); if (response.IsSuccessStatusCode) { var created = await response.Content.ReadFromJsonAsync<CardioSession>(); Nav.NavigateTo(created is null ? "/cardiosessions" : $"/cardiosessions/{created.Id}"); return; } errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; } finally { isSaving = false; } }
+    private async Task HandleSubmit()
+    {
+        if (isSaving) return;
+        if (string.IsNullOrWhiteSpace(form.Name)) { errorMessage = "Indique le nom de ta sortie."; return; }
+        if (durationMinutes < 1) { errorMessage = "Indique une durée d’au moins une minute."; return; }
+        if (!double.IsFinite(form.Distance) || form.Distance < 0 || !double.IsFinite(form.ElevationGain) || form.ElevationGain < 0)
+        { errorMessage = "La distance et le dénivelé doivent être des nombres positifs ou nuls."; return; }
+        isSaving = true; errorMessage = null;
+        form.Duration = TimeSpan.FromMinutes(durationMinutes);
+        try
+        {
+            using var response = await Http.PostAsJsonAsync("api/cardiosessions", form);
+            if (response.IsSuccessStatusCode)
+            {
+                var created = await response.Content.ReadFromJsonAsync<CardioSession>();
+                Nav.NavigateTo(created is null ? "/cardiosessions" : $"/cardiosessions/{created.Id}");
+                return;
+            }
+            errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées.";
+        }
+        catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; }
+        finally { isSaving = false; }
+    }
 }

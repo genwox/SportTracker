@@ -10,4 +10,29 @@ else if (notFound) { <V4State Title="Sortie introuvable" Message="Cette sortie n
 else if (errorMessage is not null) { <V4State Title="Impossible de charger la sortie" Message="@errorMessage" IsError="true" OnRetry="LoadSessionAsync" /> }
 else if (session is not null) { <V4Header Title="@(string.IsNullOrWhiteSpace(session.Name) ? TypeLabel(session.Type) : session.Name)" Subtitle="@Capitalize(session.Date.ToString("dddd dd MMMM", Fr))" BackHref="/cardiosessions" /><section class="v4-cardio-hero"><span>@TypeLabel(session.Type)</span><strong>@session.Distance.ToString("0.#", Fr)</strong><small>kilomètres</small></section><section class="v4-cardio-stats" aria-label="Bilan de la sortie"><div><strong>@FormatDuration(session.Duration)</strong><span>durée</span></div>@if (session.Distance > 0 && session.Duration.TotalSeconds > 0) { <div><strong>@Pace(session.Duration, session.Distance)</strong><span>allure /km</span></div> }<div><strong>@session.ElevationGain.ToString("0", Fr) m</strong><span>dénivelé</span></div></section> }
 </main>
-@code { [Parameter] public int Id { get; set; } private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR"); private CardioSession? session; private bool isLoading = true, notFound; private string? errorMessage; protected override Task OnInitializedAsync() => LoadSessionAsync(); private async Task LoadSessionAsync() { isLoading = true; notFound = false; errorMessage = null; try { var response = await Http.GetAsync($"api/cardiosessions/{Id}"); if (response.StatusCode == System.Net.HttpStatusCode.NotFound) { notFound = true; return; } if (!response.IsSuccessStatusCode) { errorMessage = $"Le serveur a répondu {(int)response.StatusCode}."; return; } session = await response.Content.ReadFromJsonAsync<CardioSession>(); if (session is null) errorMessage = "La réponse de la sortie est invalide."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; } finally { isLoading = false; } } private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() }; private static string FormatDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:D2}" : $"{duration.Minutes} min"; private static string Pace(TimeSpan duration, double distance) { var seconds = duration.TotalSeconds / distance; return $"{(int)(seconds / 60)}:{(int)(seconds % 60):D2}"; } private static string Capitalize(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpper(value[0]) + value[1..]; }
+@code {
+    [Parameter] public int Id { get; set; }
+    private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
+    private CardioSession? session;
+    private bool isLoading = true, notFound;
+    private string? errorMessage;
+    protected override Task OnParametersSetAsync() => LoadSessionAsync();
+    private async Task LoadSessionAsync()
+    {
+        isLoading = true; notFound = false; errorMessage = null;
+        try
+        {
+            using var response = await Http.GetAsync($"api/cardiosessions/{Id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) { notFound = true; return; }
+            if (!response.IsSuccessStatusCode) { errorMessage = $"Le serveur a répondu {(int)response.StatusCode}."; return; }
+            session = await response.Content.ReadFromJsonAsync<CardioSession>();
+            if (session is null) errorMessage = "La réponse de la sortie est invalide.";
+        }
+        catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; }
+        finally { isLoading = false; }
+    }
+    private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course à pied", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() };
+    private static string FormatDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:D2}" : $"{duration.Minutes} min";
+    private static string Pace(TimeSpan duration, double distance) { var seconds = duration.TotalSeconds / distance; return $"{(int)(seconds / 60)}:{(int)(seconds % 60):D2}"; }
+    private static string Capitalize(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpper(value[0]) + value[1..];
+}

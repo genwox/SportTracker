@@ -18,7 +18,12 @@
     protected override Task OnInitializedAsync() => LoadSessionsAsync();
     private async Task LoadSessionsAsync() { isLoading = true; errorMessage = null; try { sessions = await Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions") ?? new(); } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; } finally { isLoading = false; } }
     private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() };
-    private static string Icon(CardioType type) => type switch { CardioType.Bike => "♧", CardioType.Swim => "≈", CardioType.Walk => "↗", _ => "◒" };
+    private static MarkupString Icon(CardioType type) => new(type switch
+    {
+        CardioType.Bike => "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><circle cx='5' cy='17' r='4'/><circle cx='19' cy='17' r='4'/><path d='M5 17l5-9 5 9H5l7-11h4'/></svg>",
+        CardioType.Swim => "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><circle cx='17' cy='5' r='2'/><path d='M5 12l5-4 5 4M2 16q3-3 6 0t6 0t6 0M2 21q3-3 6 0t6 0t6 0'/></svg>",
+        _ => "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><circle cx='14' cy='4' r='2'/><path d='M7 11l5-4 3 5 5 1M12 7l-2 8 5 3 1 4M10 15l-5 7'/></svg>"
+    });
     private static string FormatDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:D2}" : $"{duration.Minutes} min";
     private static string Capitalize(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpper(value[0]) + value[1..];
 }
