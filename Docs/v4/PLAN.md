@@ -4,6 +4,8 @@ Branche dédiée : feat/ui-v4, créée depuis master (c003a39). Conserver master
 
 Un lot par chat : validation, commit distinct, passation avant suivant. Voir SUIVI.md et dossier du lot. Terra medium principal ; Sol pour 0/6/10, Luna pour 1/7. Le modèle de la session est réglé par le chat, pas par ces fichiers.
 
+Enchaînement automatique autorisé : consulter AUTOMATISATION.md. Le coordinateur lance un seul chat de lot à la fois après validation et passation ; ne pas lancer soi-même le successeur depuis un chat de lot.
+
 Source : design.pen, uniquement via Pencil, ST1 V4 prime sur Stitch. Guide RN6L1, navigation HL6hb. Lire les nœuds du lot, jamais tout le document. Mobile 390 px, contrôles 320 et desktop. Pas de barre de statut fictive.
 
 Tokens : Paragon (8).jpg, Foruner titres, Plus Jakarta Sans contrôles/texte ; cartes #F8FFFFE6, surface #DDF6F4D9, encre #082D45, secondaire #315A70, citron #D4F53C. Assets copiés uniquement si décodables ; ASSETS.md.
