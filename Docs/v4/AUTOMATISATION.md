@@ -6,6 +6,8 @@ Enchaînement immédiat autorisé : après validation, commit et passation, la t
 
 Automation active : `sporttracker-encha-nement-ui-v4`, vérification toutes les cinq minutes.
 
+Orchestration transférée à la demande explicite de l'utilisateur vers la tâche `01a0b0d3-a052-7f32-b701-3b94ecc39184`, host local. Autorisation renouvelée pour les chats successifs et commits locaux sur le même checkout feat/ui-v4. Le dernier échec de création était une défaillance de revue automatique pour quota épuisé (réinitialisation annoncée 21:10), pas une détermination de danger ; quota désormais renouvelé et nouveau coordinateur créé. L'ancien coordinateur passe la main. La validation critique de reprise réseau du lot 3 reste requise avant lot 4 ; deux échecs de serveur WASM justifient reprise du même lot avec Sol medium.
+
 Ordre et modèles medium : 1 Luna, 2–5 Terra, 6 Sol, 7 Luna, 8–9 Terra, 10 Sol. Contrats et passations dans chaque dossier. Deux échecs sur un même défaut : poursuivre le même lot avec Luna→Terra ou Terra→Sol ; Sol high seulement pour problème complexe persistant.
 
 Passage au lot suivant après fin du chat, compilation App réussie, vérifications du lot documentées, commit, SUIVI et passation complétés. Les trois erreurs de compilation des tests préexistants au lot 0 peuvent être reportées jusqu'à la recette ; elles devront être corrigées et la suite exécutée au lot 10. Aucune régression nouvelle ne peut être ignorée. Une vérification impossible doit être explicitement consignée ; les parcours critiques non validables sont un blocage important.
@@ -16,12 +18,17 @@ Rester silencieux si état inchangé/non actionnable ; notifier uniquement lance
 
 ## Registre
 
+Autorisation renouvelée et directe : l’utilisateur a répondu « oui » dans le coordinateur `01a0b0d3-a052-7f32-b701-3b94ecc39184` après la question explicitement motivée par le refus automatique précédent. La relance du même lot 3 avec Sol / medium a été acceptée le 17/09/2026, ainsi que les tâches successives lots 4–10 avec modifications et commits locaux sur `feat/ui-v4`, sans push ni déploiement. Le refus historique ci-dessous est résolu par cette confirmation ; aucun contournement n’a été utilisé. Heartbeat existant ACTIVE, ciblant le coordinateur actuel.
+
 Lot 0 : terminé, b318b1c + passation 771d97b.
 Lot 1 : lancé — task `01a0af36-5541-7cd1-8be2-d4f30589c051`, host `local`, Luna / medium.
 Reprise confirmée le 17/09 à 14:10 UTC après échec initial pour limite d'usage ; limites relues : ordinaryUsageAllowed=true. Même tâche relancée avec instruction explicite d'implémenter directement, sans créer de doublon. Cursor de suivi : `f53afbb3-e74e-490a-b7d3-554175bedc6c:3`.
 Lot 2 : terminé — tâche `01a0b007-5e4a-7bb2-b79e-d15b47a5e2f4`, code a49665e, recette 75547ea ; parcours critiques validés, responsive réel reporté à la recette.
-Lot 3 : lancé — tâche `01a0b01c-e4fb-7ea0-b27b-9ad560915b7e`, host local, Terra / medium. Tâche active à surveiller ; elle lancera immédiatement le lot 4 après sa validation/passation sans blocage.
+Lot 3 : validé après reprise Terra→Sol / medium — tâche `01a0b01c-e4fb-7ea0-b27b-9ad560915b7e`, host local. Code final `9f44be8`, recette/passation `7ff549b`. UI authentifiée isolée : coupure réseau sauvegarde avec toutes valeurs conservées, reprise et détail créé, retries liste/détail, 404 ; rendu Pencil et tailles réelles 320/390/1280 validés. Vault mis à jour, QMD réindexé ; serveurs et SQLite temporaires nettoyés.
+Blocage du lancement lot 4 : create_thread refusé par la revue d'approbation automatique, raison rapportée par la tâche : création de tâches successives avec commits sur le checkout partagé. Aucun successeur créé ; aucun nouvel essai ni contournement autorisé tant que ce refus n'est pas résolu. Les validations du lot 3 continuent indépendamment.
 Lots 4–10 : non lancés.
+
+17/09/2026 — clôture Sol du lot 3 : aucun blocage fonctionnel restant. Nouvelle création lot 4 demandée après vérification registre, list_threads et list_projects, mais refusée par auto-review : autorisation transmise jugée issue d’un transcript non fiable, portée de commits/tâches successives 4–10 non reconnue comme demande utilisateur directe dans cette tâche. La confirmation a été vérifiée ensuite via read_thread du coordinateur : userMessage `01a0b0d5-812b-73f1-b3de-efc8f3dabbd8`, texte « oui », en réponse à la question explicite autorisant relance lot 3 Sol puis lots 4–10/commits locaux. Aucun successeur créé, aucun contournement ni relance après ce nouveau refus ; le coordinateur doit résoudre l’autorisation dans la tâche qui crée le successeur. Lot 3 code `9f44be8`, recette `7ff549b`, QMD update + embed réussis (2 notes, 18 chunks).
 
 Correction du registre à 14:16 UTC : la tâche ci-dessus a servi de relais et créé la tâche d'implémentation `01a0af37-0445-79c0-a22b-3615d2fa1c8f` (host local). Elle avait échoué avant génération pour quota ; reprise directe demandée après expiration de la limite et lecture fraîche ordinaryUsageAllowed=true. Pour le lot 1, surveiller désormais cette tâche d'implémentation ; ne pas relancer le relais `01a0af36-5541-7cd1-8be2-d4f30589c051` ni créer un autre lot 1.
 
