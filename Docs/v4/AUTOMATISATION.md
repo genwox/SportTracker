@@ -20,3 +20,5 @@ Lot 0 : terminé, b318b1c + passation 771d97b.
 Lot 1 : lancé — task `01a0af36-5541-7cd1-8be2-d4f30589c051`, host `local`, Luna / medium.
 Reprise confirmée le 17/09 à 14:10 UTC après échec initial pour limite d'usage ; limites relues : ordinaryUsageAllowed=true. Même tâche relancée avec instruction explicite d'implémenter directement, sans créer de doublon. Cursor de suivi : `f53afbb3-e74e-490a-b7d3-554175bedc6c:3`.
 Lots 2–10 : non lancés.
+
+Correction du registre à 14:16 UTC : la tâche ci-dessus a servi de relais et créé la tâche d'implémentation `01a0af37-0445-79c0-a22b-3615d2fa1c8f` (host local). Elle avait échoué avant génération pour quota ; reprise directe demandée après expiration de la limite et lecture fraîche ordinaryUsageAllowed=true. Pour le lot 1, surveiller désormais cette tâche d'implémentation ; ne pas relancer le relais `01a0af36-5541-7cd1-8be2-d4f30589c051` ni créer un autre lot 1.
