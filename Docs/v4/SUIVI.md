@@ -3,7 +3,7 @@
 | Lot | Contrat | Modèle prévu | État |
 |---|---|---|---|
 | 0 | [socle](00-socle/CONTRAT.md) | Sol / medium | Implémenté ; build et contrôle composants OK ; suite existante bloquée (voir passation) |
-| 1 | [authentification](01-authentification/CONTRAT.md) | Luna / medium | À réaliser |
+| 1 | [authentification](01-authentification/CONTRAT.md) | Luna / medium | Implémenté ; build et contrôles auth UI OK ; 404 protégé non visualisé sans compte |
 | 2 | [musculation](02-musculation/CONTRAT.md) | Terra / medium | À réaliser |
 | 3 | [cardio](03-cardio/CONTRAT.md) | Terra / medium | À réaliser |
 | 4 | [carnets](04-carnets/CONTRAT.md) | Terra / medium | À réaliser |
