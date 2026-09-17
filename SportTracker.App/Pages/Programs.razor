@@ -18,11 +18,9 @@
         <section class="v4-program-list" aria-label="Mes carnets">
             @foreach (var program in programs)
             {
-                var sessions = program.Sessions?.Count ?? 0;
-                var exercises = program.Sessions?.Sum(session => session.Exercises?.Count ?? 0) ?? 0;
                 <a class="v4-program-row" href="/programs/@program.Id">
                     <span class="v4-program-row__swatch" style="background-color:@program.ColorHex" aria-hidden="true"></span>
-                    <span class="v4-program-row__content"><strong>@program.Name</strong><small>@ProgramMeta(program, sessions, exercises)</small></span>
+                    <span class="v4-program-row__content"><strong>@program.Name</strong><small>@ProgramMeta(program)</small></span>
                     <span class="v4-program-row__chevron" aria-hidden="true">›</span>
                 </a>
             }
@@ -42,9 +40,6 @@
         catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; }
         finally { isLoading = false; }
     }
-    private static string ProgramMeta(WorkoutProgram program, int sessions, int exercises)
-    {
-        var structure = $"{sessions} séance{(sessions > 1 ? "s" : "")} · {exercises} exercice{(exercises > 1 ? "s" : "")}";
-        return string.IsNullOrWhiteSpace(program.Objective) ? structure : $"{program.Objective} · {structure}";
-    }
+    private static string ProgramMeta(WorkoutProgram program)
+        => string.IsNullOrWhiteSpace(program.Objective) ? "Carnet d’entraînement" : program.Objective;
 }
