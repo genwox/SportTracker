@@ -4,7 +4,7 @@
 .v4-field { display: grid; gap: 6px; }
 .v4-field label, .v4-set-head { color: var(--st-secondary); font-size: 12px; font-weight: 600; }
 .v4-input, .v4-set-row input { width: 100%; min-height: 44px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); padding: 10px 12px; font-size: 14px; }
-.v4-input:focus, .v4-set-row input:focus { outline: 2px solid #082d4540; border-color: var(--st-ink); }
+.v4-input:focus, .v4-set-row input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
 .v4-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .v4-exercise-editor { display: grid; gap: 12px; }
 .v4-exercise-editor__title { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; }
@@ -24,3 +24,7 @@
 .v4-form-actions .v4-button { width: 100%; }
 .v4-form-actions a { color: var(--st-secondary); font-size: 12px; text-decoration: none; }
 @media (max-width: 360px) { .v4-workout-form { padding-inline: 16px; } .v4-form-grid { gap: 8px; } .v4-set-head, .v4-set-row { gap: 5px; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 20px; } .v4-set-head { font-size: 10px; } }
+/* InputText/InputDate/InputNumber sont des composants : leur <input> ne porte pas l'attribut scoped de la page. */
+.v4-workout-form ::deep .v4-input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); padding: 10px 12px; font-size: 14px; }
+.v4-workout-form ::deep .v4-input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
+.v4-workout-form .v4-form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

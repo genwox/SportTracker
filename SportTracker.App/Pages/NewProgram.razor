@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<main class="v4-program-form">
+<div class="v4-program-form">
     <V4Header Title="Nouveau carnet" Subtitle="Prépare tes séances" BackHref="/programs" />
     <EditForm Model="form" OnValidSubmit="HandleSubmit"><DataAnnotationsValidator />
         <V4Card><div class="v4-field"><label for="program-name">Nom du carnet</label><InputText id="program-name" class="v4-input" @bind-Value="form.Name" placeholder="Ex. Full body" /></div><div class="v4-field"><label for="program-objective">Objectif <span>(facultatif)</span></label><InputText id="program-objective" class="v4-input" @bind-Value="form.Objective" placeholder="Ex. Reprendre en douceur" /></div><div class="v4-field"><label>Couleur</label><div class="v4-color-picker">@foreach (var color in ColorOptions) { var selected = form.ColorHex == color; <button type="button" class="@(selected ? "selected" : "")" style="background-color:@color" aria-label="Choisir la couleur @color" aria-pressed="@selected" @onclick="() => form.ColorHex = color"></button> }</div></div></V4Card>
@@ -11,7 +11,7 @@
         @if (errorMessage is not null) { <V4State Title="Création impossible" Message="@errorMessage" IsError="true" /> }
         <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Création…" : errorMessage is not null ? "Réessayer la création" : "Créer le carnet")</V4Button><a href="/programs">Annuler</a></div>
     </EditForm>
-</main>
+</div>
 @code {
     private WorkoutProgram form = new(); private List<SessionForm> sessions = new() { new() }; private bool isSaving; private string? errorMessage;
     private static readonly string[] ColorOptions = ["#4A90D9", "#E57C3A", "#5BBD72", "#D94A6B", "#9B59B6", "#1ABC9C", "#E74C3C", "#F1C40F"];

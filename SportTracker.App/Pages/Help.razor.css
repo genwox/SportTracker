@@ -1,5 +1,6 @@
-.hlp-page { display: grid; gap: 12px; padding-bottom: 12px; }
+.hlp-page { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; padding: 52px 20px calc(var(--st-nav-height) + env(safe-area-inset-bottom) + 24px); display: grid; gap: 12px; align-content: start; }
 
 .hlp-item { display: grid; gap: 6px; }
 .hlp-item strong { font-size: 14px; font-weight: 700; color: var(--st-dark); }
 .hlp-item p { margin: 0; font-size: 13px; font-weight: 500; color: var(--st-nav-inactive); line-height: 1.5; }
+@media (max-width: 360px) { .hlp-page { padding-inline: 16px; } }

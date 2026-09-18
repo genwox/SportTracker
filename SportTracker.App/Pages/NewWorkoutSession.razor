@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<main class="v4-workout-form">
+<div class="v4-workout-form">
     <V4Header Title="Nouvelle séance" Subtitle="‹ Retour aux séances" BackHref="/workoutsessions" />
     @if (isLoading)
     {
@@ -78,7 +78,7 @@
             <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : "Enregistrer la séance")</V4Button><a href="/workoutsessions">Annuler</a></div>
         </EditForm>
     }
-</main>
+</div>
 
 @code {
     private WorkoutSession form = new() { Date = DateTime.Today };

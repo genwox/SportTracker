@@ -4,7 +4,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<main class="v4-session-form">
+<div class="v4-session-form">
     <V4Header Title="Nouvelle séance" Subtitle="@(program is null ? null : $"‹ {program.Name}")" BackHref="@($"/programs/{ProgramId}")" />
     @if (isLoading) { <V4Loading /> }
     else if (notFound) { <V4State Title="Carnet introuvable" Message="Il a peut-être été supprimé ou n’est plus accessible."><V4Button Href="/programs" Secondary="true">Revenir aux carnets</V4Button></V4State> }
@@ -99,7 +99,7 @@
             </div>
         }
     }
-</main>
+</div>
 
 @code {
     [Parameter] public int ProgramId { get; set; }

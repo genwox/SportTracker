@@ -4,7 +4,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<main class="v4-cardio-form">
+<div class="v4-cardio-form">
     <V4Header Title="Nouvelle sortie" Subtitle="Cardio" BackHref="/cardiosessions" />
     <EditForm Model="form" OnValidSubmit="HandleSubmit"><DataAnnotationsValidator />
         <V4Card><div class="v4-field"><label for="cardio-name">Nom</label><InputText id="cardio-name" class="v4-input" @bind-Value="form.Name" placeholder="Ex. Run matinal" /></div>
@@ -14,7 +14,7 @@
         @if (errorMessage is not null) { <V4State Title="Enregistrement impossible" Message="@errorMessage" IsError="true" /> }
         <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : errorMessage is not null ? "Réessayer l’enregistrement" : "Enregistrer la sortie")</V4Button><a href="/cardiosessions">Annuler</a></div>
     </EditForm>
-</main>
+</div>
 @code {
     private CardioSession form = new() { Date = DateTime.Today, Type = CardioType.Run }; private int durationMinutes = 30; private bool isSaving; private string? errorMessage;
     private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() };
