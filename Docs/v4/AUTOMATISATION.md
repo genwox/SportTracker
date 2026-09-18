@@ -91,3 +91,7 @@ Heartbeat09:22UTC — lot7 session réelle701e3cd6-7887-4ddc-90a9-a74607a73a7d e
 Heartbeat09:29UTC — après configurations de recette incomplètes répétées (isolation absente puis variables non définies ; script chemin MSYS fourni à SQLite natif), lot7 escaladé Haiku vers Sonnet dans la même session701e3cd6/exec77962 selon règle du plan. Aucun fallback de quota ni contournement de protection. Lancements incomplets rejetés avant exécution ; correction DataSource cheminWindows et API/App/CORS demandée.
 
 Heartbeat09:35UTC — script de recette Sonnet relu : SQLite cheminWindows unique explicite, API5294/App5281 avec --no-launch-profile, CORS local vérifié, dotnetrun. Commande conforme autorisée ; option native auto mode Sonnet sélectionnée (classificateur d’approbation actif, aucune désactivation de protections). Recette lot7 reprend.
+
+09:51UTC — lot7 validé code0bd4ec9/docs885eb70. Session77962 arrêtée exit0. Notes vault complétées par coordinateur via CLI QMD sporttracker ; indexation en cours avant lot8. Cas un seul point historique reporté recette10.
+
+QMD lot7 complété : update2notes et embed17chunks réussis ; passation corrigée. Lot8 session distincte ouverte exec83419 Sonnet5 medium Pro, en attente instruction métier après contrôle quota.
