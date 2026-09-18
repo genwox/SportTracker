@@ -1,10 +1,12 @@
 # Refonte UI V4
 
+**EXÉCUTION AUTORISÉE le 18/09/2026 par nouvelle instruction directe de lancement.** Coordination transférée à la tâche 01a0b374-ec7a-7dd0-b9fb-b512441babc7. Reprendre le lot 4 avant le lot 5 ; priorité Claude abonnement Pro, contrôles login/modèle/usage avant appel métier. Les mentions de suspension ci-dessous sont historiques.
+
 Branche dédiée : feat/ui-v4, créée depuis master (c003a39). Conserver master ; retour par checkout ou revert, jamais suppression du travail. CLAUDE.md local exclu des commits. Aucun merge/push/déploiement avant recette et instruction dédiée.
 
 Un lot par chat : validation, commit distinct, passation avant suivant. Voir SUIVI.md et dossier du lot. Terra medium principal ; Sol pour 0/6/10, Luna pour 1/7. Le modèle de la session est réglé par le chat, pas par ces fichiers.
 
-Enchaînement immédiat autorisé : consulter AUTOMATISATION.md. Chaque tâche lance son successeur après validation, commit et passation ; le coordinateur surveille et reprend les interruptions. Aucun doublon ni lot métier concurrent.
+Après une nouvelle instruction de lancement uniquement : consulter AUTOMATISATION.md. OpenAI coordonne les sessions Claude et les tâches OpenAI de fallback ; le coordinateur lance le successeur après validation, commit et passation. Aucun doublon ni lot métier concurrent.
 
 Source : design.pen, uniquement via Pencil, ST1 V4 prime sur Stitch. Guide RN6L1, navigation HL6hb. Lire les nœuds du lot, jamais tout le document. Mobile 390 px, contrôles 320 et desktop. Pas de barre de statut fictive.
 

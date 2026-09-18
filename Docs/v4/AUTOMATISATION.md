@@ -1,5 +1,7 @@
 # Enchaînement automatique V4
 
+**EXÉCUTION AUTORISÉE le 18/09/2026 par nouvelle instruction directe de lancement.** Coordination transférée à la tâche 01a0b374-ec7a-7dd0-b9fb-b512441babc7. Reprendre le lot 4 avant le lot 5 ; priorité Claude abonnement Pro, contrôles login/modèle/usage avant appel métier. Les mentions de suspension ci-dessous sont historiques.
+
 Autorisation utilisateur du 17/09/2026 : lancer automatiquement les chats successifs du plan, tant qu'aucun blocage important ne l'empêche.
 
 Enchaînement immédiat autorisé : après validation, commit et passation, la tâche du lot lance elle-même le chat suivant et inscrit son identifiant ici. Le heartbeat du socle sert de surveillance et de reprise si une tâche s'arrête avant la passation. Un seul lot d'implémentation actif ; aucun lancement par le coordinateur tant que la tâche courante travaille ou prépare son successeur. Vérifier registre et statut réel avant toute création. Projet SportTracker, environnement local partagé pour conserver feat/ui-v4, sans worktree/branche supplémentaire.
@@ -43,3 +45,31 @@ Nouvelle instruction utilisateur : passer aussitôt au lot suivant sans blocage.
 Si blocage important : ne pas lancer le suivant, inscrire le blocage et notifier le coordinateur/utilisateur. Les seules limitations de viewport réellement indisponible restent documentées pour la recette finale ; les parcours critiques fonctionnels sont requis avant passage. Après lot 10 : pas de successeur, bilan final et supprimer l'automation de suivi.
 
 17/09/2026 — lot 4 lancé directement depuis le coordinateur disposant de la confirmation utilisateur : tâche 01a0b0e2-a173-7a60-9133-2ef392a01671, host local, Terra / medium, même checkout feat/ui-v4. Refus inter-tâches résolu par création autorisée depuis le coordinateur. Pour les lots suivants, la tâche métier clôture et informe le coordinateur ; le coordinateur crée immédiatement le successeur après vérification validations et absence de doublon. Cette règle remplace la création par la tâche métier, sans modifier ordre, modèles, critères de validation ni heartbeat existant.
+
+18/09/2026 — transfert demandé vers Claude Code au premier plan, OpenAI fallback inchangé. Voir CLAUDE-ORCHESTRATION.md. Aucun nouveau lot à lancer pendant transfert : lot4 idle/interrompu, modifications à préserver. Lancement Claude refusé par auto-review pour autorisation spécifique de transmission des documents du projet à Anthropic manquante ; confirmation directe demandée. Reprise métier suspendue jusqu’à résolution, sans nouvelle automation.
+
+18/09/2026 — autorisation directe utilisateur de lecture et transmission des fichiers SportTracker nécessaires à Anthropic confirmée. OpenAI coordonne ; Claude Code exécute, priorité Claude puis fallback OpenAI selon plan inchangé. Lot4 repris dans terminal interactif au premier plan session exec 35806, nom SportTracker V4 lot 4, sonnet demandé / medium, abonnement Pro (clé API retirée seulement du processus). Ancienne tâche OpenAI lot4 idle/interrompue, ne pas la relancer pendant Claude. Aucun lot5 avant validation/clôture. Contrôler terminal pour permissions/progrès et consigner identifiant Claude réel dès disponible. Un seul agent métier.
+
+Session35806 : lancement accepté mais UI indique Not logged in / API Usage Billing avant requête ; aucun appel métier exécuté. /login sélection Claude account with subscription ouvert, attend connexion navigateur. Auth status hors interactif avait confirmé Pro, mais accès réel interactif non encore confirmé. Ne considérer abonnement actif qu’après écran Pro et réponse réussie. Heartbeat existant mis à jour pour OpenAI coordonnant Claude et attente session35806.
+
+18/09/2026 — nouvelle instruction directe utilisateur de LANCEMENT : suspension révoquée, coordination transférée intégralement à tâche 01a0b374-ec7a-7dd0-b9fb-b512441babc7, host local, même checkout feat/ui-v4. OpenAI coordonne Claude Terminal en priorité et fallbacks bidirectionnels documentés. Ancien coordinateur passe la main sans autre travail métier. Reprendre lot4 incomplet, aucun doublon. Heartbeat existant à réactiver/cibler sur nouveau coordinateur. Les entêtes suspendus historiques doivent être actualisés par ce dernier.
+
+18/09/2026 — nouveau coordinateur 01a0b374-ec7a-7dd0-b9fb-b512441babc7, reprise explicitement autorisée. Lot4 OpenAI confirmé idle/interrompu ; aucun processus Claude trouvé. Cinq fichiers de corrections préservés. Contrôle auth sans clé héritée : loggedIn=false ; connexion interactive abonnement requise avant métier. Aucun lot5 lancé.
+
+Session Claude interactive exec94389 : SportTracker V4 lot 4 reprise, Sonnet demandé medium ; /login abonnement sélectionné, attente connexion navigateur/code. Aucun appel métier. Heartbeat existant confirmé ACTIVE et transféré vers le nouveau coordinateur. Ne pas relancer Claude ni fallback tant que connexion en attente. Build sandbox échoué sur hôte WASM ; vérification hors sandbox demandée.
+
+Contrôle reprise : build App hors sandbox réussi, 0 avertissement/erreur ; diff check OK. Connexion Claude reste requise avant validation visuelle finale et commit lot4.
+
+Connexion achevée : /status Claude Pro account, modèle sonnet (claude-sonnet-5), medium ; /usage session 0%, semaine 3%. Session réelle 3aa8af7a-2cbe-4de1-8cf2-920e63274b4b, exec94389. Reprise métier lot4 envoyée : contrôle Pencil/navigateur, corrections et recette finale, commits ciblés/passation/vault avant notification coordinateur ; aucun lot5 autonome ni agent concurrent.
+
+Heartbeat 07:53 UTC : Claude poursuit lot4, Pencil MCP ciblé/captures accessibles, build App/API réussis. Limite navigateur Pencil lecture seule confirmée ; option installation Playwright MCP officiel sélectionnée selon autorisation de configuration à reprise et protocole documenté, contexte isolé visible requis. Aucun lot5 lancé.
+
+Heartbeat 07:59 UTC : Playwright MCP officiel ajouté puis configuré --isolated, visible par défaut (documentation playwright.dev). Session exec94389 arrêtée proprement, exit0 ; même session Claude 3aa8af7a-2cbe-4de1-8cf2-920e63274b4b reprise exec58485 Sonnet medium. Instruction recette interactive envoyée. Serveurs synthétiques existants API5294/App5281 conservés par Claude avec PID scratchpad. Aucun commit/lot5 encore.
+
+18/09/2026 08:18 UTC — lot4 clôturé : code2b59dbf, docs0845286, passation/SUIVI/vault/QMD complets. Session58485 arrêtée exit0, tâche de recherche arrière-plan également arrêtée ; processus restants sont Claude Desktop, aucun CLI métier concurrent. Lot5 autorisé et lancement session distincte Sonnet medium sur feat/ui-v4 en préparation.
+
+Lot5 lancé session Claude distincte SportTracker V4 lot 5, terminal exec81240, Sonnet medium, Pro confirmé et clé héritée retirée uniquement du processus. Prompt complet affiché et démarrage réel observé. Lot4 terminé, aucun CLI métier concurrent. Contrat05-seances-carnet, PencilLa8gW/OFRUp/T7m46i/ffz2R et recette interactive isolée requis avant commits/passation puis lot6 par coordinateur. Le registre frais remplace les identifiants historiques du heartbeat.
+
+18/09/2026 — lot5 clôturé : code `002e419`. Pencil relu (La8gW/OFRUp/T7m46i/ffz2R), recette Playwright authentifiée isolée complète (recherche/sélection/confirmation/annulation d'exercice, coupure réseau avec valeurs conservées puis retry vérifié en base, 404 séance et carnet, 320/390/1280 sans débordement, clavier). SUIVI/passation/vault mis à jour ; QMD à réindexer. Serveurs isolés et base SQLite temporaire nettoyés. Aucun lot6 lancé par cette session (pas de coordinateur/agent concurrent depuis cette session Claude) ; lot6 à lancer par le coordinateur selon le protocole existant.
+
+Heartbeat08:25UTC — lot5 Claude session réelle ec27f06d-5822-4c37-b528-dc66a36a8e5c, exec81240, implémentation des deux pages/style scoped en cours de recette locale isolée API5294/App5281. Aucun commit ni lot6 avant validation/passation.
