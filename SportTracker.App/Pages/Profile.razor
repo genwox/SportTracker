@@ -117,7 +117,6 @@
     private DateTime? memberSince;
     private string? email;
 
-    private sealed record ManageInfo(string? Email);
     private sealed record UnavailableItem(string Label, string IconSvg);
 
     private readonly List<UnavailableItem> unavailableItems =
@@ -145,23 +144,17 @@
 
         try
         {
-            var info = await Http.GetFromJsonAsync<ManageInfo>("manage/info");
-            email = info?.Email;
-        }
-        catch
-        {
-            // endpoint optionnel : on retombe sur "Compte"
-        }
-
-        try
-        {
+            // Identité et objectif passent par WeeklyGoalService : un seul appel
+            // manage/info, jamais mémorisé en cas d'échec (le retry le relance).
             var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
             var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+            var emailTask    = WeeklyGoal.GetEmailAsync();
             var goalTask     = WeeklyGoal.GetGoalAsync();
-            await Task.WhenAll(workoutsTask, cardioTask, goalTask);
+            await Task.WhenAll(workoutsTask, cardioTask, emailTask, goalTask);
 
             var workouts = workoutsTask.Result ?? [];
             var cardio   = cardioTask.Result ?? [];
+            email        = emailTask.Result;
             weeklyGoal   = goalTask.Result;
 
             totalSessions = workouts.Count + cardio.Count;

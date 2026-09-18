@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.JSInterop;
+using SportTracker.App.Auth;
 
 namespace SportTracker.App.Services;
 
@@ -9,13 +10,22 @@ namespace SportTracker.App.Services;
 /// nom d'affichage générique) : sans identité ni stockage disponibles, la
 /// valeur reste le défaut et toute sauvegarde échoue explicitement.
 /// </summary>
-public class WeeklyGoalService(HttpClient http, IJSRuntime js)
+/// <remarks>
+/// L'identité (GET manage/info) est mise en cache pour le jeton courant seulement :
+/// un changement de compte sans rechargement (déconnexion → connexion) force une
+/// nouvelle lecture, et un échec (coupure réseau) n'est jamais mémorisé, pour qu'un
+/// « Réessayer » retrouve l'objectif réel une fois l'API revenue. Les appels
+/// concurrents partagent la même requête en cours.
+/// </remarks>
+public class WeeklyGoalService(HttpClient http, IJSRuntime js, TokenStore tokens)
 {
     public const int DefaultGoal = 4;
     private const string KeyPrefix = "st-weekly-goal:v1:";
 
-    private string? _email;
-    private bool _emailLoaded;
+    private string? _cachedToken;
+    private string? _cachedEmail;
+    private Task<string?>? _pending;
+    private string? _pendingToken;
 
     public async Task<bool> IsAvailableAsync() => await GetEmailAsync() is not null;
 
@@ -57,20 +67,56 @@ public class WeeklyGoalService(HttpClient http, IJSRuntime js)
         }
     }
 
-    private async Task<string?> GetEmailAsync()
+    /// <summary>Email du compte connecté (normalisé), ou null si l'identité ne peut
+    /// pas être confirmée (pas de jeton, API injoignable, réponse sans email).</summary>
+    public async Task<string?> GetEmailAsync()
     {
-        if (_emailLoaded) return _email;
+        string? token;
+        try
+        {
+            token = await tokens.GetTokenAsync();
+        }
+        catch (JSException)
+        {
+            return null;
+        }
+        if (string.IsNullOrEmpty(token)) return null;
+
+        if (_cachedEmail is not null && _cachedToken == token) return _cachedEmail;
+
+        if (_pending is null || _pendingToken != token)
+        {
+            _pendingToken = token;
+            _pending = FetchEmailAsync();
+        }
+
+        var pending = _pending;
+        var email = await pending;
+
+        if (ReferenceEquals(_pending, pending))
+        {
+            _pending = null;
+            _pendingToken = null;
+            if (email is not null)
+            {
+                _cachedToken = token;
+                _cachedEmail = email;
+            }
+        }
+        return email;
+    }
+
+    private async Task<string?> FetchEmailAsync()
+    {
         try
         {
             var info = await http.GetFromJsonAsync<ManageInfo>("manage/info");
-            _email = string.IsNullOrWhiteSpace(info?.Email) ? null : info.Email.Trim().ToLowerInvariant();
+            return string.IsNullOrWhiteSpace(info?.Email) ? null : info.Email.Trim().ToLowerInvariant();
         }
         catch
         {
-            _email = null;
+            return null;
         }
-        _emailLoaded = true;
-        return _email;
     }
 
     private static string KeyFor(string email) => KeyPrefix + email;
