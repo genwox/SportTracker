@@ -6,126 +6,130 @@
 @inject HttpClient Http
 
 <div class="today-page">
-
-    <header class="today-head">
-        <p class="today-eyebrow">@headerDate</p>
-        <h1 class="today-title">@greeting</h1>
-    </header>
+    <V4Header Title="@greeting" Subtitle="@subtitle" />
 
     @if (loading)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skel-row">
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-            </div>
-            <div class="st-skeleton st-skel-med"></div>
-        </div>
+        <V4Loading />
+    }
+    else if (errorMessage is not null)
+    {
+        <V4State Title="Impossible de charger ta journée" Message="@errorMessage" IsError="true" OnRetry="LoadAsync" />
     }
     else
     {
-        @* ── Hero : séance du jour ── *@
         @if (todayWorkout != null)
         {
-            <section class="today-hero glass-hero">
-                <div class="today-hero__glow"></div>
-                <div class="today-hero__head">
-                    <span class="today-hero__eyebrow">Séance du jour</span>
-                    <h2 class="today-hero__name">@todayWorkout.Name</h2>
+            <V4Card>
+                <div class="t-hero">
+                    <span class="t-hero__eyebrow">Ta séance du jour</span>
+                    <h2 class="t-hero__name">@todayWorkout.Name</h2>
+                    <span class="t-hero__meta">@(todayWorkout.WorkoutExercises?.Count ?? 0) exercice@((todayWorkout.WorkoutExercises?.Count ?? 0) > 1 ? "s" : "") • @((int)todayWorkout.Duration.TotalMinutes) min</span>
+                    <V4Button Href="@($"/workoutsessions/{todayWorkout.Id}")">Commencer la séance</V4Button>
                 </div>
-                <div class="today-hero__pills">
-                    <span class="hero-pill">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
-                        @(todayWorkout.WorkoutExercises?.Count ?? 0) exercices
-                    </span>
-                    @if (todayWorkout.Duration.TotalMinutes >= 1)
-                    {
-                        <span class="hero-pill">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-                            @((int)todayWorkout.Duration.TotalMinutes) min
-                        </span>
-                    }
-                </div>
-                <a href="/workoutsessions/@todayWorkout.Id" class="today-hero__cta">Commencer la séance</a>
-            </section>
+            </V4Card>
         }
         else if (todayCardio != null)
         {
-            <section class="today-hero glass-hero">
-                <div class="today-hero__glow"></div>
-                <div class="today-hero__head">
-                    <span class="today-hero__eyebrow">Cardio du jour</span>
-                    <h2 class="today-hero__name">@todayCardio.Name</h2>
+            <V4Card>
+                <div class="t-hero">
+                    <span class="t-hero__eyebrow">Cardio du jour</span>
+                    <h2 class="t-hero__name">@todayCardio.Name</h2>
+                    <span class="t-hero__meta">@todayCardio.Distance.ToString("0.#", frFR) km • @((int)todayCardio.Duration.TotalMinutes) min</span>
+                    <V4Button Href="@($"/cardiosessions/{todayCardio.Id}")">Voir la séance</V4Button>
                 </div>
-                <div class="today-hero__pills">
-                    <span class="hero-pill">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l-4 16"/><circle cx="18" cy="6" r="2"/><path d="M4 9l4-1 3 3 3 1"/></svg>
-                        @todayCardio.Distance.ToString("0.#", frFR) km
-                    </span>
-                    @if (todayCardio.Duration.TotalMinutes >= 1)
-                    {
-                        <span class="hero-pill">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-                            @((int)todayCardio.Duration.TotalMinutes) min
-                        </span>
-                    }
-                </div>
-                <a href="/cardiosessions/@todayCardio.Id" class="today-hero__cta">Voir la séance</a>
-            </section>
+            </V4Card>
         }
         else
         {
-            <section class="today-hero glass-hero today-hero--empty">
-                <div class="today-hero__glow"></div>
-                <h2 class="today-hero__name">Aucune séance aujourd'hui</h2>
-                <p class="today-hero__sub">C'est le bon moment pour s'y mettre.</p>
-                <div class="today-hero__actions">
-                    <a href="/workoutsessions/new" class="hero-action hero-action--dark">+ Muscu</a>
-                    <a href="/cardiosessions/new" class="hero-action hero-action--outline">+ Cardio</a>
+            <V4Card>
+                <div class="t-hero t-hero--empty">
+                    <div class="t-hero__icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+                    </div>
+                    <h2 class="t-hero__name">Aucune séance aujourd'hui</h2>
+                    <p class="t-hero__sub">Enregistre ta première séance pour commencer ton suivi.</p>
+                    <div class="t-hero__actions">
+                        <V4Button Href="/workoutsessions/new">+ Séance musculation</V4Button>
+                        <V4Button Href="/cardiosessions/new" Secondary="true">+ Séance cardio</V4Button>
+                    </div>
                 </div>
-            </section>
+            </V4Card>
         }
 
-        @* ── Stats de la semaine ── *@
-        <section class="today-week">
-            <h3 class="today-section-label">Cette semaine</h3>
-            <div class="week-grid">
-                <div class="week-stat">
-                    <span class="week-stat__label">Séances</span>
-                    <span class="week-stat__val">@weekCount</span>
+        <div class="t-section-label">Cette semaine</div>
+        <V4Card>
+            <div class="t-week-grid">
+                <div class="t-week-stat">
+                    <span class="t-week-stat__val">@weekCount</span>
+                    <span class="t-week-stat__label">séance@(weekCount > 1 ? "s" : "")</span>
                 </div>
-                <div class="week-stat">
-                    <span class="week-stat__label">Volume</span>
-                    <span class="week-stat__val">@weekVolumeValue<span class="week-stat__unit">@weekVolumeUnit</span></span>
+                <div class="t-week-stat">
+                    <span class="t-week-stat__val">@weekVolumeValue<span class="t-week-stat__unit">@weekVolumeUnit</span></span>
+                    <span class="t-week-stat__label">volume</span>
                 </div>
-                <div class="week-stat">
-                    <span class="week-stat__label">Temps</span>
-                    <span class="week-stat__val">@weekTimeText</span>
+                <div class="t-week-stat">
+                    <span class="t-week-stat__val">@weekTimeText</span>
+                    <span class="t-week-stat__label">temps</span>
                 </div>
             </div>
-        </section>
+        </V4Card>
 
-        @* ── Reprendre ── *@
+        @if (weekCount > 0)
+        {
+            <div class="t-section-label">Tes séances</div>
+            <V4Card>
+                <div class="t-bars">
+                    @{ var maxDay = weekData.Max(d => d.count) is int m && m > 0 ? m : 1; }
+                    @foreach (var day in weekData)
+                    {
+                        var heightPct = day.count == 0 ? 0 : Math.Max(10, (double)day.count / maxDay * 100);
+                        <div class="t-bar-col">
+                            <div class="t-bar-slot">
+                                @if (day.count > 0)
+                                {
+                                    <div class="t-bar-fill @(day.isToday ? "t-bar-fill--active" : "")" style="height: @(heightPct)%"></div>
+                                }
+                            </div>
+                            <span class="t-bar-label @(day.isToday ? "t-bar-label--active" : "")">@day.label</span>
+                        </div>
+                    }
+                </div>
+            </V4Card>
+        }
+        else
+        {
+            <a href="/programs" class="t-carnet-link">
+                <V4Card>
+                    <div class="t-carnet">
+                        <div class="t-carnet__icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        </div>
+                        <div class="t-carnet__text">
+                            <strong>Préparer un carnet</strong>
+                            <span>Organise tes prochains entraînements.</span>
+                        </div>
+                    </div>
+                </V4Card>
+            </a>
+        }
+
         @if (suggestedWorkout != null)
         {
-            <a href="/workoutsessions/@suggestedWorkout.Id" class="today-resume">
-                <div class="today-resume__left">
-                    <div class="today-resume__icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM10 8l6 4-6 4z"/></svg>
+            <a href="/workoutsessions/@suggestedWorkout.Id" class="t-resume-link">
+                <V4Card>
+                    <div class="t-resume">
+                        <div class="t-resume__text">
+                            <span class="t-resume__eyebrow">Reprendre</span>
+                            <strong class="t-resume__name">@suggestedWorkout.Name</strong>
+                            <span class="t-resume__sub">Dernière séance · @Capitalize(suggestedWorkout.Date.ToString("d MMMM", frFR))</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
-                    <div class="today-resume__text">
-                        <span class="today-resume__eyebrow">Reprendre</span>
-                        <h4 class="today-resume__name">@suggestedWorkout.Name</h4>
-                        <span class="today-resume__sub">@Capitalize(suggestedWorkout.Date.ToString("ddd dd MMM", frFR))</span>
-                    </div>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </V4Card>
             </a>
         }
     }
-
 </div>
 
 @code {
@@ -134,34 +138,56 @@
     private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
 
     private bool loading = true;
+    private string? errorMessage;
     private WorkoutSession? todayWorkout;
     private CardioSession? todayCardio;
     private WorkoutSession? suggestedWorkout;
 
-    private string headerDate = "";
     private string greeting = "Bonjour";
+    private string subtitle = "";
 
     private int weekCount;
     private string weekVolumeValue = "0";
     private string weekVolumeUnit = "kg";
     private string weekTimeText = "0min";
+    private List<(string label, int count, bool isToday)> weekData = [];
 
     protected override async Task OnInitializedAsync()
     {
-        headerDate = $"Aujourd'hui — {DateTime.Today.ToString("ddd dd MMM", frFR)}".ToUpper();
         greeting = await BuildGreetingAsync();
+        await LoadAsync();
+    }
 
-        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
-        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
-        await Task.WhenAll(workoutsTask, cardioTask);
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
 
-        var workouts = workoutsTask.Result ?? [];
-        var cardio   = cardioTask.Result ?? [];
+        List<WorkoutSession> workouts;
+        List<CardioSession> cardio;
+        try
+        {
+            var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+            var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+            await Task.WhenAll(workoutsTask, cardioTask);
+            workouts = workoutsTask.Result ?? [];
+            cardio   = cardioTask.Result ?? [];
+        }
+        catch
+        {
+            errorMessage = "Impossible de récupérer tes séances. Vérifie ta connexion, puis réessaie.";
+            loading = false;
+            return;
+        }
 
         var today = DateTime.Today;
 
         todayWorkout = workouts.Where(s => s.Date.Date == today).MaxBy(s => s.Date);
         todayCardio  = cardio.Where(s => s.Date.Date == today).MaxBy(s => s.Date);
+
+        subtitle = (todayWorkout == null && todayCardio == null)
+            ? "Une nouvelle journée commence."
+            : Capitalize(today.ToString("dddd d MMMM", frFR));
 
         suggestedWorkout = workouts
             .Where(s => s.Date.Date != today)
@@ -185,6 +211,14 @@
                          + (int)weekCardio.Sum(s => s.Duration.TotalMinutes);
         weekTimeText = FormatDurationMinutes(totalMinutes);
 
+        weekData = Enumerable.Range(0, 7).Select(i =>
+        {
+            var day = startOfWeek.AddDays(i);
+            var count = workouts.Count(s => s.Date.Date == day) + cardio.Count(s => s.Date.Date == day);
+            var labels = new[] { "L", "M", "M", "J", "V", "S", "D" };
+            return (labels[i], count, day == today);
+        }).ToList();
+
         loading = false;
     }
 
@@ -199,7 +233,7 @@
             var at = raw.IndexOf('@');
             var name = at > 0 ? raw[..at] : raw;
             name = Capitalize(name);
-            return $"Salut {name}";
+            return $"Bonjour {name}";
         }
         catch
         {

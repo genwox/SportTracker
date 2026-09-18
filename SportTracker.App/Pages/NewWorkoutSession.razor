@@ -3,155 +3,81 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<div class="form-page">
-
-    <div class="form-header">
-        <a href="/workoutsessions" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <h1 class="form-title">Nouvelle séance</h1>
-    </div>
-
-    @if (availableExercises is null)
+<div class="v4-workout-form">
+    <V4Header Title="Nouvelle séance" Subtitle="‹ Retour aux séances" BackHref="/workoutsessions" />
+    @if (isLoading)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-sm"></div>
-            <div class="st-skel-row">
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-            </div>
-        </div>
+        <V4Loading />
     }
-    else if (!availableExercises.Any())
+    else if (loadError is not null)
     {
-        <div class="alert-card">
-            Aucun exercice disponible.
-            <a href="/exercises/new" class="alert-link">Créer un exercice →</a>
-        </div>
+        <V4State Title="Exercices indisponibles" Message="@loadError" IsError="true" OnRetry="LoadExercisesAsync" />
+    }
+    else if (availableExercises is not null && !availableExercises.Any())
+    {
+        <V4State Title="Aucun exercice" Message="Ajoute d’abord un exercice à ton catalogue." />
     }
     else
     {
         <EditForm Model="form" OnValidSubmit="HandleSubmit">
             <DataAnnotationsValidator />
-
-            <div class="field-group">
-                <label class="field-label">Nom de la séance</label>
-                <InputText class="field-input" @bind-Value="form.Name" placeholder="Ex : Push day" />
-            </div>
-
-            <div class="field-row">
-                <div class="field-group">
-                    <label class="field-label">Date</label>
-                    <InputDate class="field-input" @bind-Value="form.Date" />
+            <V4Card>
+                <div class="v4-field">
+                    <label for="workout-name">Nom de la séance</label>
+                    <InputText id="workout-name" class="v4-input" @bind-Value="form.Name" placeholder="Ex. Haut du corps" />
                 </div>
-                <div class="field-group">
-                    <label class="field-label">Durée (min)</label>
-                    <InputNumber class="field-input" @bind-Value="durationMinutes" min="1" />
+                <div class="v4-form-grid">
+                    <div class="v4-field"><label for="workout-date">Date</label><InputDate id="workout-date" class="v4-input" @bind-Value="form.Date" /></div>
+                    <div class="v4-field"><label for="workout-duration">Durée (min)</label><InputNumber id="workout-duration" class="v4-input" @bind-Value="durationMinutes" min="1" /></div>
                 </div>
-            </div>
+            </V4Card>
 
-            <div class="section-label">EXERCICES</div>
-
-            @for (int i = 0; i < workoutExercises.Count; i++)
-            {
-                var idx = i;
-                var we = workoutExercises[idx];
-
-                <div class="exercise-block">
-                    @{
-                        var selectedEx = availableExercises.FirstOrDefault(e => e.Id == we.ExerciseId);
-                        var filtered = string.IsNullOrWhiteSpace(we.SearchText)
-                            ? Enumerable.Empty<Exercise>()
-                            : availableExercises
-                                .Where(e => e.Name.Contains(we.SearchText, StringComparison.OrdinalIgnoreCase))
-                                .Take(8);
-                    }
-                    <div class="exercise-block__header">
-                        @if (selectedEx is not null)
-                        {
-                            <div class="ex-selected">
-                                <span>@selectedEx.Name</span>
-                                <button type="button" class="ex-clear" @onclick="() => ClearExercise(idx)">✕</button>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="ex-search">
-                                <input type="text" class="field-input"
-                                       placeholder="Rechercher un exercice..."
-                                       value="@we.SearchText"
-                                       @oninput="e => we.SearchText = e.Value?.ToString() ?? string.Empty"
-                                       @onfocusin="() => we.ShowDropdown = true"
-                                       @onfocusout="() => we.ShowDropdown = false" />
-                                @if (we.ShowDropdown && filtered.Any())
-                                {
-                                    <div class="ex-dropdown">
-                                        @foreach (var ex in filtered)
-                                        {
-                                            <button type="button" class="ex-option"
-                                                    @onmousedown:preventDefault
-                                                    @onclick="() => SelectExercise(idx, ex)">
-                                                @ex.Name
-                                            </button>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        }
-                        <button type="button" class="remove-btn" @onclick="() => RemoveExercise(idx)">✕</button>
-                    </div>
-                    @if (selectedEx is not null)
-                    {
-                        <div class="ex-preview">
-                            @if (selectedEx.GifUrl is not null)
+            <section class="v4-exercise-editor" aria-label="Exercices et séries">
+                @for (var i = 0; i < workoutExercises.Count; i++)
+                {
+                    var idx = i;
+                    var item = workoutExercises[idx];
+                    var selected = availableExercises!.FirstOrDefault(e => e.Id == item.ExerciseId);
+                    var filtered = string.IsNullOrWhiteSpace(item.SearchText) ? Enumerable.Empty<Exercise>() : (availableExercises ?? []).Where(e => e.Name.Contains(item.SearchText, StringComparison.OrdinalIgnoreCase)).Take(8);
+                    <V4Card>
+                        <div class="v4-exercise-editor__title">
+                            @if (selected is null)
                             {
-                                <img src="@selectedEx.GifUrl" alt="@selectedEx.Name" class="exercise-gif" loading="lazy" />
+                                <div class="v4-search">
+                                    <input class="v4-input" placeholder="Rechercher un exercice" value="@item.SearchText" @oninput="e => item.SearchText = e.Value?.ToString() ?? string.Empty" @onfocusin="() => item.ShowDropdown = true" @onfocusout="() => item.ShowDropdown = false" />
+                                    @if (item.ShowDropdown && filtered.Any())
+                                    {
+                                        <div class="v4-search__options">
+                                            @foreach (var exercise in filtered)
+                                            {
+                                                <button type="button" @onmousedown:preventDefault @onclick="() => SelectExercise(idx, exercise)">@exercise.Name</button>
+                                            }
+                                        </div>
+                                    }
+                                </div>
                             }
-                            @if (selectedEx.InstructionsFr is not null)
+                            else
                             {
-                                <p class="ex-instructions">@selectedEx.InstructionsFr</p>
+                                <div><h2>@selected.Name</h2><small>Exercice sélectionné · <button type="button" @onclick="() => ClearExercise(idx)">Retirer</button></small></div>
                             }
+                            <button type="button" class="v4-icon-button" aria-label="Retirer l’exercice" @onclick="() => RemoveExercise(idx)">×</button>
                         </div>
-                    }
-
-                    <div class="sets-header">
-                        <span>SÉRIE</span><span>POIDS (kg)</span><span>REPS</span><span></span>
-                    </div>
-
-                    @for (int j = 0; j < we.Sets.Count; j++)
-                    {
-                        var setIdx = j;
-                        var set = we.Sets[setIdx];
-                        <div class="set-row">
-                            <span class="set-num">@(setIdx + 1)</span>
-                            <input type="number" class="set-input" @bind="set.Weight" min="0" step="0.5" placeholder="0" />
-                            <input type="number" class="set-input" @bind="set.Repetitions" min="1" placeholder="0" />
-                            <button type="button" class="set-remove" @onclick="() => RemoveSet(idx, setIdx)">✕</button>
-                        </div>
-                    }
-
-                    <button type="button" class="add-set-btn" @onclick="() => AddSet(idx)">+ Série</button>
-                </div>
-            }
-
-            <button type="button" class="add-exercise-btn" @onclick="AddExercise">+ Exercice</button>
-
-            @if (errorMessage is not null)
-            {
-                <div class="error-card">@errorMessage</div>
-            }
-
-            <div class="form-actions">
-                <button type="submit" class="submit-btn" disabled="@isSaving">
-                    @(isSaving ? "Enregistrement..." : "Créer la séance")
-                </button>
-                <a href="/workoutsessions" class="cancel-btn">Annuler</a>
-            </div>
+                        <div class="v4-set-head"><span>Série</span><span>Poids (kg)</span><span>Reps</span><span></span></div>
+                        @for (var j = 0; j < item.Sets.Count; j++)
+                        {
+                            var setIndex = j;
+                            var set = item.Sets[setIndex];
+                            <div class="v4-set-row"><span>@(setIndex + 1)</span><input type="number" @bind="set.Weight" min="0" step="0.5" aria-label="Poids série @(setIndex + 1)" /><input type="number" @bind="set.Repetitions" min="1" aria-label="Répétitions série @(setIndex + 1)" /><button type="button" aria-label="Supprimer la série @(setIndex + 1)" @onclick="() => RemoveSet(idx, setIndex)">×</button></div>
+                        }
+                        <button type="button" class="v4-add-set" @onclick="() => AddSet(idx)">+ Ajouter une série</button>
+                    </V4Card>
+                }
+            </section>
+            <V4Button Secondary="true" OnClick="AddExercise">+ Ajouter un exercice</V4Button>
+            @if (errorMessage is not null) { <V4State Title="Enregistrement impossible" Message="@errorMessage" IsError="true" /> }
+            <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : "Enregistrer la séance")</V4Button><a href="/workoutsessions">Annuler</a></div>
         </EditForm>
     }
-
 </div>
 
 @code {
@@ -159,62 +85,16 @@
     private int durationMinutes = 60;
     private List<WorkoutExerciseForm> workoutExercises = new();
     private List<Exercise>? availableExercises;
-    private bool isSaving;
-    private string? errorMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises");
-    }
-
-    private void AddExercise() => workoutExercises.Add(new WorkoutExerciseForm());
+    private bool isLoading = true, isSaving;
+    private string? errorMessage, loadError;
+    protected override Task OnInitializedAsync() => LoadExercisesAsync();
+    private async Task LoadExercisesAsync() { isLoading = true; loadError = null; try { availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? new(); } catch (Exception) { loadError = "Vérifie ta connexion, puis réessaie."; } finally { isLoading = false; } }
+    private void AddExercise() => workoutExercises.Add(new());
     private void RemoveExercise(int index) => workoutExercises.RemoveAt(index);
-    private void AddSet(int exerciseIndex) => workoutExercises[exerciseIndex].Sets.Add(new ExerciseSet());
+    private void AddSet(int exerciseIndex) => workoutExercises[exerciseIndex].Sets.Add(new());
     private void RemoveSet(int exerciseIndex, int setIndex) => workoutExercises[exerciseIndex].Sets.RemoveAt(setIndex);
-
-    private void SelectExercise(int index, Exercise ex)
-    {
-        workoutExercises[index].ExerciseId = ex.Id;
-        workoutExercises[index].SearchText = string.Empty;
-        workoutExercises[index].ShowDropdown = false;
-    }
-
-    private void ClearExercise(int index)
-    {
-        workoutExercises[index].ExerciseId = 0;
-        workoutExercises[index].SearchText = string.Empty;
-    }
-
-    private async Task HandleSubmit()
-    {
-        if (workoutExercises.Any(we => we.ExerciseId == 0))
-        {
-            errorMessage = "Sélectionne un exercice pour chaque ligne.";
-            return;
-        }
-        isSaving = true;
-        errorMessage = null;
-        form.Duration = TimeSpan.FromMinutes(durationMinutes);
-        form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise
-        {
-            ExerciseId = we.ExerciseId,
-            ExerciseSets = we.Sets
-        }).ToList();
-        var response = await Http.PostAsJsonAsync("api/workoutsessions", form);
-        if (response.IsSuccessStatusCode)
-            Nav.NavigateTo("/workoutsessions");
-        else
-        {
-            errorMessage = $"Erreur lors de la création ({(int)response.StatusCode}).";
-            isSaving = false;
-        }
-    }
-
-    private class WorkoutExerciseForm
-    {
-        public int ExerciseId { get; set; }
-        public string SearchText { get; set; } = string.Empty;
-        public bool ShowDropdown { get; set; }
-        public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() };
-    }
+    private void SelectExercise(int index, Exercise exercise) { workoutExercises[index].ExerciseId = exercise.Id; workoutExercises[index].SearchText = string.Empty; workoutExercises[index].ShowDropdown = false; }
+    private void ClearExercise(int index) { workoutExercises[index].ExerciseId = 0; workoutExercises[index].SearchText = string.Empty; }
+    private async Task HandleSubmit() { if (workoutExercises.Any(we => we.ExerciseId == 0)) { errorMessage = "Sélectionne un exercice pour chaque bloc."; return; } isSaving = true; errorMessage = null; form.Duration = TimeSpan.FromMinutes(durationMinutes); form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise { ExerciseId = we.ExerciseId, ExerciseSets = we.Sets }).ToList(); try { var response = await Http.PostAsJsonAsync("api/workoutsessions", form); if (response.IsSuccessStatusCode) { Nav.NavigateTo("/workoutsessions"); return; } errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; } finally { isSaving = false; } }
+    private class WorkoutExerciseForm { public int ExerciseId { get; set; } public string SearchText { get; set; } = string.Empty; public bool ShowDropdown { get; set; } public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() }; }
 }

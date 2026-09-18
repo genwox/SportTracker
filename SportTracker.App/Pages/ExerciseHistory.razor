@@ -3,79 +3,74 @@
 @using System.Globalization
 @inject HttpClient Http
 
-<div class="workouts-page eh-page">
-
-    <div class="form-header">
-        <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ExerciseId/live" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <h1 class="eh-title">@exerciseName</h1>
-    </div>
+<div class="eh-page">
+    <V4Header Title="@exerciseName" BackHref="@($"/programs/{ProgramId}/sessions/{SessionId}/exercises/{ExerciseId}/live")" />
 
     @if (loading)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skeleton st-skel-med"></div>
-        </div>
+        <V4Loading />
+    }
+    else if (error)
+    {
+        <V4State Title="Erreur de chargement" Message="Impossible de récupérer l'historique." IsError="true" OnRetry="Reload" />
     }
     else if (!history.Any())
     {
-        <div class="empty-state">
-            <p class="empty-title">Aucun historique</p>
-            <p class="empty-sub">Les données apparaîtront après ta première séance.</p>
-        </div>
+        <V4State Title="Aucun historique" Message="Les données apparaîtront après ta première séance." />
     }
     else
     {
-        <section class="eh-hero glass-hero">
-            <div class="eh-hero__head">
-                <span class="eh-hero__label">1RM estimé</span>
+        <V4Card>
+            <div class="eh-hero">
+                <span class="eh-hero__label">Meilleur 1RM estimé</span>
                 <div class="eh-hero__record">
                     <span class="eh-hero__recval">@FormatWeight(record)</span>
                     <span class="eh-hero__recunit">kg</span>
                 </div>
+                <span class="eh-hero__sub">Estimation d'après tes séries</span>
             </div>
-            @if (points.Count >= 2)
-            {
-                <svg class="eh-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
-                    <polyline points="@Sparkline" fill="none" stroke="#D4F53C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                    @{
-                        var last = ChartPoint(points.Count - 1);
+        </V4Card>
+
+        @if (points.Count >= 2)
+        {
+            <div class="eh-section-label">Évolution du 1RM</div>
+            <V4Card>
+                <div class="eh-bars">
+                    @{ var maxPoint = points.Max(); }
+                    @foreach (var entry in history.OrderBy(h => h.Date))
+                    {
+                        var e1rm = MaxOneRm(entry);
+                        var isRecordBar = Math.Abs(e1rm - record) < 0.01;
+                        var heightPct = maxPoint <= 0 ? 0 : Math.Max(6, e1rm / maxPoint * 100);
+                        <div class="eh-bar-col">
+                            <div class="eh-bar @(isRecordBar ? "eh-bar--record" : "")" style="height: @(heightPct.ToString("0.#", inv))%"></div>
+                            <span class="eh-bar-label">@Capitalize(entry.Date.ToString("d MMM", frFR))</span>
+                        </div>
                     }
-                    <circle cx="@last.x.ToString(inv)" cy="@last.y.ToString(inv)" r="4" fill="#172713"/>
-                </svg>
-            }
-        </section>
+                </div>
+            </V4Card>
+        }
 
         <div class="eh-section-label">Historique</div>
-        <div class="eh-list">
-            @foreach (var entry in history.OrderByDescending(h => h.Date))
-            {
-                var e1rm = MaxOneRm(entry);
-                var isRecord = Math.Abs(e1rm - record) < 0.01;
-                <div class="eh-entry @(isRecord ? "eh-entry--record" : "")">
-                    <div class="eh-entry__top">
-                        <span class="eh-entry__date">@Capitalize(entry.Date.ToString("ddd dd MMM", frFR))</span>
-                        <span class="eh-entry__1rm">
-                            @if (isRecord)
-                            {
-                                <span class="eh-entry__badge">Record</span>
-                            }
-                            @FormatWeight(e1rm) kg
-                        </span>
-                    </div>
-                    <div class="eh-entry__sets">
-                        @foreach (var set in entry.Sets.OrderBy(s => s.Order))
+        @foreach (var entry in history.OrderByDescending(h => h.Date))
+        {
+            var e1rm = MaxOneRm(entry);
+            var isRecord = Math.Abs(e1rm - record) < 0.01;
+            <V4Card>
+                <div class="eh-entry">
+                    <span class="eh-entry__date">
+                        @Capitalize(entry.Date.ToString("d MMMM", frFR))
+                        @if (isRecord)
                         {
-                            <span class="eh-set">@FormatWeight(set.Weight)<span class="eh-set__x">×</span>@set.Repetitions</span>
+                            <span> · </span><span class="eh-entry__record">Record</span>
                         }
-                    </div>
+                    </span>
+                    <span class="eh-entry__sets">
+                        @string.Join("  ·  ", entry.Sets.OrderBy(s => s.Order).Select(s => $"{FormatWeight(s.Weight)} × {s.Repetitions}"))
+                    </span>
                 </div>
-            }
-        </div>
+            </V4Card>
+        }
     }
 
 </div>
@@ -89,52 +84,58 @@
     private static readonly CultureInfo inv = CultureInfo.InvariantCulture;
 
     private bool loading = true;
-    private string exerciseName = "";
+    private bool error = false;
+    private string exerciseName = "Exercice";
     private List<HistoryEntry> history = new();
 
     private double record;
     private List<double> points = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
     {
-        var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-        var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
-        await Task.WhenAll(programTask, historyTask);
+        try
+        {
+            loading = true;
+            error = false;
+            history.Clear();
 
-        var program = programTask.Result;
-        history = historyTask.Result ?? new();
+            var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+            var historyTask = Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history");
+            await Task.WhenAll(programTask, historyTask);
 
-        var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
-        var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
-        exerciseName = pe?.Exercise?.Name ?? "Exercice";
+            var program = programTask.Result;
+            history = historyTask.Result ?? new();
 
-        points = history.OrderBy(h => h.Date).Select(MaxOneRm).ToList();
-        record = points.Count > 0 ? points.Max() : 0;
+            if (program == null)
+            {
+                error = true;
+                loading = false;
+                return;
+            }
 
-        loading = false;
+            var session = program.Sessions.FirstOrDefault(s => s.Id == SessionId);
+            var pe = session?.Exercises.FirstOrDefault(e => e.ExerciseId == ExerciseId);
+            exerciseName = pe?.Exercise?.Name ?? "Exercice";
+
+            points = history.OrderBy(h => h.Date).Select(MaxOneRm).ToList();
+            record = points.Count > 0 ? points.Max() : 0;
+
+            loading = false;
+        }
+        catch
+        {
+            error = true;
+            loading = false;
+        }
     }
+
+    private async Task Reload() => await LoadData();
 
     // Epley : 1RM ≈ poids × (1 + reps/30)
     private static double MaxOneRm(HistoryEntry entry)
         => entry.Sets.Count == 0 ? 0 : entry.Sets.Max(s => s.Weight * (1 + s.Repetitions / 30.0));
-
-    private (double x, double y) ChartPoint(int i)
-    {
-        if (points.Count < 2) return (0, 45);
-        var min = points.Min();
-        var max = points.Max();
-        var range = max - min < 0.01 ? 1 : max - min;
-        var x = 300.0 * i / (points.Count - 1);
-        var y = 80 - (points[i] - min) / range * 70 + 5; // marge haut/bas
-        return (x, y);
-    }
-
-    private string Sparkline
-        => string.Join(" ", Enumerable.Range(0, points.Count).Select(i =>
-        {
-            var p = ChartPoint(i);
-            return $"{p.x.ToString("0.#", inv)},{p.y.ToString("0.#", inv)}";
-        }));
 
     private static string FormatWeight(double w)
         => w % 1 == 0 ? w.ToString("0", frFR) : w.ToString("0.#", frFR);

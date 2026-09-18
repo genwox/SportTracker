@@ -1,0 +1,12 @@
+<section class="v4-card v4-state @(IsError ? "v4-state--error" : "")" role="@(IsError ? "alert" : "status")">
+    <strong>@Title</strong><p>@Message</p>
+    @if (OnRetry.HasDelegate) { <V4Button OnClick="OnRetry">Réessayer</V4Button> }
+    @ChildContent
+</section>
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public bool IsError { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

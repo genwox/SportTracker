@@ -2,15 +2,15 @@
 :root {
     --st-cyan:         #78E8E4;
     --st-neon:         #D4F53C;
-    --st-dark:         #172713;
-    --st-nav-inactive: #4A8585;
+    --st-dark:         #082D45;
+    --st-nav-inactive: #315A70;
     --st-white:        #ffffff;
-    --st-card-bg:      #ffffff;
-    --st-text-muted:   #999999;
+    --st-card-bg:      #F8FFFFE6;
+    --st-text-muted:   #315A70;
     --st-neon-dark:    #3A5C00;
 
-    --st-font-body:    'Barlow', 'Helvetica Neue', Arial, sans-serif;
-    --st-font-display: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif;
+    --st-font-body:    'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif;
+    --st-font-display: 'Foruner', 'Helvetica Neue', Arial, sans-serif;
 
     --st-radius-card:  22px;
     --st-radius-pill:  20px;
