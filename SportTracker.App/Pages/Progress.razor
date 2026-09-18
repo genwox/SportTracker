@@ -1,172 +1,159 @@
 @page "/progress"
 @using SportTracker.Core.Models
+@using SportTracker.App.Services
+@using System.Globalization
 @inject HttpClient Http
+@inject WeeklyGoalService WeeklyGoal
 
 <div class="progress-page">
-
-    <h1 class="progress-title">
-        <span class="title-eyebrow">Ton</span>
-        Progrès
-    </h1>
+    <V4Header Title="Tes progrès" Subtitle="@weekSubtitle" />
 
     @if (loading)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-med"></div>
-            <div class="st-skel-row">
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-                <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-            </div>
-            <div class="st-skeleton" style="height:140px"></div>
-        </div>
+        <V4Loading />
+    }
+    else if (errorMessage is not null)
+    {
+        <V4State Title="Impossible de charger tes progrès" Message="@errorMessage" IsError="true" OnRetry="LoadAsync" />
     }
     else
     {
-        <!-- Weekly minutes card -->
-        <div class="neon-card">
-            <p class="neon-card__label">MINUTES CETTE SEMAINE</p>
-            <p class="neon-card__value">@weeklyMinutes</p>
-            @if (weeklyMinutesDelta != 0)
-            {
-                <div class="neon-card__trend">
-                    <span class="trend-badge">
-                        @(weeklyMinutesDelta > 0 ? "↑" : "↓") @Math.Abs(weeklyMinutesDelta) MIN
-                    </span>
-                    <span class="trend-label">vs semaine dernière</span>
-                </div>
-            }
-            <svg class="neon-card__deco" viewBox="0 0 90 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="0,55 20,35 40,42 60,15 80,25 90,10" stroke="#172713" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-
-        <!-- Stat pair -->
-        <div class="stat-pair">
-            <div class="stat-card">
-                <p class="stat-card__label">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4A8585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-                    </svg>
-                    SÉRIE EN COURS
-                </p>
-                <p class="stat-card__value">@streak <span class="stat-card__unit">JOURS</span></p>
-                <div class="streak-dots">
-                    @for (int i = 0; i < 5; i++)
-                    {
-                        <div class="streak-dot @(i < Math.Min(streak, 5) ? "streak-dot--active" : "")"></div>
-                    }
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <p class="stat-card__label">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4A8585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
-                    </svg>
-                    SÉANCES CETTE SEMAINE
-                </p>
-                <p class="stat-card__value">@weekSessions <span class="stat-card__unit">SÉANCES</span></p>
-                @if (weekSessions > 0)
+        <V4Card>
+            <div class="pr-minutes">
+                <span class="pr-minutes__label">Minutes cette semaine</span>
+                <span class="pr-minutes__val">@weeklyMinutes min</span>
+                @if (weeklyMinutesDelta != 0)
                 {
-                    <div class="goal-met">
-                        <div class="goal-met__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#172713" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                        </div>
-                        <span class="goal-met__label">OBJECTIF ATTEINT</span>
-                    </div>
+                    <span class="pr-minutes__trend">@(weeklyMinutesDelta > 0 ? "+" : "") @weeklyMinutesDelta min par rapport à la semaine dernière</span>
                 }
             </div>
+        </V4Card>
+
+        <div class="pr-pair">
+            <V4Card>
+                <div class="pr-stat">
+                    <span class="pr-stat__val">@streak</span>
+                    <span class="pr-stat__label">jour@(streak > 1 ? "s" : "")</span>
+                    <span class="pr-stat__sub">série en cours</span>
+                </div>
+            </V4Card>
+            <V4Card>
+                <div class="pr-stat">
+                    <span class="pr-stat__val">@weekSessions</span>
+                    <span class="pr-stat__label">séances cette semaine</span>
+                    @if (weekSessions >= weeklyGoal)
+                    {
+                        <span class="pr-stat__badge">Objectif atteint</span>
+                    }
+                </div>
+            </V4Card>
         </div>
 
-        <!-- Weekly volume chart -->
-        <div class="chart-card">
-            <div class="chart-card__header">
-                <span class="chart-card__title">Volume <span class="chart-card__sub">SÉANCES/JOUR</span></span>
-            </div>
-            <div class="bar-chart">
+        <div class="pr-section-label">Séances par jour</div>
+        <V4Card>
+            <div class="pr-bars">
                 @{
                     var maxVal = volumeData.Max(v => v.count) is int m && m > 0 ? m : 1;
                 }
                 @foreach (var day in volumeData)
                 {
-                    var heightPct = (double)day.count / maxVal * 100;
-                    <div class="bar-col">
-                        <div class="bar-slot">
+                    var heightPct = day.count == 0 ? 0 : Math.Max(10, (double)day.count / maxVal * 100);
+                    <div class="pr-bar-col">
+                        <div class="pr-bar-slot">
                             @if (day.count > 0)
                             {
-                                <div class="bar-fill @(day.isToday ? "bar-fill--active" : "")"
-                                     style="height: @(heightPct)%"></div>
+                                <div class="pr-bar-fill @(day.isToday ? "pr-bar-fill--active" : "")" style="height: @(heightPct)%"></div>
                             }
                         </div>
-                        <span class="bar-label @(day.isToday ? "bar-label--active" : "")">@day.label</span>
+                        <span class="pr-bar-label @(day.isToday ? "pr-bar-label--active" : "")">@day.label</span>
                     </div>
                 }
             </div>
-        </div>
-    }
+        </V4Card>
 
+        <V4Card>
+            <div class="pr-footer">
+                <strong>Continue sur ta lancée</strong>
+                <span>Tes séances alimentent ce bilan.</span>
+            </div>
+        </V4Card>
+    }
 </div>
 
 @code {
+    private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
+
     private bool loading = true;
+    private string? errorMessage;
+    private string weekSubtitle = "";
     private int weeklyMinutes;
     private int weeklyMinutesDelta;
     private int streak;
     private int weekSessions;
+    private int weeklyGoal = WeeklyGoalService.DefaultGoal;
     private List<(string label, int count, bool isToday)> volumeData = [];
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
     {
-        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
-        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
-        await Task.WhenAll(workoutsTask, cardioTask);
-
-        var workouts = workoutsTask.Result ?? [];
-        var cardio   = cardioTask.Result ?? [];
-
-        var today   = DateTime.Today;
-        var monday  = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-        var lastMon = monday.AddDays(-7);
-
-        // All sessions merged
-        var allDates = workouts.Select(s => s.Date.Date)
-            .Concat(cardio.Select(s => s.Date.Date))
-            .ToHashSet();
-
-        // Weekly minutes (this week)
-        var thisWeekWorkouts = workouts.Where(s => s.Date.Date >= monday);
-        var thisWeekCardio   = cardio.Where(s => s.Date.Date >= monday);
-        weeklyMinutes = (int)(thisWeekWorkouts.Sum(s => s.Duration.TotalMinutes)
-                            + thisWeekCardio.Sum(s => s.Duration.TotalMinutes));
-
-        // Weekly minutes (last week)
-        var lastWeekMin = (int)(workouts.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes)
-                              + cardio.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes));
-        weeklyMinutesDelta = weeklyMinutes - lastWeekMin;
-
-        // Sessions this week
-        weekSessions = thisWeekWorkouts.Count() + thisWeekCardio.Count();
-
-        // Streak (consecutive days with session going back from today)
-        streak = 0;
-        var check = today;
-        while (allDates.Contains(check))
+        try
         {
-            streak++;
-            check = check.AddDays(-1);
+            loading = true;
+            errorMessage = null;
+
+            var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+            var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+            var goalTask     = WeeklyGoal.GetGoalAsync();
+            await Task.WhenAll(workoutsTask, cardioTask, goalTask);
+
+            var workouts = workoutsTask.Result ?? [];
+            var cardio   = cardioTask.Result ?? [];
+            weeklyGoal   = goalTask.Result;
+
+            var today   = DateTime.Today;
+            var monday  = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+            var lastMon = monday.AddDays(-7);
+
+            weekSubtitle = $"Semaine du {monday.ToString("d MMMM", frFR)}";
+
+            var allDates = workouts.Select(s => s.Date.Date)
+                .Concat(cardio.Select(s => s.Date.Date))
+                .ToHashSet();
+
+            var thisWeekWorkouts = workouts.Where(s => s.Date.Date >= monday);
+            var thisWeekCardio   = cardio.Where(s => s.Date.Date >= monday);
+            weeklyMinutes = (int)(thisWeekWorkouts.Sum(s => s.Duration.TotalMinutes)
+                                + thisWeekCardio.Sum(s => s.Duration.TotalMinutes));
+
+            var lastWeekMin = (int)(workouts.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes)
+                                  + cardio.Where(s => s.Date.Date >= lastMon && s.Date.Date < monday).Sum(s => s.Duration.TotalMinutes));
+            weeklyMinutesDelta = weeklyMinutes - lastWeekMin;
+
+            weekSessions = thisWeekWorkouts.Count() + thisWeekCardio.Count();
+
+            streak = 0;
+            var check = today;
+            while (allDates.Contains(check))
+            {
+                streak++;
+                check = check.AddDays(-1);
+            }
+
+            volumeData = Enumerable.Range(0, 7).Select(i =>
+            {
+                var day   = monday.AddDays(i);
+                var count = workouts.Count(s => s.Date.Date == day) + cardio.Count(s => s.Date.Date == day);
+                var labels = new[] { "L", "M", "M", "J", "V", "S", "D" };
+                return (labels[i], count, day == today);
+            }).ToList();
+
+            loading = false;
         }
-
-        // Volume per day this week (Mon–Sun)
-        volumeData = Enumerable.Range(0, 7).Select(i =>
+        catch
         {
-            var day   = monday.AddDays(i);
-            var count = workouts.Count(s => s.Date.Date == day) + cardio.Count(s => s.Date.Date == day);
-            var labels = new[] { "L", "M", "M", "J", "V", "S", "D" };
-            return (labels[i], count, day == today);
-        }).ToList();
-
-        loading = false;
+            errorMessage = "Impossible de récupérer tes séances.";
+            loading = false;
+        }
     }
 }

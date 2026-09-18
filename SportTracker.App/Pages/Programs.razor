@@ -2,76 +2,46 @@
 @using SportTracker.Core.Models
 @inject HttpClient Http
 
-<div class="workouts-page">
+<div class="v4-programs">
+    <V4Header Title="Tes carnets" Subtitle="Des programmes qui te ressemblent" />
+    <V4ActivityTabs />
 
-    <div class="tab-bar">
-        <a href="/workoutsessions" class="tab-bar__tab">Séances</a>
-        <a href="/programs" class="tab-bar__tab tab-bar__tab--active">Carnets</a>
-    </div>
-
-    <div class="workouts-header">
-        <h1 class="workouts-title">
-            <span class="title-eyebrow">Tes</span>
-            Carnets
-        </h1>
-        <a href="/programs/new" class="new-btn">+ Nouveau</a>
-    </div>
-
-    @if (programs == null)
+    @if (isLoading) { <V4Loading /> }
+    else if (errorMessage is not null) { <V4State Title="Impossible de charger les carnets" Message="@errorMessage" IsError="true" OnRetry="LoadProgramsAsync" /> }
+    else if (programs is not null && !programs.Any())
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skeleton st-skel-tall"></div>
-        </div>
+        <V4State Title="Premier carnet" Message="Organise tes séances pour les retrouver facilement."><V4Button Href="/programs/new">Créer mon carnet</V4Button></V4State>
     }
-    else if (!programs.Any())
+    else if (programs is not null)
     {
-        <div class="empty-state">
-            <p class="empty-title">Aucun carnet</p>
-            <p class="empty-sub">Cree ton premier programme d'entrainement.</p>
-            <a href="/programs/new" class="empty-cta">+ Nouveau carnet</a>
-        </div>
-    }
-    else
-    {
-        <div class="prog-list">
-            @foreach (var program in programs)
+        <V4Button Href="/programs/new">+ Nouveau carnet</V4Button>
+        <section class="v4-program-list" aria-label="Mes carnets">
+            @for (var index = 0; index < programs.Count; index++)
             {
-                var sessionCount = program.Sessions.Count;
-                var exerciseCount = program.Sessions.Sum(s => s.Exercises.Count);
-                var initial = program.Name.Length > 0 ? program.Name[..1].ToUpper() : "?";
-                <a href="/programs/@program.Id" class="prog-card">
-                    <div class="prog-card__top">
-                        <div class="prog-card__badge" style="background-color:@program.ColorHex">@initial</div>
-                        <svg class="prog-card__chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                    <h2 class="prog-card__name">@program.Name</h2>
-                    <div class="prog-card__pills">
-                        @if (!string.IsNullOrWhiteSpace(program.Objective))
-                        {
-                            <span class="prog-pill prog-pill--obj">@program.Objective</span>
-                        }
-                        <span class="prog-pill">@sessionCount @(sessionCount > 1 ? "séances" : "séance")</span>
-                        <span class="prog-pill">@exerciseCount @(exerciseCount > 1 ? "exercices" : "exercice")</span>
-                    </div>
+                var program = programs[index];
+                <a class="v4-program-row @(index == 0 ? "v4-program-row--featured" : "")" href="/programs/@program.Id">
+                    <span class="v4-program-row__swatch" style="background-color:@program.ColorHex" aria-hidden="true"></span>
+                    <span class="v4-program-row__content"><strong>@program.Name</strong><small>@ProgramMeta(program)</small></span>
+                    <span class="v4-program-row__chevron" aria-hidden="true">›</span>
+                    @if (index == 0) { <span class="v4-program-row__open">Ouvrir le carnet</span> }
                 </a>
             }
-
-            <a href="/programs/new" class="prog-new">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Nouveau carnet
-            </a>
-        </div>
+        </section>
     }
-
 </div>
 
 @code {
     private List<WorkoutProgram>? programs;
-
-    protected override async Task OnInitializedAsync()
+    private bool isLoading = true;
+    private string? errorMessage;
+    protected override Task OnInitializedAsync() => LoadProgramsAsync();
+    private async Task LoadProgramsAsync()
     {
-        programs = await Http.GetFromJsonAsync<List<WorkoutProgram>>("api/programs");
+        isLoading = true; errorMessage = null;
+        try { programs = await Http.GetFromJsonAsync<List<WorkoutProgram>>("api/programs") ?? new(); }
+        catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; }
+        finally { isLoading = false; }
     }
+    private static string ProgramMeta(WorkoutProgram program)
+        => string.IsNullOrWhiteSpace(program.Objective) ? "Carnet d’entraînement" : program.Objective;
 }

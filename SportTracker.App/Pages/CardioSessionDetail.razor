@@ -1,112 +1,38 @@
 @page "/cardiosessions/{Id:int}"
-@using SportTracker.Core.Models
 @using SportTracker.Core.Enums
+@using SportTracker.Core.Models
 @using System.Globalization
 @inject HttpClient Http
-@inject NavigationManager Nav
 
-<div class="detail-page">
-
-@if (session is null && !notFound)
-{
-    <div class="st-skel-block" style="padding-top:52px">
-        <div class="st-skel-row" style="align-items:center; gap:12px; margin-bottom:8px;">
-            <div class="st-skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0"></div>
-            <div class="st-skeleton st-skel-line" style="width:55%; height:28px"></div>
-        </div>
-        <div class="st-skeleton" style="height:200px"></div>
-        <div class="st-skel-row">
-            <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-            <div class="st-skeleton st-skel-sm" style="flex:1"></div>
-        </div>
-    </div>
-}
-else if (notFound)
-{
-    <div class="not-found">
-        <p>Séance introuvable.</p>
-        <a href="/history" class="back-btn">← Retour</a>
-    </div>
-}
-else
-{
-    <div class="detail-header">
-        <a href="/history" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <h1 class="detail-title">@session!.Name</h1>
-    </div>
-
-    <div class="hero-card">
-        <p class="hero-label">@TypeLabel(session.Type).ToUpper()</p>
-        <p class="hero-value">@session.Distance.ToString("0.#", frFR)</p>
-        <p class="hero-unit">kilomètres</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-tile">
-            <p class="stat-tile__val">@FormatDuration(session.Duration)</p>
-            <p class="stat-tile__lbl">Durée</p>
-        </div>
-        @if (session.Distance > 0 && session.Duration.TotalSeconds > 0)
-        {
-            <div class="stat-tile">
-                <p class="stat-tile__val">@Pace(session.Duration, session.Distance) <span class="stat-tile__unit">/km</span></p>
-                <p class="stat-tile__lbl">Allure</p>
-            </div>
-        }
-        <div class="stat-tile">
-            <p class="stat-tile__val">@Capitalize(session.Date.ToString("ddd dd MMM", frFR))</p>
-            <p class="stat-tile__lbl">Date</p>
-        </div>
-        @if (session.ElevationGain > 0)
-        {
-            <div class="stat-tile">
-                <p class="stat-tile__val">@session.ElevationGain <span class="stat-tile__unit">m</span></p>
-                <p class="stat-tile__lbl">Dénivelé</p>
-            </div>
-        }
-    </div>
-}
-
+<div class="v4-cardio-detail">
+@if (isLoading) { <V4Loading /> }
+else if (notFound) { <V4State Title="Sortie introuvable" Message="Cette sortie n’existe pas ou n’est plus accessible." IsError="true"><V4Button Href="/cardiosessions">Retour au cardio</V4Button></V4State> }
+else if (errorMessage is not null) { <V4State Title="Impossible de charger la sortie" Message="@errorMessage" IsError="true" OnRetry="LoadSessionAsync" /> }
+else if (session is not null) { <V4Header Title="@(string.IsNullOrWhiteSpace(session.Name) ? TypeLabel(session.Type) : session.Name)" Subtitle="@Capitalize(session.Date.ToString("dddd dd MMMM", Fr))" BackHref="/cardiosessions" /><section class="v4-cardio-hero"><span>@TypeLabel(session.Type)</span><strong>@session.Distance.ToString("0.#", Fr)</strong><small>kilomètres</small></section><section class="v4-cardio-stats" aria-label="Bilan de la sortie"><div><strong>@FormatDuration(session.Duration)</strong><span>durée</span></div>@if (session.Distance > 0 && session.Duration.TotalSeconds > 0) { <div><strong>@Pace(session.Duration, session.Distance)</strong><span>allure /km</span></div> }<div><strong>@session.ElevationGain.ToString("0", Fr) m</strong><span>dénivelé</span></div></section> }
 </div>
-
 @code {
     [Parameter] public int Id { get; set; }
-
-    private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
+    private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
     private CardioSession? session;
-    private bool notFound;
-
-    protected override async Task OnInitializedAsync()
+    private bool isLoading = true, notFound;
+    private string? errorMessage;
+    protected override Task OnParametersSetAsync() => LoadSessionAsync();
+    private async Task LoadSessionAsync()
     {
-        var response = await Http.GetAsync($"api/cardiosessions/{Id}");
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            notFound = true;
-        else
+        isLoading = true; notFound = false; errorMessage = null;
+        try
+        {
+            using var response = await Http.GetAsync($"api/cardiosessions/{Id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) { notFound = true; return; }
+            if (!response.IsSuccessStatusCode) { errorMessage = $"Le serveur a répondu {(int)response.StatusCode}."; return; }
             session = await response.Content.ReadFromJsonAsync<CardioSession>();
+            if (session is null) errorMessage = "La réponse de la sortie est invalide.";
+        }
+        catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; }
+        finally { isLoading = false; }
     }
-
-    private static string TypeLabel(CardioType t) => t switch
-    {
-        CardioType.Run  => "Course à pied",
-        CardioType.Walk => "Marche",
-        CardioType.Swim => "Natation",
-        CardioType.Bike => "Vélo",
-        _               => t.ToString()
-    };
-
-    private static string FormatDuration(TimeSpan d)
-        => d.TotalHours >= 1 ? $"{(int)d.TotalHours}h{d.Minutes:D2}" : $"{d.Minutes}:{d.Seconds:D2}";
-
-    private static string Pace(TimeSpan d, double distanceKm)
-    {
-        var secPerKm = d.TotalSeconds / distanceKm;
-        return $"{(int)(secPerKm / 60)}:{(int)(secPerKm % 60):D2}";
-    }
-
-    private static string Capitalize(string s)
-        => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
+    private static string TypeLabel(CardioType type) => type switch { CardioType.Run => "Course à pied", CardioType.Walk => "Marche", CardioType.Swim => "Natation", CardioType.Bike => "Vélo", _ => type.ToString() };
+    private static string FormatDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:D2}" : $"{duration.Minutes} min";
+    private static string Pace(TimeSpan duration, double distance) { var seconds = duration.TotalSeconds / distance; return $"{(int)(seconds / 60)}:{(int)(seconds % 60):D2}"; }
+    private static string Capitalize(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpper(value[0]) + value[1..];
 }

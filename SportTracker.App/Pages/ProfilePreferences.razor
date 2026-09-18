@@ -1,0 +1,92 @@
+@page "/profile/preferences"
+@using SportTracker.App.Services
+@inject WeeklyGoalService WeeklyGoal
+
+<div class="pp-page">
+    <V4Header Title="Objectifs & préférences" BackHref="/profile" />
+
+    @if (loading)
+    {
+        <V4Loading />
+    }
+    else if (!available)
+    {
+        <V4State Title="Préférences indisponibles" Message="Identité ou stockage impossibles à confirmer : l'objectif par défaut est utilisé et ne peut pas être enregistré pour le moment." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <V4Card>
+            <div class="pp-goal">
+                <span class="pp-goal__label" id="pp-goal-label">Objectif hebdomadaire (séances)</span>
+                <div class="pp-stepper" role="group" aria-labelledby="pp-goal-label">
+                    <button type="button" @onclick="Decrement" disabled="@(goal <= 1)" aria-label="Diminuer l'objectif">−</button>
+                    <span class="pp-stepper__value">@goal</span>
+                    <button type="button" @onclick="Increment" aria-label="Augmenter l'objectif">+</button>
+                </div>
+                @if (validationMessage is not null)
+                {
+                    <p class="validation-message">@validationMessage</p>
+                }
+            </div>
+        </V4Card>
+
+        @if (feedback is not null)
+        {
+            <p class="pp-feedback @(feedbackIsError ? "pp-feedback--error" : "")" role="@(feedbackIsError ? "alert" : "status")">@feedback</p>
+        }
+
+        <V4Button OnClick="SaveAsync" Disabled="@saving">Enregistrer</V4Button>
+    }
+</div>
+
+@code {
+    private bool loading = true;
+    private bool available;
+    private bool saving;
+    private int goal = WeeklyGoalService.DefaultGoal;
+    private string? validationMessage;
+    private string? feedback;
+    private bool feedbackIsError;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        feedback = null;
+        available = await WeeklyGoal.IsAvailableAsync();
+        goal = await WeeklyGoal.GetGoalAsync();
+        loading = false;
+    }
+
+    private void Decrement()
+    {
+        if (goal > 1) goal--;
+        validationMessage = null;
+    }
+
+    private void Increment()
+    {
+        goal++;
+        validationMessage = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (goal <= 0)
+        {
+            validationMessage = "L'objectif doit être un entier positif.";
+            return;
+        }
+
+        saving = true;
+        feedback = null;
+        var ok = await WeeklyGoal.SetGoalAsync(goal);
+        saving = false;
+
+        feedbackIsError = !ok;
+        feedback = ok
+            ? "Objectif enregistré."
+            : "Impossible d'enregistrer l'objectif pour le moment.";
+    }
+}
