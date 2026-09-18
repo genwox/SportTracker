@@ -79,3 +79,15 @@ Heartbeat08:25UTC — lot5 Claude session réelle ec27f06d-5822-4c37-b528-dc66a3
 Heartbeat08:53UTC — lot6 session Claude réelle0f48ffcd-2046-42fc-9f5e-494542d21941 exec93769, ExerciseLive.razor/CSS modifiés, buildApp0/0 ; serveurs synthétiques isolés lancés pour recette live. Aucun commit/lot7 avant validations complètes.
 
 18/09/2026 — lot6 LIVE clôturé par la session Claude Opus5 medium (Pro) : code `ec8a088`. Pencil jupKp/a9hfum/nP8LA relu ; recette Playwright isolée visible complète (steppers, 1RM, saisie précise 901/900/10 + clavier physique, minuteur pause/reprise/fin, GIF, coupure API validation avec valeurs conservées puis retry vérifié en base, erreur chargement + retry, 404 ×3, 320/390/1280 sans débordement, clavier). Passation/SUIVI/vault mis à jour, QMD réindexé. Serveurs et SQLite temporaires nettoyés. Aucun lot7 ni agent concurrent lancé ; lot7 à lancer par le coordinateur.
+
+18/09/2026 09:04UTC — lot6 validé codeec8a088/docsec9cfc9, vault/QMD/nettoyage complets. Session93769 arrêtée exit0. Lot7 Historique lancé session distincte SportTracker V4 lot 7 exec77962, Haiku4.5 Pro (auto mode indisponible, mode manuel respecté). Clé API retirée seulement processus, /usage contrôlé ; mission contrat07 envoyée. Aucun lot8 ni agent concurrent. Focus trap des dialogues Live explicitement reporté lot10.
+
+Heartbeat09:11UTC — Haiku lot7 attendait validation d’édition ExerciseHistory.razor, fichier du contrat. Option native accept edits sélectionnée pour cette session selon autorisation de modifications locales ; aucune désactivation de sécurité ni bypass permissions. Protections/refus autres outils restent requis.
+
+Heartbeat09:16UTC — lot7 build réussi. Commande de lancement API sans isolation SQLite explicite proposée par Haiku refusée par coordinateur avant exécution ; correction demandée vers SQLite unique scratchpad et ports/CORS synthétiques, aucune base existante à ouvrir. Pas refus auto-review ni fallback ; lot7 continue après commande conforme.
+
+Heartbeat09:22UTC — lot7 session réelle701e3cd6-7887-4ddc-90a9-a74607a73a7d exec77962. Répertoire temporaire unique scratchpad et SQLite sporttracker-lot7.db en préparation autorisée ; contrôle de la commande API isolée avant lancement reste requis. Aucun lot8 ni commit.
+
+Heartbeat09:29UTC — après configurations de recette incomplètes répétées (isolation absente puis variables non définies ; script chemin MSYS fourni à SQLite natif), lot7 escaladé Haiku vers Sonnet dans la même session701e3cd6/exec77962 selon règle du plan. Aucun fallback de quota ni contournement de protection. Lancements incomplets rejetés avant exécution ; correction DataSource cheminWindows et API/App/CORS demandée.
+
+Heartbeat09:35UTC — script de recette Sonnet relu : SQLite cheminWindows unique explicite, API5294/App5281 avec --no-launch-profile, CORS local vérifié, dotnetrun. Commande conforme autorisée ; option native auto mode Sonnet sélectionnée (classificateur d’approbation actif, aucune désactivation de protections). Recette lot7 reprend.
