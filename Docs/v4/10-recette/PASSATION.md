@@ -1,6 +1,6 @@
 # Passation lot 10 — Recette finale UI V4
 
-Statut : recette réalisée, corrections committées ; écarts restants listés ci-dessous (aucun bloquant fonctionnel). Branche : `feat/ui-v4`. Session Claude Code Opus 5 / medium (abonnement Pro), `898a0648-8f80-481a-83e0-108c0cd975a4`, interrompue une fois par quota (reset 12:40 UTC) puis reprise exacte.
+Statut : recette réalisée, y compris PWA hors ligne de bout en bout ; corrections committées ; écarts restants listés ci-dessous (aucun bloquant fonctionnel). Branche : `feat/ui-v4`. Session Claude Code Opus 5 / medium (abonnement Pro), `898a0648-8f80-481a-83e0-108c0cd975a4`, interrompue une fois par quota (reset 12:40 UTC) puis reprise exacte.
 
 ## Commits
 
@@ -11,6 +11,7 @@ Statut : recette réalisée, corrections committées ; écarts restants listés 
 | `56fd1c0` | Piège de focus / retour clavier des dialogues modaux (`wwwroot/js/v4-dialogs.js`) |
 | `1cf1d34` | Corrections de recette : formulaires, conteneurs, contenus longs, `<main>` unique, focus des champs |
 | `d69e1aa` | Manifeste PWA aligné V4 |
+| `9907687` | États propres hors ligne / API indisponible : Aujourd'hui, Historique, déconnexion Profil |
 
 ## Défauts trouvés et corrigés
 
@@ -24,6 +25,7 @@ Statut : recette réalisée, corrections committées ; écarts restants listés 
 - **Repères** : 11 pages imbriquaient un `<main>` dans celui du layout → `<div>`.
 - **Focus des champs** : contour encre à 25 % d'opacité (contraste insuffisant) → encre pleine.
 - **PWA** : manifeste du gabarit Blazor (`SportTracker.App`, `#03173d`, blanc) → `SportTracker`, `#082D45`, `#DDF6F4`, meta `theme-color`.
+- **Trouvés en recette hors ligne (`9907687`)** : Aujourd'hui sans aucun traitement d'erreur (exception non gérée du renderer, bandeau d'erreur Blazor, chargement infini) → état d'erreur V4 + Réessayer ; Historique en squelette infini (sur erreur `allItems` revenait à `null` et la branche chargement était testée avant l'erreur) ; bouton « Se déconnecter » absent de Profil en état d'erreur alors que la déconnexion est locale. Ces trois défauts existaient aussi API coupée en ligne ; Aujourd'hui et Historique n'avaient jamais été testés sous coupure totale.
 
 ## Validations (UI réelle isolée)
 
@@ -39,13 +41,28 @@ API 5294 + App 5281 lancées en processus Windows natifs (`Start-Process`, `--no
 - **Clavier** : 20 routes, lien d'évitement en premier, navigation atteinte, focus visible (contour encre).
 - **Historique à un point** : charge 40 kg × 10 → 1RM 53,3 kg (Epley), une entrée « Record », graphique masqué sous 2 points (choix du code, courbe sans tendance) ; exercice au poids du corps → 1RM 0 kg.
 - **Mouvements réduits** : aucune animation/transition > 10 ms sous `prefers-reduced-motion: reduce` (squelette `st-shimmer 1.5s` → `none`).
-- **PWA** : manifeste lié et valide, icônes 192/512 décodées aux tailles déclarées, service worker enregistré ; publication Release : `service-worker-assets.js` (136 ressources) contient `js/v4-dialogs.js`, polices, fond, icônes, manifeste.
+- **PWA** : manifeste lié et valide, icônes 192/512 décodées aux tailles déclarées, service worker enregistré ; publication Release : `service-worker-assets.js` (136 ressources) contient `js/v4-dialogs.js`, polices, fond, icônes, manifeste. Recette hors ligne de bout en bout : section dédiée ci-dessous.
 - Erreur d'enregistrement (25) et chargement (26) : simulés par interception Playwright (abandon POST, latence) pour la capture ; la vraie coupure réseau est couverte par les tests ci-dessus et les lots 3/5/6.
+
+## Recette PWA hors ligne de bout en bout
+
+Montage : publication Release temporaire dans le scratchpad, servie par un serveur statique Python local (`127.0.0.1:5281`, repli `index.html` identique à `nginx.conf` `try_files`), API `5294` sur SQLite temporaire, processus Windows natifs, navigateur Playwright isolé visible, compte synthétique `lot10-pwa@sporttracker.local` conservé pendant tout le cycle.
+
+**Limite exacte du montage** : en .NET 10 l'environnement Blazor est figé à la publication (`applicationEnvironment` dans la configuration de démarrage de `dotnet.*.js`, `Production` par défaut) ; l'en-tête `Blazor-Environment` est ignoré. Un premier build Release standard chargeait `appsettings.Production.json` et visait l'API de production : sa seule requête (`POST /login`) a été bloquée dans le navigateur par une garde Playwright (`ERR_BLOCKED_BY_CLIENT`), rien n'est sorti de la machine. La recette porte donc sur un build Release identique publié avec `-p:WasmApplicationEnvironmentName=Development` : même code, même service worker, mêmes ressources ; seule la valeur d'environnement change (App → `appsettings.json` → API locale). Le comportement du build de production contre son API réelle n'est pas exercé (aucun déploiement autorisé).
+
+Preuves :
+- **En ligne** : premier chargement 6,0 s, connexion, service worker `activated`, page contrôlée après rechargement, cache `offline-cache-<version>` de 114 entrées ; présents : `index.html`, `v4.css`, `app.css`, `jakarta.css`, `SportTracker.App.styles.css`, Foruner et Jakarta, `background.jpg`, icônes nav et PWA, `js/v4-dialogs.js`, `appsettings.json`, 63 fichiers `_framework` dont 56 `.wasm`.
+- **Mise à jour** : nouvelle publication → nouveau service worker installé, activé à la relance de l'app, ancien cache supprimé (trois versions successives).
+- **Hors ligne réel** : serveur statique **et** API arrêtés (aucun port à l'écoute) + `setOffline(true)`. 20 routes rechargées (navigation complète) : toutes contrôlées par le service worker, jeton conservé, aucune redirection vers la connexion, `h1` en Foruner. 15 routes avec données → état d'erreur V4 + Réessayer ; Nouvelle sortie, Nouveau carnet, Aide, 404 rendus normalement. Aucune exception non gérée, aucun bandeau d'erreur Blazor (après `9907687`).
+- **Ressources hors ligne** : Foruner 400 et Jakarta 400/500/700 chargées, 5 feuilles de style, fond 3000 px et 5 icônes nav décodés, script des dialogues actif (dialogue modal de test : focus initial, Tab confiné, focus rendu à la fermeture).
+- **Actions hors ligne** : enregistrement cardio refusé « Enregistrement impossible… tes valeurs sont conservées » (valeurs gardées) ; déconnexion depuis Profil en erreur → jeton supprimé, routes protégées renvoyées vers la connexion ; connexion hors ligne → « Impossible de joindre le serveur. »
+- **Retour en ligne** : serveurs relancés, Réessayer sans rechargement → Aujourd'hui (séance du jour), Historique (liste) rechargés ; reconnexion → retour sur Profil ; Historique en erreur API seule puis Réessayer → liste.
 
 ## Écarts restants (non bloquants)
 
 - Icônes PWA = logo Blazor par défaut : aucune icône d'application dans Pencil ; à dessiner (décision produit).
-- Mode hors ligne du build publié non exercé de bout en bout (nécessite un serveur statique de la sortie Release) ; seul le contenu du manifeste hors ligne est vérifié.
+- Hors ligne : validé sur un build Release à environnement `Development` (voir limite ci-dessus) ; build de production contre l'API réelle non exercé.
+- Mise à jour du service worker : la nouvelle version n'est active qu'après fermeture/relance de l'app (comportement du gabarit Blazor, pas d'invite de mise à jour).
 - Accueil : « Bonjour Sportif » (nom générique) au lieu du prénom de la maquette — aucune donnée de prénom dans le modèle.
 - Listes Historique / Séances : noms longs tronqués par ellipse (nom complet sur le détail).
 - Stockage indisponible : le stepper reste éditable, l'échec n'apparaît qu'à l'enregistrement (message explicite, aucune écriture).
@@ -54,4 +71,4 @@ API 5294 + App 5281 lancées en processus Windows natifs (`Start-Process`, `--no
 
 ## Nettoyage
 
-Serveurs API/App arrêtés (aucun port 5294/5281 à l'écoute, aucun processus `SportTracker.*`), base SQLite, jetons, sortie de publication, scripts et captures `.playwright-mcp` supprimés. `CLAUDE.md` hors commits. Aucun endpoint, modèle, migration, merge, push ni déploiement. Aucun successeur : lot 10 = dernier lot du plan.
+Serveurs API/App/statique arrêtés (aucun port 5294/5281 à l'écoute), bases SQLite, jetons, sorties de publication (dont artefacts `bin/obj/Release`), serveur statique, scripts et captures `.playwright-mcp` supprimés. `CLAUDE.md` hors commits. Aucun endpoint, modèle, migration, merge, push ni déploiement. Aucun successeur : lot 10 = dernier lot du plan.
