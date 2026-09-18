@@ -1,7 +1,9 @@
 @page "/progress"
 @using SportTracker.Core.Models
+@using SportTracker.App.Services
 @using System.Globalization
 @inject HttpClient Http
+@inject WeeklyGoalService WeeklyGoal
 
 <div class="progress-page">
     <V4Header Title="Tes progrès" Subtitle="@weekSubtitle" />
@@ -39,7 +41,7 @@
                 <div class="pr-stat">
                     <span class="pr-stat__val">@weekSessions</span>
                     <span class="pr-stat__label">séances cette semaine</span>
-                    @if (weekSessions >= WeeklyGoalDefault)
+                    @if (weekSessions >= weeklyGoal)
                     {
                         <span class="pr-stat__badge">Objectif atteint</span>
                     }
@@ -79,9 +81,6 @@
 </div>
 
 @code {
-    // Objectif par défaut en attendant le branchement WeeklyGoalService (lot 9).
-    private const int WeeklyGoalDefault = 4;
-
     private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
 
     private bool loading = true;
@@ -91,6 +90,7 @@
     private int weeklyMinutesDelta;
     private int streak;
     private int weekSessions;
+    private int weeklyGoal = WeeklyGoalService.DefaultGoal;
     private List<(string label, int count, bool isToday)> volumeData = [];
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
@@ -104,10 +104,12 @@
 
             var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
             var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
-            await Task.WhenAll(workoutsTask, cardioTask);
+            var goalTask     = WeeklyGoal.GetGoalAsync();
+            await Task.WhenAll(workoutsTask, cardioTask, goalTask);
 
             var workouts = workoutsTask.Result ?? [];
             var cardio   = cardioTask.Result ?? [];
+            weeklyGoal   = goalTask.Result;
 
             var today   = DateTime.Today;
             var monday  = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
