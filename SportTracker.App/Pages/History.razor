@@ -4,19 +4,13 @@
 @inject HttpClient Http
 
 <div class="history-page">
+    <V4Header Title="Ton historique" Subtitle="Toutes tes séances, au même endroit" />
 
-    <div class="history-header">
-        <h1 class="history-title">
-            <span class="title-eyebrow">Ton</span>
-            Historique
-        </h1>
-    </div>
-
-    <div class="seg">
+    <div class="hi-seg" role="tablist" aria-label="Filtrer l'historique">
         @foreach (var f in filters)
         {
             var filter = f;
-            <button class="seg__btn @(activeFilter == filter ? "seg__btn--active" : "")" @onclick="() => activeFilter = filter">
+            <button role="tab" aria-selected="@(activeFilter == filter)" class="hi-seg__btn @(activeFilter == filter ? "hi-seg__btn--active" : "")" @onclick="() => activeFilter = filter">
                 @filter
             </button>
         }
@@ -24,45 +18,48 @@
 
     @if (allItems == null)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton" style="height:70px"></div>
-            <div class="st-skeleton" style="height:70px"></div>
-            <div class="st-skeleton" style="height:70px"></div>
-            <div class="st-skeleton" style="height:70px"></div>
-        </div>
+        <V4Loading />
+    }
+    else if (errorMessage is not null)
+    {
+        <V4State Title="Impossible de charger l'historique" Message="@errorMessage" IsError="true" OnRetry="LoadAsync" />
     }
     else if (!FilteredItems.Any())
     {
-        <p class="empty-text">Aucune séance enregistrée.</p>
+        <V4State Title="Aucune séance enregistrée" Message="Tes séances apparaîtront ici une fois enregistrées." />
     }
     else
     {
         @foreach (var group in GroupedItems)
         {
-            <div class="history-group">
-                <p class="group-label">@group.Key</p>
+            <div class="hi-group">
+                <p class="hi-group__label">@group.Key</p>
                 @foreach (var item in group)
                 {
-                    <a href="@item.DetailUrl" class="history-item">
-                        <div class="icon-badge" style="background: @item.IconBg">
-                            @((MarkupString)item.IconSvg)
-                        </div>
-                        <div class="item-info">
-                            <p class="item-name">@item.Name</p>
-                            <p class="item-meta">@item.Meta</p>
-                        </div>
-                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
+                    <a href="@item.DetailUrl" class="hi-item-link">
+                        <V4Card>
+                            <div class="hi-item">
+                                <div class="hi-item__icon" style="background: @item.IconBg">
+                                    @((MarkupString)item.IconSvg)
+                                </div>
+                                <div class="hi-item__info">
+                                    <strong>@item.Name</strong>
+                                    <span>@item.Meta</span>
+                                </div>
+                                <svg class="hi-item__chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"/>
+                                </svg>
+                            </div>
+                        </V4Card>
                     </a>
                 }
             </div>
         }
     }
 
-    <div class="fab-row">
-        <a href="/workoutsessions/new" class="fab">+ Muscu</a>
-        <a href="/cardiosessions/new" class="fab">+ Cardio</a>
+    <div class="hi-fab-row">
+        <V4Button Href="/workoutsessions/new">+ Muscu</V4Button>
+        <V4Button Href="/cardiosessions/new" Secondary="true">+ Cardio</V4Button>
     </div>
 </div>
 
@@ -72,6 +69,7 @@
         string DetailUrl, string IconBg, string IconSvg, string Kind);
 
     private List<HistoryItem>? allItems;
+    private string? errorMessage;
     private string activeFilter = "Tous";
 
     private static readonly string[] filters = ["Tous", "Muscu", "Cardio"];
@@ -88,70 +86,82 @@
             .OrderByDescending(i => i.Date)
             .GroupBy(i => GetPeriodLabel(i.Date));
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
     {
-        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
-        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
-
-        await Task.WhenAll(workoutsTask, cardioTask);
-
-        var items = new List<HistoryItem>();
-
-        foreach (var s in workoutsTask.Result ?? [])
+        try
         {
-            var duration = $"{(int)s.Duration.TotalMinutes} MIN";
-            var exCount  = s.WorkoutExercises?.Count ?? 0;
-            items.Add(new HistoryItem(
-                s.Name, s.Date,
-                $"{s.Date:dd MMM} • {duration} • {exCount} exercice{(exCount > 1 ? "s" : "")}",
-                $"/workoutsessions/{s.Id}",
-                "#D4F53C",
-                DumbbellSvg("#172713"),
-                "workout"));
-        }
+            errorMessage = null;
+            allItems = null;
 
-        foreach (var s in cardioTask.Result ?? [])
+            var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+            var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+            await Task.WhenAll(workoutsTask, cardioTask);
+
+            var items = new List<HistoryItem>();
+
+            foreach (var s in workoutsTask.Result ?? [])
+            {
+                var duration = $"{(int)s.Duration.TotalMinutes} min";
+                var exCount  = s.WorkoutExercises?.Count ?? 0;
+                items.Add(new HistoryItem(
+                    s.Name, s.Date,
+                    $"{s.Date:dd MMM} • {duration} • {exCount} exercice{(exCount > 1 ? "s" : "")}",
+                    $"/workoutsessions/{s.Id}",
+                    "#D4F53C",
+                    DumbbellSvg("#082D45"),
+                    "workout"));
+            }
+
+            foreach (var s in cardioTask.Result ?? [])
+            {
+                var duration = $"{(int)s.Duration.TotalMinutes} min";
+                var (bg, svg) = CardioIcon(s.Type);
+                var distanceStr = s.Distance > 0 ? $" • {s.Distance:F1} km" : "";
+                items.Add(new HistoryItem(
+                    s.Name, s.Date,
+                    $"{s.Date:dd MMM} • {duration}{distanceStr}",
+                    $"/cardiosessions/{s.Id}",
+                    bg,
+                    svg,
+                    "cardio"));
+            }
+
+            allItems = items;
+        }
+        catch
         {
-            var duration = $"{(int)s.Duration.TotalMinutes} MIN";
-            var (bg, iconColor, svg) = CardioIcon(s.Type);
-            var distanceStr = s.Distance > 0 ? $" • {s.Distance:F1} km" : "";
-            items.Add(new HistoryItem(
-                s.Name, s.Date,
-                $"{s.Date:dd MMM} • {duration}{distanceStr}",
-                $"/cardiosessions/{s.Id}",
-                bg,
-                svg,
-                "cardio"));
+            errorMessage = "Impossible de récupérer tes séances.";
+            allItems = null;
         }
-
-        allItems = items;
     }
 
     private static string GetPeriodLabel(DateTime date)
     {
         var today    = DateTime.Today;
-        var monday   = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+        var monday   = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
         var lastMon  = monday.AddDays(-7);
-        return date >= monday   ? "CETTE SEMAINE"
-             : date >= lastMon  ? "SEMAINE DERNIÈRE"
-             : "PLUS TÔT";
+        return date >= monday   ? "Cette semaine"
+             : date >= lastMon  ? "Semaine dernière"
+             : "Plus tôt";
     }
 
-    private static (string bg, string color, string svg) CardioIcon(CardioType type) => type switch
+    private static (string bg, string svg) CardioIcon(CardioType type) => type switch
     {
-        CardioType.Run  => ("#78E8E4", "#172713", ActivitySvg("#172713")),
-        CardioType.Bike => ("#78E8E4", "#172713", ActivitySvg("#172713")),
-        CardioType.Swim => ("#172713", "#D4F53C", ActivitySvg("#D4F53C")),
-        CardioType.Walk => ("rgba(120,232,228,0.35)", "#172713", WindSvg("#172713")),
-        _               => ("#78E8E4", "#172713", ActivitySvg("#172713")),
+        CardioType.Run  => ("#DDF6F4", ActivitySvg("#082D45")),
+        CardioType.Bike => ("#DDF6F4", ActivitySvg("#082D45")),
+        CardioType.Swim => ("#082D45", ActivitySvg("#D4F53C")),
+        CardioType.Walk => ("#DDF6F4", WindSvg("#082D45")),
+        _               => ("#DDF6F4", ActivitySvg("#082D45")),
     };
 
     private static string DumbbellSvg(string color) =>
-        $"""<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/></svg>""";
+        $"""<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/></svg>""";
 
     private static string ActivitySvg(string color) =>
-        $"""<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>""";
+        $"""<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>""";
 
     private static string WindSvg(string color) =>
-        $"""<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>""";
+        $"""<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>""";
 }
