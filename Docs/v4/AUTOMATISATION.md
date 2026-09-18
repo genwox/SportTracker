@@ -95,3 +95,13 @@ Heartbeat09:35UTC — script de recette Sonnet relu : SQLite cheminWindows uniqu
 09:51UTC — lot7 validé code0bd4ec9/docs885eb70. Session77962 arrêtée exit0. Notes vault complétées par coordinateur via CLI QMD sporttracker ; indexation en cours avant lot8. Cas un seul point historique reporté recette10.
 
 QMD lot7 complété : update2notes et embed17chunks réussis ; passation corrigée. Lot8 session distincte ouverte exec83419 Sonnet5 medium Pro, en attente instruction métier après contrôle quota.
+
+Lot8 mission complète envoyée exec83419 Sonnet5mediumPro, démarrage réel observé ; /usage60%session10%semaine reset14:40Paris, aucune facturationAPI. Nouveau lot8 actif, aucun lot9 ni concurrence. WeeklyGoalService selon contrat8/PLAN, contrôle identité et calendrier réels.
+
+Heartbeat10:15UTC — lot8 code030e5e1 committé après recette, passation/docs/vault en finalisation. Lecture du journal vault nécessaire explicitement autorisée dans l’invite native Claude (jonction hors checkout) ; les lectures restent limitées aux documents du projet nécessaires selon mission. Aucun lot9 avant clôture docs/QMD.
+
+10:20UTC — lot8 clôturé code030e5e1/docs9e7c5f6, journal/feature/QMD2notes19chunks et nettoyage confirmés. Session83419 arrêtée exit0. Lot9 Profil lancé session distincte SportTracker V4 lot 9 exec1466 Sonnet5mediumPro, clé héritée retirée processus uniquement et quota contrôlé. Branchement Progress.razor sur WeeklyGoalService explicitement inclus pour réception objectif profil/progrès, extension ciblée à documenter. Aucun lot10 ni agent concurrent.
+
+Heartbeat10:26UTC — lot9 session réellee42d0b91-6844-4877-9162-993c6cd8114f exec1466 SonnetmediumPro. Profil/préférences/aide/serviceobjectif/DI et branchementProgress modifiés ; buildApp0/0. Recette synthétique isolée en préparation avant commits/clôture. Aucun lot10.
+
+10:52UTC — lot9 validé code0c4e069, docs à suivre. Pencil ITixI relu, recette Playwright authentifiée320/390/1280/clavier OK ; WeeklyGoalService (Profil+Préférences+Progrès) persistance/répercussion vérifiées. Bug corrigé en session : `Title="...&amp;..."` sur paramètre de composant Razor non décodé (littéral à l'écran), corrigé en attribut nu. Écart non bloquant consigné : coupure API totale sur Profil reste bloquée en chargement (renderer WASM, appels manage/info concurrents), pré-existant à ce lot, à reprendre lot10 si le temps le permet — voir passation09-profil et journal du09/18. Session e42d0b91 termine sa clôture (docs/vault/QMD) puis s'arrête ; aucun lot10 lancé par cette session, conformément au cadrage.
