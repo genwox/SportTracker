@@ -3,7 +3,7 @@
 @inject HttpClient Http
 
 <main class="v4-programs">
-    <V4Header Title="Carnets" Subtitle="Tes programmes d’entraînement" />
+    <V4Header Title="Tes carnets" Subtitle="Des programmes qui te ressemblent" />
     <V4ActivityTabs />
 
     @if (isLoading) { <V4Loading /> }
@@ -16,12 +16,14 @@
     {
         <V4Button Href="/programs/new">+ Nouveau carnet</V4Button>
         <section class="v4-program-list" aria-label="Mes carnets">
-            @foreach (var program in programs)
+            @for (var index = 0; index < programs.Count; index++)
             {
-                <a class="v4-program-row" href="/programs/@program.Id">
+                var program = programs[index];
+                <a class="v4-program-row @(index == 0 ? "v4-program-row--featured" : "")" href="/programs/@program.Id">
                     <span class="v4-program-row__swatch" style="background-color:@program.ColorHex" aria-hidden="true"></span>
                     <span class="v4-program-row__content"><strong>@program.Name</strong><small>@ProgramMeta(program)</small></span>
                     <span class="v4-program-row__chevron" aria-hidden="true">›</span>
+                    @if (index == 0) { <span class="v4-program-row__open">Ouvrir le carnet</span> }
                 </a>
             }
         </section>
