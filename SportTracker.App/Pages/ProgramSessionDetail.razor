@@ -1,197 +1,190 @@
 @page "/programs/{ProgramId:int}/sessions/{SessionId:int}"
+@using System.Net
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
 @inject HttpClient Http
 
-<div class="workouts-page">
-
-    <div class="form-header">
-        <a href="/programs/@ProgramId" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        @if (!isEditing && session != null)
+<main class="v4-session-detail">
+    <div class="v4-session-topbar">
+        <V4Header Title="@(session?.Name ?? "Séance")" Subtitle="@(program is null ? null : $"‹ {program.Name}")" BackHref="@($"/programs/{ProgramId}")" />
+        @if (!isEditing && session is not null)
         {
-            <button type="button" class="edit-btn" @onclick="EnterEditMode">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
+            <button type="button" class="v4-edit-toggle" aria-label="Modifier la séance" @onclick="EnterEditMode">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Modifier
             </button>
         }
     </div>
 
-    @if (session == null)
+    @if (isLoading) { <V4Loading /> }
+    else if (notFound) { <V4State Title="Séance introuvable" Message="Elle a peut-être été supprimée ou n’est plus accessible."><V4Button Href="@($"/programs/{ProgramId}")" Secondary="true">Revenir au carnet</V4Button></V4State> }
+    else if (loadError is not null) { <V4State Title="Impossible de charger la séance" Message="@loadError" IsError="true" OnRetry="LoadAsync" /> }
+    else if (session is not null && isEditing)
     {
-        <div class="st-skel-block">
-            <div class="st-skeleton st-skel-med"></div>
-            <div class="st-skeleton st-skel-tall"></div>
-            <div class="st-skeleton st-skel-tall"></div>
-        </div>
-    }
-    else if (isEditing)
-    {
-        <div class="field-group" style="margin-bottom: 1rem;">
-            <label class="field-label">Nom de la séance</label>
-            <input type="text" class="field-input" @bind="editName" @bind:event="oninput" placeholder="Nom de la séance" />
-        </div>
+        <V4Card>
+            <div class="v4-field"><label for="edit-session-name">Nom de la séance</label><input id="edit-session-name" class="v4-input" @bind="editName" @bind:event="oninput" placeholder="Nom de la séance" /></div>
+        </V4Card>
 
-        <div class="section-label">EXERCICES</div>
-
-        @for (int i = 0; i < editExercises.Count; i++)
-        {
-            var idx = i;
-            var ef = editExercises[idx];
-            <div class="exercise-block">
-                <div class="exercise-block__header">
-                    <span style="font-weight: 600; font-size: 0.95rem;">@ef.ExerciseName</span>
-                    <button type="button" class="remove-btn" @onclick="() => RemoveExercise(idx)">✕</button>
-                </div>
-                <div class="target-fields">
-                    <div class="field-group field-group--sm">
-                        <label class="field-label">Séries</label>
-                        <input type="number" class="field-input" @bind="ef.TargetSets" min="1" />
-                    </div>
-                    <div class="field-group field-group--sm">
-                        <label class="field-label">Reps min</label>
-                        <input type="number" class="field-input" @bind="ef.TargetRepsMin" min="1" />
-                    </div>
-                    <div class="field-group field-group--sm">
-                        <label class="field-label">Reps max</label>
-                        <input type="number" class="field-input" @bind="ef.TargetRepsMax" min="1" />
-                    </div>
-                    <div class="field-group field-group--sm">
-                        <label class="field-label">Repos (s)</label>
-                        <input type="number" class="field-input" @bind="ef.RestSeconds" min="0" />
-                    </div>
-                </div>
-            </div>
-        }
-
-        <div class="ex-search" style="margin-top: 0.5rem;">
-            <input type="text" class="field-input"
-                   placeholder="Ajouter un exercice..."
-                   value="@searchText"
-                   @oninput="e => searchText = e.Value?.ToString() ?? string.Empty"
-                   @onfocusin="() => showDropdown = true"
-                   @onfocusout="() => showDropdown = false" />
-            @{
-                var filtered = string.IsNullOrWhiteSpace(searchText)
-                    ? Enumerable.Empty<Exercise>()
-                    : availableExercises
-                        .Where(e => e.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                        .Take(8);
-            }
-            @if (showDropdown && filtered.Any())
+        <section class="v4-exercise-editor" aria-label="Exercices">
+            @for (var i = 0; i < editExercises.Count; i++)
             {
-                <div class="ex-dropdown">
-                    @foreach (var ex in filtered)
-                    {
-                        <button type="button" class="ex-option"
-                                @onmousedown:preventDefault
-                                @onclick="() => SelectExercise(ex)">
-                            @ex.Name
-                        </button>
-                    }
-                </div>
+                var idx = i;
+                var ef = editExercises[idx];
+                <V4Card>
+                    <div class="v4-exercise-editor__title">
+                        <div><h2>@ef.ExerciseName</h2><small><button type="button" @onclick="() => RemoveExercise(idx)">Retirer cet exercice</button></small></div>
+                    </div>
+                    <div class="v4-target-grid">
+                        <div class="v4-field"><label>Séries</label><input type="number" class="v4-input" @bind="ef.TargetSets" min="1" /></div>
+                        <div class="v4-field"><label>Repos (s)</label><input type="number" class="v4-input" @bind="ef.RestSeconds" min="0" /></div>
+                        <div class="v4-field"><label>Reps min</label><input type="number" class="v4-input" @bind="ef.TargetRepsMin" min="1" /></div>
+                        <div class="v4-field"><label>Reps max</label><input type="number" class="v4-input" @bind="ef.TargetRepsMax" min="1" /></div>
+                    </div>
+                </V4Card>
             }
+        </section>
+        <V4Button Secondary="true" OnClick="OpenPicker">+ Ajouter un exercice</V4Button>
+
+        @if (errorMessage is not null) { <V4State Title="Sauvegarde impossible" Message="@errorMessage" IsError="true" /> }
+
+        <div class="v4-form-actions">
+            <V4Button OnClick="SaveAsync" Disabled="isSaving">@(isSaving ? "Enregistrement…" : errorMessage is not null ? "Réessayer" : "Enregistrer les modifications")</V4Button>
+            <button type="button" class="v4-cancel-link" @onclick="CancelEdit">Annuler</button>
         </div>
 
-        @if (errorMessage is not null)
+        @if (pickerOpen)
         {
-            <div class="error-card">@errorMessage</div>
-        }
+            <div class="sheet-backdrop" @onclick="ClosePicker"></div>
+            <div class="sheet v4-exercise-picker" role="dialog" aria-modal="true" aria-label="Ajouter un exercice">
+                <div class="sheet-header"><span>Ajouter un exercice</span><button type="button" class="sheet-close" aria-label="Fermer" @onclick="ClosePicker">✕</button></div>
+                <input class="v4-input" placeholder="Rechercher un exercice" value="@searchText" @oninput="e => { searchText = e.Value?.ToString() ?? string.Empty; candidate = null; }" autofocus />
 
-        <div class="form-actions">
-            <button type="button" class="submit-btn" @onclick="SaveAsync" disabled="@isSaving">
-                @(isSaving ? "Enregistrement..." : "Enregistrer")
-            </button>
-            <button type="button" class="cancel-btn" @onclick="CancelEdit">Annuler</button>
-        </div>
-    }
-    else
-    {
-        <section class="psd-hero glass-hero">
-            <span class="psd-hero__eyebrow">Séance</span>
-            <h1 class="psd-hero__name">@session.Name</h1>
-            <div class="psd-hero__pills">
-                <span class="psd-pill">@exerciseCount @(exerciseCount > 1 ? "exercices" : "exercice")</span>
-                @if (totalSets > 0)
+                @if (candidate is null)
                 {
-                    <span class="psd-pill">@totalSets @(totalSets > 1 ? "séries" : "série")</span>
+                    @if (string.IsNullOrWhiteSpace(searchText))
+                    {
+                        <p class="v4-picker-hint">Tape le nom d’un exercice pour commencer.</p>
+                    }
+                    else
+                    {
+                        var results = availableExercises.Where(e => e.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) && editExercises.All(x => x.ExerciseId != e.Id)).Take(8).ToList();
+                        <p class="v4-picker-count">@results.Count exercice@(results.Count > 1 ? "s trouvés" : results.Count == 1 ? " trouvé" : " trouvé")</p>
+                        <div class="v4-picker-results">
+                            @foreach (var exercise in results)
+                            {
+                                <button type="button" class="v4-picker-result" @onclick="() => candidate = exercise">
+                                    <span class="v4-picker-result__icon" aria-hidden="true">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/></svg>
+                                    </span>
+                                    <span><strong>@exercise.Name</strong><small>@MuscleGroupsLabel(exercise)</small></span>
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="v4-picker-confirm">
+                        <strong>@candidate.Name</strong>
+                        <p>Sélectionne cet exercice pour définir les séries, répétitions et temps de repos.</p>
+                        <V4Button OnClick="ConfirmCandidate">Choisir cet exercice</V4Button>
+                        <button type="button" class="v4-picker-cancel" @onclick="() => candidate = null">Annuler</button>
+                    </div>
                 }
             </div>
-        </section>
+        }
+    }
+    else if (session is not null)
+    {
+        <p class="v4-session-tagline">Un exercice après l’autre.</p>
+        @if (exerciseCount > 0)
+        {
+            <p class="v4-session-summary">@exerciseCount exercice@(exerciseCount > 1 ? "s" : "") • @totalSets série@(totalSets > 1 ? "s" : "")</p>
+        }
 
-        <div class="psd-section-label">Exercices</div>
+        <V4Button Href="@(firstLiveExerciseId > 0 ? $"/programs/{ProgramId}/sessions/{SessionId}/exercises/{firstLiveExerciseId}/live" : null)" Disabled="firstLiveExerciseId <= 0">Démarrer en live</V4Button>
 
-        <div class="exercise-list">
+        <div class="v4-exercise-list">
             @foreach (var pe in session.Exercises.OrderBy(e => e.Order))
             {
                 var ex = pe.Exercise;
                 if (ex == null) continue;
-
-                var schema = FormatSchema(pe);
-
-                <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/live" class="exercise-card">
+                <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/live" class="v4-exercise-row">
                     @if (!string.IsNullOrEmpty(ex.GifUrl))
                     {
-                        <img src="@ex.GifUrl" alt="@ex.Name" class="exercise-card__img" loading="lazy" />
+                        <img src="@ex.GifUrl" alt="@ex.Name" class="v4-exercise-row__img" loading="lazy" />
                     }
                     else
                     {
-                        <div class="exercise-card__img-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/>
-                            </svg>
-                        </div>
+                        <span class="v4-exercise-row__icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/></svg>
+                        </span>
                     }
-                    <div class="exercise-card__info">
-                        <h3 class="exercise-card__name">@ex.Name</h3>
-                        <p class="exercise-card__schema">@schema</p>
-                    </div>
+                    <span><strong>@ex.Name</strong><small>@FormatSchema(pe)</small></span>
                 </a>
             }
         </div>
-
-        @if (firstLiveExerciseId > 0)
-        {
-            <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@firstLiveExerciseId/live" class="psd-cta">Démarrer en live</a>
-        }
     }
-
-</div>
+</main>
 
 @code {
     [Parameter] public int ProgramId { get; set; }
     [Parameter] public int SessionId { get; set; }
 
+    private WorkoutProgram? program;
     private WorkoutProgramSession? session;
-    private bool isEditing;
+    private bool isLoading = true, notFound, isEditing, isSaving;
+    private string? loadError, errorMessage;
+
     private string editName = string.Empty;
     private List<ExerciseEditForm> editExercises = new();
     private List<Exercise> availableExercises = new();
+
+    private bool pickerOpen;
     private string searchText = string.Empty;
-    private bool showDropdown;
-    private bool isSaving;
-    private string? errorMessage;
+    private Exercise? candidate;
 
     private int exerciseCount => session?.Exercises.Count(e => e.Exercise != null) ?? 0;
     private int totalSets => session?.Exercises.Where(e => e.Exercise != null).Sum(e => e.TargetSets) ?? 0;
-    private int firstLiveExerciseId => session?.Exercises
-        .Where(e => e.Exercise != null)
-        .OrderBy(e => e.Order)
-        .FirstOrDefault()?.ExerciseId ?? 0;
+    private int firstLiveExerciseId => session?.Exercises.Where(e => e.Exercise != null).OrderBy(e => e.Order).FirstOrDefault()?.ExerciseId ?? 0;
 
-    protected override async Task OnInitializedAsync()
+    private static readonly Dictionary<MuscleGroup, string> MuscleGroupLabels = new()
     {
-        var programTask = Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-        var exercisesTask = Http.GetFromJsonAsync<List<Exercise>>("api/exercises");
-        await Task.WhenAll(programTask, exercisesTask);
+        [MuscleGroup.Chest] = "Pectoraux",
+        [MuscleGroup.Back] = "Dos",
+        [MuscleGroup.Shoulders] = "Épaules",
+        [MuscleGroup.Biceps] = "Biceps",
+        [MuscleGroup.Triceps] = "Triceps",
+        [MuscleGroup.Legs] = "Jambes",
+        [MuscleGroup.Glutes] = "Fessiers",
+        [MuscleGroup.Abs] = "Abdominaux",
+        [MuscleGroup.FullBody] = "Full body",
+    };
 
-        var program = programTask.Result;
-        session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
-        availableExercises = exercisesTask.Result ?? new();
+    private static string MuscleGroupsLabel(Exercise exercise)
+    {
+        var known = exercise.MuscleGroups.Where(MuscleGroupLabels.ContainsKey).Select(g => MuscleGroupLabels[g]);
+        var label = string.Join(" · ", known);
+        return string.IsNullOrEmpty(label) ? "Groupe musculaire non renseigné" : label;
+    }
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        isLoading = true; notFound = false; loadError = null;
+        try
+        {
+            using var response = await Http.GetAsync($"api/programs/{ProgramId}");
+            if (response.StatusCode == HttpStatusCode.NotFound) { notFound = true; return; }
+            if (!response.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)response.StatusCode}."; return; }
+            program = await response.Content.ReadFromJsonAsync<WorkoutProgram>();
+            session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
+            if (session is null) { notFound = true; return; }
+            availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? new();
+        }
+        catch (Exception) { loadError = "Vérifie ta connexion, puis réessaie."; }
+        finally { isLoading = false; }
     }
 
     private void EnterEditMode()
@@ -206,60 +199,35 @@
             TargetRepsMax = pe.TargetRepsMax,
             RestSeconds = pe.RestSeconds
         }).ToList();
-        searchText = string.Empty;
-        showDropdown = false;
+        errorMessage = null;
         isEditing = true;
     }
 
-    private void CancelEdit()
-    {
-        isEditing = false;
-        errorMessage = null;
-    }
-
+    private void CancelEdit() { isEditing = false; errorMessage = null; ClosePicker(); }
     private void RemoveExercise(int index) => editExercises.RemoveAt(index);
 
-    private void SelectExercise(Exercise ex)
+    private void OpenPicker() { pickerOpen = true; searchText = string.Empty; candidate = null; }
+    private void ClosePicker() { pickerOpen = false; candidate = null; }
+
+    private void ConfirmCandidate()
     {
-        editExercises.Add(new ExerciseEditForm
-        {
-            ExerciseId = ex.Id,
-            ExerciseName = ex.Name,
-            TargetSets = 3,
-            TargetRepsMin = 10,
-            TargetRepsMax = 12,
-            RestSeconds = 120
-        });
-        searchText = string.Empty;
-        showDropdown = false;
+        if (candidate is null) return;
+        editExercises.Add(new ExerciseEditForm { ExerciseId = candidate.Id, ExerciseName = candidate.Name, TargetSets = 3, TargetRepsMin = 8, TargetRepsMax = 12, RestSeconds = 90 });
+        ClosePicker();
     }
 
     private async Task SaveAsync()
     {
-        if (!editExercises.Any())
-        {
-            errorMessage = "La séance doit contenir au moins un exercice.";
-            return;
-        }
+        if (!editExercises.Any()) { errorMessage = "La séance doit contenir au moins un exercice."; return; }
+        if (string.IsNullOrWhiteSpace(editName)) { errorMessage = "Le nom de la séance est requis."; return; }
 
-        isSaving = true;
-        errorMessage = null;
-
+        isSaving = true; errorMessage = null;
         try
         {
-            var program = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-            if (program == null)
-            {
-                errorMessage = "Programme introuvable.";
-                return;
-            }
-
-            var target = program.Sessions.FirstOrDefault(s => s.Id == SessionId);
-            if (target == null)
-            {
-                errorMessage = "Séance introuvable.";
-                return;
-            }
+            var current = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
+            if (current is null) { errorMessage = "Carnet introuvable."; return; }
+            var target = current.Sessions.FirstOrDefault(s => s.Id == SessionId);
+            if (target is null) { errorMessage = "Séance introuvable."; return; }
 
             target.Name = editName.Trim();
             target.Exercises = editExercises.Select((ef, i) => new WorkoutProgramExercise
@@ -272,39 +240,28 @@
                 RestSeconds = ef.RestSeconds
             }).ToList();
 
-            var response = await Http.PutAsJsonAsync($"api/programs/{ProgramId}", program);
+            var response = await Http.PutAsJsonAsync($"api/programs/{ProgramId}", current);
             if (response.IsSuccessStatusCode)
             {
                 var updated = await Http.GetFromJsonAsync<WorkoutProgram>($"api/programs/{ProgramId}");
-                if (updated != null)
-                    session = updated.Sessions.FirstOrDefault(s => s.Id == SessionId) ?? session;
+                program = updated ?? program;
+                session = updated?.Sessions.FirstOrDefault(s => s.Id == SessionId) ?? session;
                 isEditing = false;
+                return;
             }
-            else
-            {
-                errorMessage = $"Erreur lors de la sauvegarde ({(int)response.StatusCode}).";
-            }
+            errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées.";
         }
-        finally
-        {
-            isSaving = false;
-        }
+        catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; }
+        finally { isSaving = false; }
     }
 
-    private string FormatSchema(WorkoutProgramExercise pe)
+    private static string FormatSchema(WorkoutProgramExercise pe)
     {
-        var reps = pe.TargetRepsMin == pe.TargetRepsMax
-            ? $"{pe.TargetRepsMin}"
-            : $"{pe.TargetRepsMin}-{pe.TargetRepsMax}";
-
-        var rest = pe.RestSeconds >= 60
-            ? $"{pe.RestSeconds / 60} min{(pe.RestSeconds % 60 > 0 ? $" {pe.RestSeconds % 60:D2}" : "")}"
-            : $"{pe.RestSeconds}s";
-
-        return $"{pe.TargetSets}x{reps} et {rest} de pause";
+        var reps = pe.TargetRepsMin == pe.TargetRepsMax ? $"{pe.TargetRepsMin}" : $"{pe.TargetRepsMin}–{pe.TargetRepsMax}";
+        return $"{pe.TargetSets} × {reps} reps • Repos {pe.RestSeconds} s";
     }
 
-    private class ExerciseEditForm
+    private sealed class ExerciseEditForm
     {
         public int ExerciseId { get; set; }
         public string ExerciseName { get; set; } = string.Empty;
