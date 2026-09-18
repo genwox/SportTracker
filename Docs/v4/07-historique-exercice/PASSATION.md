@@ -22,7 +22,7 @@ Validations : `dotnet build SportTracker.App/SportTracker.App.csproj --no-restor
 - Navigation clavier : lien d'évitement puis lien Retour puis nav principale (aucun élément interactif supplémentaire dans le contenu, conforme au contrat qui ne demande pas d'interaction dans l'historique).
 - Console : uniquement les logs HTTP normaux et les erreurs réseau/404 volontairement provoquées.
 
-Écarts : vault Obsidian et QMD CLI non disponibles dans cet environnement (serveur MCP `obsidian-parallaxe` en échec de connexion ; pas de collection QMD accessible) — mise à jour vault/QMD non réalisée, à reporter ou réaliser depuis un environnement où ces outils sont connectés. Graphique en barres remplace le sparkline en ligne du code pré-V4 (changement documenté ci-dessus, plus fidèle à Pencil). Cas à un seul point d'historique non testé explicitement (le graphique en barres ne s'affiche qu'à partir de 2 séances, comportement hérité du code pré-V4). `CLAUDE.md` hors commit.
+Écarts : le coordinateur a complété le journal et la feature du vault puis réindexé QMD CLI collection sporttracker après la session Claude. Le MCP parallaxe ne concerne pas ce projet. Graphique en barres remplace le sparkline en ligne du code pré-V4 (changement documenté ci-dessus, plus fidèle à Pencil). Cas à un seul point d'historique non testé explicitement (le graphique en barres ne s'affiche qu'à partir de 2 séances, comportement hérité du code pré-V4). `CLAUDE.md` hors commit.
 
 Nettoyage : serveurs API/App isolés arrêtés, base SQLite temporaire (+ fichiers `-shm`/`-wal`) et captures Playwright supprimés du scratchpad et de la racine du dépôt.
 
