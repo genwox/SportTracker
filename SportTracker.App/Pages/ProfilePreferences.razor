@@ -11,7 +11,7 @@
     }
     else if (!available)
     {
-        <V4State Title="Préférences indisponibles" Message="Identité ou stockage impossibles à confirmer : l'objectif par défaut est utilisé et ne peut pas être enregistré pour le moment." />
+        <V4State Title="Préférences indisponibles" Message="Identité ou stockage impossibles à confirmer : l'objectif par défaut est utilisé et ne peut pas être enregistré pour le moment." OnRetry="LoadAsync" />
     }
     else
     {
@@ -48,8 +48,12 @@
     private string? feedback;
     private bool feedbackIsError;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
     {
+        loading = true;
+        feedback = null;
         available = await WeeklyGoal.IsAvailableAsync();
         goal = await WeeklyGoal.GetGoalAsync();
         loading = false;
