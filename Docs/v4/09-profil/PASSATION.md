@@ -1,6 +1,6 @@
 # Passation lot 9 — Profil UI V4
 
-Statut : validé. Branche : `feat/ui-v4`. Code : `0c4e069`. Session Claude Code, Sonnet 5 / medium (abonnement Pro).
+Statut : validé. Branche : `feat/ui-v4`. Code : `0c4e069`. Docs : `fc9614b`. Session Claude Code, Sonnet 5 / medium (abonnement Pro).
 
 Modifications (fichiers autorisés du contrat + extension explicitement autorisée par l'instruction de lancement) :
 - `Pages/Profile.razor` + `.css` réécrits en V4 (`V4Header`, `V4Card`, `V4Loading`, `V4State`, tokens `--st-*`) — dernier écran principal resté sur l'ancien style custom depuis l'étape 4e.
