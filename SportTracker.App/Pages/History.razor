@@ -16,13 +16,13 @@
         }
     </div>
 
-    @if (allItems == null)
-    {
-        <V4Loading />
-    }
-    else if (errorMessage is not null)
+    @if (errorMessage is not null)
     {
         <V4State Title="Impossible de charger l'historique" Message="@errorMessage" IsError="true" OnRetry="LoadAsync" />
+    }
+    else if (allItems == null)
+    {
+        <V4Loading />
     }
     else if (!FilteredItems.Any())
     {
