@@ -1,0 +1,5 @@
+.hlp-page { display: grid; gap: 12px; padding-bottom: 12px; }
+
+.hlp-item { display: grid; gap: 6px; }
+.hlp-item strong { font-size: 14px; font-weight: 700; color: var(--st-dark); }
+.hlp-item p { margin: 0; font-size: 13px; font-weight: 500; color: var(--st-nav-inactive); line-height: 1.5; }
