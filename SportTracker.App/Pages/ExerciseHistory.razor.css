@@ -124,3 +124,6 @@
     color: var(--st-secondary);
     overflow-wrap: anywhere;
 }
+
+.eh-page { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; padding: 52px 20px calc(var(--st-nav-height) + env(safe-area-inset-bottom) + 24px); display: grid; gap: 14px; align-content: start; }
+@media (max-width: 360px) { .eh-page { padding-inline: 16px; } }

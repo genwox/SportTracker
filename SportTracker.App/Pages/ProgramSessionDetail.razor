@@ -4,7 +4,7 @@
 @using SportTracker.Core.Enums
 @inject HttpClient Http
 
-<main class="v4-session-detail">
+<div class="v4-session-detail">
     <div class="v4-session-topbar">
         <V4Header Title="@(session?.Name ?? "Séance")" Subtitle="@(program is null ? null : $"‹ {program.Name}")" BackHref="@($"/programs/{ProgramId}")" />
         @if (!isEditing && session is not null)
@@ -125,7 +125,7 @@
             }
         </div>
     }
-</main>
+</div>
 
 @code {
     [Parameter] public int ProgramId { get; set; }

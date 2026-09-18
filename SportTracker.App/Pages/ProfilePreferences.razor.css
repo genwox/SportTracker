@@ -1,4 +1,4 @@
-.pp-page { display: grid; gap: 14px; padding-bottom: 12px; }
+.pp-page { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; padding: 52px 20px calc(var(--st-nav-height) + env(safe-area-inset-bottom) + 24px); display: grid; gap: 14px; align-content: start; }
 
 .pp-goal { display: grid; gap: 12px; }
 .pp-goal__label { font-size: 13px; font-weight: 600; color: var(--st-nav-inactive); }
@@ -34,3 +34,4 @@
 
 .pp-feedback { margin: 0; font-size: 13px; font-weight: 600; color: var(--st-nav-inactive); }
 .pp-feedback--error { color: #8a241c; }
+@media (max-width: 360px) { .pp-page { padding-inline: 16px; } }

@@ -4,12 +4,12 @@
 @using System.Globalization
 @inject HttpClient Http
 
-<main class="v4-cardio-detail">
+<div class="v4-cardio-detail">
 @if (isLoading) { <V4Loading /> }
 else if (notFound) { <V4State Title="Sortie introuvable" Message="Cette sortie n’existe pas ou n’est plus accessible." IsError="true"><V4Button Href="/cardiosessions">Retour au cardio</V4Button></V4State> }
 else if (errorMessage is not null) { <V4State Title="Impossible de charger la sortie" Message="@errorMessage" IsError="true" OnRetry="LoadSessionAsync" /> }
 else if (session is not null) { <V4Header Title="@(string.IsNullOrWhiteSpace(session.Name) ? TypeLabel(session.Type) : session.Name)" Subtitle="@Capitalize(session.Date.ToString("dddd dd MMMM", Fr))" BackHref="/cardiosessions" /><section class="v4-cardio-hero"><span>@TypeLabel(session.Type)</span><strong>@session.Distance.ToString("0.#", Fr)</strong><small>kilomètres</small></section><section class="v4-cardio-stats" aria-label="Bilan de la sortie"><div><strong>@FormatDuration(session.Duration)</strong><span>durée</span></div>@if (session.Distance > 0 && session.Duration.TotalSeconds > 0) { <div><strong>@Pace(session.Duration, session.Distance)</strong><span>allure /km</span></div> }<div><strong>@session.ElevationGain.ToString("0", Fr) m</strong><span>dénivelé</span></div></section> }
-</main>
+</div>
 @code {
     [Parameter] public int Id { get; set; }
     private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
