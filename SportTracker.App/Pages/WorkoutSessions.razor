@@ -2,7 +2,7 @@
 @using SportTracker.Core.Models
 @inject HttpClient Http
 
-<main class="v4-workouts">
+<div class="v4-workouts">
     <header class="v4-workouts__heading">
         <h1>Tes séances</h1>
         <p>Ton journal de musculation</p>
@@ -41,7 +41,7 @@
             }
         </section>
     }
-</main>
+</div>
 
 @code {
     private List<WorkoutSession>? sessions;

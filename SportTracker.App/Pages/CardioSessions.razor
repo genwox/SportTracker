@@ -4,7 +4,7 @@
 @using System.Globalization
 @inject HttpClient Http
 
-<main class="v4-cardio-list-page">
+<div class="v4-cardio-list-page">
     <header class="v4-cardio-list-page__heading"><h1>Ton cardio</h1><p>Chaque sortie compte</p></header>
     <V4ActivityTabs />
     <V4Button Href="/cardiosessions/new">+ Nouvelle sortie</V4Button>
@@ -12,7 +12,7 @@
     else if (errorMessage is not null) { <V4State Title="Impossible de charger tes sorties" Message="@errorMessage" IsError="true" OnRetry="LoadSessionsAsync" /> }
     else if (sessions is not null && !sessions.Any()) { <V4State Title="Première sortie" Message="Enregistre ta première sortie cardio."><V4Button Href="/cardiosessions/new">Créer ma sortie</V4Button></V4State> }
     else if (sessions is not null) { <section class="v4-cardio-list" aria-label="Historique cardio">@foreach (var session in sessions.OrderByDescending(s => s.Date)) { <a class="v4-cardio-row" href="/cardiosessions/@session.Id"><span class="v4-cardio-row__icon" aria-hidden="true">@Icon(session.Type)</span><span><strong>@(string.IsNullOrWhiteSpace(session.Name) ? TypeLabel(session.Type) : session.Name)</strong><small>@Capitalize(session.Date.ToString("dddd dd MMMM", Fr)) · @FormatDuration(session.Duration)</small></span><span class="v4-cardio-row__distance">@session.Distance.ToString("0.#", Fr)<small>km</small></span><span aria-hidden="true">›</span></a> }</section> }
-</main>
+</div>
 @code {
     private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR"); private List<CardioSession>? sessions; private bool isLoading = true; private string? errorMessage;
     protected override Task OnInitializedAsync() => LoadSessionsAsync();

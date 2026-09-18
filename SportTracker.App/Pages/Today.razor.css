@@ -37,6 +37,7 @@
     line-height: 1.05;
     color: var(--st-ink);
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .t-hero__meta {

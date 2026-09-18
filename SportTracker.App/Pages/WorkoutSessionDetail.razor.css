@@ -1,7 +1,7 @@
 .v4-workout-detail { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; padding: 52px 20px calc(var(--st-nav-height) + env(safe-area-inset-bottom) + 24px); }
 .v4-session-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; padding: 14px; border: 1px solid #ffffffaa; border-radius: 18px; background: var(--st-surface); }
 .v4-session-summary div { display: grid; gap: 4px; min-width: 0; padding: 6px; border-radius: 12px; background: #F8FFFFB8; }
-.v4-session-summary strong { overflow: hidden; color: var(--st-ink); font: 400 22px/1 var(--st-font-display); text-overflow: ellipsis; white-space: nowrap; }
+.v4-session-summary strong { color: var(--st-ink); font: 400 22px/1.05 var(--st-font-display); overflow-wrap: anywhere; }
 .v4-session-summary span { color: var(--st-secondary); font-size: 11px; }
 .v4-detail-exercises { display: grid; gap: 12px; }
 .v4-detail-exercise { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 72px; padding: 12px; border: 1px solid #ffffffaa; border-radius: 16px; background: var(--st-card-bg); color: var(--st-secondary); }

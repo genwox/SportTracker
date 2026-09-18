@@ -3,7 +3,7 @@
 @using SportTracker.Core.Models
 @inject HttpClient Http
 
-<main class="v4-program-detail">
+<div class="v4-program-detail">
     <V4Header Title="@(program?.Name ?? "Carnet")" Subtitle="Tous les carnets" BackHref="/programs" />
     @if (isLoading) { <V4Loading /> }
     else if (notFound) { <V4State Title="Carnet introuvable" Message="Il a peut-être été supprimé ou n’est plus accessible."><V4Button Href="/programs" Secondary="true">Revenir aux carnets</V4Button></V4State> }
@@ -23,7 +23,7 @@
             <V4Button Href="@($"/programs/{ProgramId}/sessions/new")" Secondary="true">+ Ajouter une séance</V4Button>
         }
     }
-</main>
+</div>
 @code {
     [Parameter] public int ProgramId { get; set; }
     private WorkoutProgram? program; private bool isLoading = true; private bool notFound; private string? errorMessage;

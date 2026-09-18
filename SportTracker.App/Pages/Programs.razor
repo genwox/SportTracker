@@ -2,7 +2,7 @@
 @using SportTracker.Core.Models
 @inject HttpClient Http
 
-<main class="v4-programs">
+<div class="v4-programs">
     <V4Header Title="Tes carnets" Subtitle="Des programmes qui te ressemblent" />
     <V4ActivityTabs />
 
@@ -28,7 +28,7 @@
             }
         </section>
     }
-</main>
+</div>
 
 @code {
     private List<WorkoutProgram>? programs;

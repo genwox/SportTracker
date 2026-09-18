@@ -3,7 +3,7 @@
 @using System.Globalization
 @inject HttpClient Http
 
-<main class="v4-workout-detail">
+<div class="v4-workout-detail">
     @if (isLoading) { <V4Loading /> }
     else if (notFound) { <V4State Title="Séance introuvable" Message="Cette séance n’existe pas ou n’est plus accessible." IsError="true"><V4Button Href="/workoutsessions">Retour aux séances</V4Button></V4State> }
     else if (errorMessage is not null) { <V4State Title="Impossible de charger la séance" Message="@errorMessage" IsError="true" OnRetry="LoadSessionAsync" /> }
@@ -33,7 +33,7 @@
             </section>
         }
     }
-</main>
+</div>
 
 @code {
     [Parameter] public int Id { get; set; }

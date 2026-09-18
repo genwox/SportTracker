@@ -7,7 +7,7 @@
 .v4-field { display: grid; gap: 6px; }
 .v4-field label { color: var(--st-secondary); font-size: 12px; font-weight: 600; }
 .v4-input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); font-size: 14px; }
-.v4-input:focus { outline: 2px solid #082d4540; border-color: var(--st-ink); }
+.v4-input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
 .v4-exercise-editor { display: grid; gap: 12px; }
 .v4-exercise-editor__title { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; }
 .v4-exercise-editor h2 { margin: 0 0 5px; font: 400 19px/1.15 var(--st-font-display); color: var(--st-ink); }
@@ -33,3 +33,6 @@
 .v4-picker-confirm ::deep .v4-button { width: 100%; }
 .v4-picker-cancel { border: 0; background: none; color: var(--st-secondary); font-size: 13px; text-decoration: underline; cursor: pointer; justify-self: center; }
 @media (max-width: 360px) { .v4-session-form { padding-inline: 16px; } .v4-target-grid { gap: 8px; } }
+/* InputText est un composant : son <input> ne porte pas l'attribut scoped de la page. */
+.v4-session-form ::deep .v4-input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); font-size: 14px; }
+.v4-session-form ::deep .v4-input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
