@@ -1,11 +1,11 @@
 {
-  "name": "SportTracker.App",
-  "short_name": "SportTracker.App",
+  "name": "SportTracker",
+  "short_name": "SportTracker",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "#DDF6F4",
+  "theme_color": "#082D45",
   "prefer_related_applications": false,
   "icons": [
     {
