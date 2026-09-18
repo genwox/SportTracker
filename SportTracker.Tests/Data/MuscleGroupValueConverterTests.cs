@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SportTracker.Core.Enums;
 using SportTracker.Core.Models;
 using SportTracker.Data;
+using SportTracker.Tests.Support;
 
 namespace SportTracker.Tests.Data;
 
@@ -22,7 +23,7 @@ public class MuscleGroupValueConverterTests : IDisposable
             .UseSqlite(_connection)
             .Options;
 
-        _context = new SportTrackerDbContext(options);
+        _context = new SportTrackerDbContext(options, new FakeCurrentUserService());
         _context.Database.EnsureCreated();
     }
 
