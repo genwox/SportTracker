@@ -1,0 +1,9 @@
+<header class="v4-header">
+    @if (BackHref is not null) { <a class="v4-back" href="@BackHref" aria-label="Retour">←</a> }
+    <div><h1>@Title</h1>@if (Subtitle is not null) { <p>@Subtitle</p> }</div>
+</header>
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? BackHref { get; set; }
+}

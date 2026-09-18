@@ -5,44 +5,48 @@
 @inject NavigationManager Nav
 
 <div class="auth-page">
-    <div class="auth-brand">
-        <span class="title-eyebrow">Rejoins</span>
-        <h1 class="auth-title">SportTracker</h1>
-    </div>
+    <header class="auth-heading">
+        <h1>Créer ton compte</h1>
+        <p>Bienvenue sur SportTracker</p>
+    </header>
 
-    <EditForm Model="model" OnValidSubmit="HandleRegister" class="auth-form">
+    <EditForm Model="model" OnValidSubmit="HandleRegister" class="auth-card">
         <DataAnnotationsValidator />
+
+        <section class="auth-intro auth-intro--compact">
+            <img src="assets/v4/021-goal.png" alt="" width="64" height="64" />
+            <h2>Une place pour tous tes efforts.</h2>
+            <p>Enregistre tes séances et construis tes carnets.</p>
+        </section>
 
         @if (error is not null)
         {
-            <div class="error-card">@error</div>
+            <div class="auth-error" role="alert">@error</div>
         }
 
         <div class="field-group">
-            <label class="field-label">EMAIL</label>
+            <label class="field-label" for="register-email">Adresse e-mail</label>
             <InputText @bind-Value="model.Email" type="email" autocomplete="username"
-                       class="field-input" placeholder="toi@exemple.fr" />
+                       id="register-email" class="field-input" placeholder="toi@exemple.fr" />
             <ValidationMessage For="() => model.Email" />
         </div>
 
         <div class="field-group">
-            <label class="field-label">MOT DE PASSE</label>
+            <label class="field-label" for="register-password">Mot de passe</label>
             <InputText @bind-Value="model.Password" type="password" autocomplete="new-password"
-                       class="field-input" placeholder="6 caractères minimum" />
+                       id="register-password" class="field-input" placeholder="6 caractères minimum" />
             <ValidationMessage For="() => model.Password" />
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="submit-btn" disabled="@busy">
+            <button type="submit" class="auth-primary" disabled="@busy">
                 @(busy ? "Création…" : "Créer mon compte")
             </button>
         </div>
-    </EditForm>
 
-    <p class="auth-switch">
-        Déjà un compte ?
-        <a href="/login">Se connecter</a>
-    </p>
+        <p class="auth-switch">Tu as déjà un compte ?</p>
+        <a class="auth-secondary" href="/login">Se connecter</a>
+    </EditForm>
 </div>
 
 @code {

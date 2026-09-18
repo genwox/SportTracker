@@ -29,6 +29,7 @@
     <ProjectReference Include="..\SportTracker.Core\SportTracker.Core.csproj" />
     <ProjectReference Include="..\SportTracker.Data\SportTracker.Data.csproj" />
     <ProjectReference Include="..\SportTracker.Api\SportTracker.Api.csproj" />
+    <ProjectReference Include="..\SportTracker.App\SportTracker.App.csproj" />
   </ItemGroup>
 
 </Project>

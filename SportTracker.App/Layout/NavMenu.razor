@@ -1,40 +1,15 @@
-<nav class="bottom-nav">
-    <NavLink class="bottom-nav__item" href="/" Match="NavLinkMatch.All">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        <span>Aujourd'hui</span>
-    </NavLink>
-
-    <NavLink class="bottom-nav__item" href="/workoutsessions">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        <span>Séances</span>
-    </NavLink>
-
-    <NavLink class="bottom-nav__item" href="/progress">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-            <polyline points="17 6 23 6 23 12"/>
-        </svg>
-        <span>Progrès</span>
-    </NavLink>
-
-    <NavLink class="bottom-nav__item" href="/history">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <span>Historique</span>
-    </NavLink>
-
-    <NavLink class="bottom-nav__item" href="/profile">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span>Profil</span>
-    </NavLink>
+@implements IDisposable
+@inject NavigationManager Navigation
+<nav class="bottom-nav" aria-label="Navigation principale">
+    <NavLink href="/" Match="NavLinkMatch.All"><img src="assets/v4/020-home.png" alt="" /><span>Accueil</span></NavLink>
+    <a href="/workoutsessions" class="@(IsSessions ? "active" : null)" aria-current="@(IsSessions ? "page" : null)"><img src="assets/v4/010-Dumbell.png" alt="" /><span>Séances</span></a>
+    <NavLink href="/progress"><img src="assets/v4/050-ranking.png" alt="" /><span>Progrès</span></NavLink>
+    <NavLink href="/history"><img src="assets/v4/030-stopwatch.png" alt="" /><span>Historique</span></NavLink>
+    <NavLink href="/profile"><img src="assets/v4/047-user.png" alt="" /><span>Profil</span></NavLink>
 </nav>
+@code {
+    private bool IsSessions => new[] { "workoutsessions", "cardiosessions", "programs" }.Contains(Navigation.ToBaseRelativePath(Navigation.Uri).Split('/', '?', '#')[0]);
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using SportTracker.App;
 using SportTracker.App.Auth;
+using SportTracker.App.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -32,5 +33,6 @@ builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("SportTrackerApi"));
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<WeeklyGoalService>();
 
 await builder.Build().RunAsync();
