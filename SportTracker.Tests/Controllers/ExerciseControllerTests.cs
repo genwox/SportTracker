@@ -5,6 +5,7 @@ using SportTracker.Api.Controllers;
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
 using SportTracker.Data;
+using SportTracker.Tests.Support;
 
 namespace SportTracker.Tests.Controllers;
 
@@ -22,12 +23,22 @@ public class ExerciseControllerTests : IDisposable
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        _context = new SportTrackerDbContext(options);
+        _context = new SportTrackerDbContext(options, new FakeCurrentUserService());
         _exerciseRepoMock = new Mock<IRepository<Exercise>>();
         _controller = new ExerciseController(_exerciseRepoMock.Object, _context);
     }
 
     public void Dispose() => _context.Dispose();
+
+    // La séance de carnet est atteinte via son WorkoutProgram (filtré par UserId) :
+    // on la rattache à un carnet appartenant à l'utilisateur courant.
+    private void AddOwnedProgramSession(string name, int sessionId = 5, string userId = FakeCurrentUserService.DefaultUserId)
+        => _context.WorkoutPrograms.Add(new WorkoutProgram
+        {
+            Name = "Carnet",
+            UserId = userId,
+            Sessions = [new WorkoutProgramSession { Id = sessionId, Name = name, Order = 1 }]
+        });
 
     // Accède aux propriétés de types anonymes internal (cross-assembly) via réflexion.
     // dynamic respecte la visibilité du type déclarant et échoue dans ce cas.
@@ -66,6 +77,24 @@ public class ExerciseControllerTests : IDisposable
         Assert.IsType<NotFoundResult>(result);
     }
 
+    [Fact]
+    public async Task LogSet_ProgramSessionOfAnotherUser_ReturnsNotFound()
+    {
+        // ARRANGE
+        var exercise = new Exercise { Id = 1, Name = "Squat" };
+        _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
+
+        AddOwnedProgramSession("Push A", userId: "other-user");
+        _context.SaveChanges(); // synchrone : pas d'estampillage UserId, le carnet reste à l'autre compte
+
+        // ACT
+        var result = await _controller.LogSetAsync(1, new ExerciseController.LogSetRequest(5, 8, 80.0));
+
+        // ASSERT
+        Assert.IsType<NotFoundResult>(result);
+        Assert.Empty(await _context.WorkoutSessions.IgnoreQueryFilters().ToListAsync());
+    }
+
     // -------------------------------------------------------------------------
     // LogSetAsync — création de session
     // -------------------------------------------------------------------------
@@ -77,8 +106,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 1, Name = "Squat" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push A", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push A");
         await _context.SaveChangesAsync();
 
         // ACT
@@ -107,8 +135,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 1, Name = "Squat" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push A", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push A");
 
         _context.WorkoutSessions.Add(new WorkoutSession
         {
@@ -146,8 +173,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 2, Name = "Bench Press" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push A", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push A");
 
         _context.WorkoutSessions.Add(new WorkoutSession
         {
@@ -193,8 +219,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 1, Name = "Squat" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push");
         await _context.SaveChangesAsync();
 
         // ACT
@@ -212,8 +237,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 1, Name = "Squat" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push");
         await _context.SaveChangesAsync();
 
         await _controller.LogSetAsync(1, new ExerciseController.LogSetRequest(5, 10, 60.0));
@@ -233,8 +257,7 @@ public class ExerciseControllerTests : IDisposable
         var exercise = new Exercise { Id = 1, Name = "Bench" };
         _exerciseRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(exercise);
 
-        _context.WorkoutProgramSessions.Add(
-            new WorkoutProgramSession { Id = 5, Name = "Push", Order = 1, WorkoutProgramId = 1 });
+        AddOwnedProgramSession("Push");
         await _context.SaveChangesAsync();
 
         // ACT

@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using SportTracker.Core.Models;
 using SportTracker.Data;
+using SportTracker.Tests.Support;
 using SportTracker.Data.Repository;
 
 namespace SportTracker.Tests.Repository;
@@ -23,7 +24,7 @@ public class WorkoutProgramRepositoryTests : IDisposable
             .UseSqlite(_connection)
             .Options;
 
-        _context = new SportTrackerDbContext(options);
+        _context = new SportTrackerDbContext(options, new FakeCurrentUserService());
         _context.Database.EnsureCreated();
 
         _repository = new WorkoutProgramRepository(_context);
