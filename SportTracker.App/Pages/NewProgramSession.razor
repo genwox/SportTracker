@@ -60,7 +60,7 @@
         @if (pickerIndex is not null)
         {
             <div class="sheet-backdrop" @onclick="ClosePicker"></div>
-            <div class="sheet v4-exercise-picker" role="dialog" aria-modal="true" aria-label="Ajouter un exercice">
+            <div class="sheet v4-exercise-picker" role="dialog" aria-modal="true" aria-label="Ajouter un exercice" data-escape-close>
                 <div class="sheet-header"><span>Ajouter un exercice</span><button type="button" class="sheet-close" aria-label="Fermer" @onclick="ClosePicker">✕</button></div>
                 <input class="v4-input" placeholder="Rechercher un exercice" value="@searchText" @oninput="e => { searchText = e.Value?.ToString() ?? string.Empty; candidate = null; }" autofocus />
 
