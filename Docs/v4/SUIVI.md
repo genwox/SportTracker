@@ -8,7 +8,7 @@
 | 3 | [cardio](03-cardio/CONTRAT.md) | Terra → Sol / medium | Validé ; build, UI authentifiée isolée, coupure/reprise sauvegarde et retries liste/détail, 404, Pencil et 320/390/1280 OK ; code 9f44be8 |
 | 4 | [carnets](04-carnets/CONTRAT.md) | Terra / medium | Validé ; build, comparaison Pencil (UsVXH/TT55x/i9BqS) et recette Playwright authentifiée 320/390/1280 OK ; code 2b59dbf |
 | 5 | [seances-carnet](05-seances-carnet/CONTRAT.md) | Terra / medium | Validé ; build App OK, recette Playwright authentifiée 320/390/1280 OK ; code 002e419 |
-| 6 | [live](06-live/CONTRAT.md) | Sol / medium | À réaliser |
+| 6 | [live](06-live/CONTRAT.md) | Sol / medium (Claude Opus 5 medium) | Validé ; build App OK, Pencil jupKp/a9hfum/nP8LA, recette Playwright authentifiée 320/390/1280, coupure/retry, 404, clavier OK ; code ec8a088 |
 | 7 | [historique-exercice](07-historique-exercice/CONTRAT.md) | Luna / medium | À réaliser |
 | 8 | [accueil-bilans](08-accueil-bilans/CONTRAT.md) | Terra / medium | À réaliser |
 | 9 | [profil](09-profil/CONTRAT.md) | Terra / medium | À réaliser |
