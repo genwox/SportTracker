@@ -12,6 +12,10 @@
     {
         <V4Loading />
     }
+    else if (errorMessage is not null)
+    {
+        <V4State Title="Impossible de charger ta journée" Message="@errorMessage" IsError="true" OnRetry="LoadAsync" />
+    }
     else
     {
         @if (todayWorkout != null)
@@ -134,6 +138,7 @@
     private static readonly CultureInfo frFR = CultureInfo.GetCultureInfo("fr-FR");
 
     private bool loading = true;
+    private string? errorMessage;
     private WorkoutSession? todayWorkout;
     private CardioSession? todayCardio;
     private WorkoutSession? suggestedWorkout;
@@ -150,13 +155,30 @@
     protected override async Task OnInitializedAsync()
     {
         greeting = await BuildGreetingAsync();
+        await LoadAsync();
+    }
 
-        var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
-        var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
-        await Task.WhenAll(workoutsTask, cardioTask);
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
 
-        var workouts = workoutsTask.Result ?? [];
-        var cardio   = cardioTask.Result ?? [];
+        List<WorkoutSession> workouts;
+        List<CardioSession> cardio;
+        try
+        {
+            var workoutsTask = Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions");
+            var cardioTask   = Http.GetFromJsonAsync<List<CardioSession>>("api/cardiosessions");
+            await Task.WhenAll(workoutsTask, cardioTask);
+            workouts = workoutsTask.Result ?? [];
+            cardio   = cardioTask.Result ?? [];
+        }
+        catch
+        {
+            errorMessage = "Impossible de récupérer tes séances. Vérifie ta connexion, puis réessaie.";
+            loading = false;
+            return;
+        }
 
         var today = DateTime.Today;
 
