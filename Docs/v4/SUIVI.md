@@ -10,6 +10,6 @@
 | 5 | [seances-carnet](05-seances-carnet/CONTRAT.md) | Terra / medium | Validé ; build App OK, recette Playwright authentifiée 320/390/1280 OK ; code 002e419 |
 | 6 | [live](06-live/CONTRAT.md) | Sol / medium (Claude Opus 5 medium) | Validé ; build App OK, Pencil jupKp/a9hfum/nP8LA, recette Playwright authentifiée 320/390/1280, coupure/retry, 404, clavier OK ; code ec8a088 |
 | 7 | [historique-exercice](07-historique-exercice/CONTRAT.md) | Luna → Sonnet / medium | Validé ; build App OK, Pencil H3oTC (graphique en barres, format entrées), recette Playwright authentifiée 320/390/1280 OK ; code `0bd4ec9` |
-| 8 | [accueil-bilans](08-accueil-bilans/CONTRAT.md) | Terra / medium | À réaliser |
+| 8 | [accueil-bilans](08-accueil-bilans/CONTRAT.md) | Terra / medium (Claude Sonnet 5 / medium) | Validé ; build App OK, Pencil D6RYjE/XtbMO/iBD5O/VLQXJ/w8VzE relu, recette Playwright authentifiée 320/390/1280, coupure/retry, clavier OK ; code `030e5e1` |
 | 9 | [profil](09-profil/CONTRAT.md) | Terra / medium | À réaliser |
 | 10 | [recette](10-recette/CONTRAT.md) | Sol / medium | À réaliser |
