@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportTracker.Core.Enums;
 using SportTracker.Core.Interfaces;
 using SportTracker.Core.Models;
+using SportTracker.Data.ExternalMappings;
 using SportTracker.Data.Users;
 
 namespace SportTracker.Data;
@@ -27,6 +28,7 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
     public DbSet<WorkoutProgram> WorkoutPrograms { get; set; }
     public DbSet<WorkoutProgramSession> WorkoutProgramSessions { get; set; }
     public DbSet<WorkoutProgramExercise> WorkoutProgramExercises { get; set; }
+    public DbSet<ExerciseExternalMapping> ExerciseExternalMappings { get; set; }
 
     protected override void  OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +70,20 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
             .HasForeignKey(ws => ws.WorkoutProgramSessionId)
             .OnDelete(DeleteBehavior.SetNull);
         
+        modelBuilder.Entity<ExerciseExternalMapping>()
+            .HasOne(m => m.Exercise)
+            .WithMany()
+            .HasForeignKey(m => m.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExerciseExternalMapping>()
+            .HasIndex(m => new { m.Source, m.ExternalId })
+            .IsUnique();
+
+        modelBuilder.Entity<ExerciseExternalMapping>()
+            .HasIndex(m => new { m.ExerciseId, m.Source })
+            .IsUnique();
+
         modelBuilder.Entity<WorkoutSession>().HasQueryFilter(ws => ws.UserId == _currentUser.UserId);
         modelBuilder.Entity<CardioSession>().HasQueryFilter(cs => cs.UserId == _currentUser.UserId);
         modelBuilder.Entity<WorkoutProgram>().HasQueryFilter(wp => wp.UserId == _currentUser.UserId);
