@@ -35,7 +35,7 @@
         <div class="v4-free-live__picker">
             <label for="free-exercise-search">Ajouter un exercice</label>
             <input id="free-exercise-search" type="search" placeholder="Rechercher dans le catalogue" value="@search" @oninput="e => search = e.Value?.ToString() ?? string.Empty" />
-            @if (catalogue.Count == 0) { <p>Catalogue indisponible hors ligne. Ouvre-le une première fois avec une connexion.</p> }
+            @if (catalogue.Count == 0) { <p>@(isOnline ? "Le catalogue est vide pour le moment." : "Catalogue indisponible hors ligne. Ouvre-le une première fois avec une connexion.")</p> }
             else
             {
                 <div class="v4-free-live__results">
@@ -57,6 +57,7 @@
 @code {
     [Parameter] public Guid DraftId { get; set; }
     private bool loading = true;
+    private bool isOnline = true;
     private string search = "";
     private List<Exercise> catalogue = [];
     private List<LiveExerciseDraft> drafts = [];
@@ -76,7 +77,8 @@
         {
             drafts = await Drafts.ListAsync<LiveExerciseDraft>($"free:{DraftId}:");
             catalogue = await Drafts.GetAsync<List<Exercise>>("exercise-catalogue") ?? [];
-            if (await Drafts.IsOnlineAsync())
+            isOnline = await Drafts.IsOnlineAsync();
+            if (isOnline)
             {
                 try
                 {
