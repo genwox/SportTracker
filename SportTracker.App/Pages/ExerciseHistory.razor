@@ -31,24 +31,27 @@
             </div>
         </V4Card>
 
-        @if (points.Count >= 2)
+        @if (history.Count >= 2)
         {
-            <div class="eh-section-label">Évolution du 1RM</div>
-            <V4Card>
-                <div class="eh-bars">
-                    @{ var maxPoint = points.Max(); }
-                    @foreach (var entry in history.OrderBy(h => h.Date))
-                    {
-                        var e1rm = MaxOneRm(entry);
-                        var isRecordBar = Math.Abs(e1rm - record) < 0.01;
-                        var heightPct = maxPoint <= 0 ? 0 : Math.Max(6, e1rm / maxPoint * 100);
-                        <div class="eh-bar-col">
-                            <div class="eh-bar @(isRecordBar ? "eh-bar--record" : "")" style="height: @(heightPct.ToString("0.#", inv))%"></div>
-                            <span class="eh-bar-label">@Capitalize(entry.Date.ToString("d MMM", frFR))</span>
-                        </div>
-                    }
-                </div>
-            </V4Card>
+            @foreach (var metric in metrics)
+            {
+                <div class="eh-section-label">@metric.Title</div>
+                <V4Card>
+                    <div class="eh-chart-caption">@metric.Unit · @history.Count séances</div>
+                    <div class="eh-bars" role="img" aria-label="@($"{metric.Title} par séance")">
+                        @{ var maxPoint = history.Max(metric.Value); }
+                        @foreach (var entry in history.OrderBy(h => h.Date))
+                        {
+                            var value = metric.Value(entry);
+                            var heightPct = maxPoint <= 0 || value <= 0 ? 0 : Math.Max(6, value / maxPoint * 100);
+                            <div class="eh-bar-col" title="@($"{Capitalize(entry.Date.ToString("d MMM yyyy", frFR))} : {value.ToString("0.#", frFR)} {metric.Unit}")">
+                                <div class="eh-bar @(Math.Abs(value - maxPoint) < 0.01 && value > 0 ? "eh-bar--record" : "")" style="height: @(heightPct.ToString("0.#", inv))%"></div>
+                                <span class="eh-bar-label">@Capitalize(entry.Date.ToString("d MMM", frFR))</span>
+                            </div>
+                        }
+                    </div>
+                </V4Card>
+            }
         }
 
         <div class="eh-section-label">Historique</div>
@@ -90,6 +93,13 @@
 
     private double record;
     private List<double> points = new();
+    private readonly (string Title, string Unit, Func<HistoryEntry, double> Value)[] metrics =
+    [
+        ("Évolution du 1RM", "kg", MaxOneRm),
+        ("Volume par séance", "kg × reps", entry => entry.TotalVolume),
+        ("Meilleur poids soulevé", "kg", entry => entry.Sets.Count == 0 ? 0 : entry.Sets.Max(s => s.Weight)),
+        ("Répétitions totales", "reps", entry => entry.TotalReps)
+    ];
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
