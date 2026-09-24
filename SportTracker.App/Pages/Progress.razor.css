@@ -81,6 +81,18 @@
     color: var(--st-secondary);
     margin: 4px 0 0 2px;
 }
+.pr-empty { margin: 0; color: var(--st-secondary); font-size: 13px; }
+.pr-muscle-strip { display: flex; overflow: hidden; height: 16px; border-radius: 999px; background: var(--st-surface); }
+.pr-muscle-segment { min-width: 2px; }
+.pr-muscle-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 14px; color: var(--st-secondary); font-size: 11px; }
+.pr-muscle-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.pr-muscle-legend i { width: 9px; height: 9px; border-radius: 50%; }
+.pr-group-bars { display: flex; gap: 8px; min-height: 126px; overflow-x: auto; }
+.pr-group-bar { flex: 1; min-width: 43px; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--st-secondary); font-size: 10px; }
+.pr-group-bar strong { color: var(--st-ink); font-size: 11px; }
+.pr-group-bar__track { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.pr-group-bar__fill { width: min(100%, 28px); min-height: 3px; border-radius: 7px 7px 3px 3px; }
+.pr-group-bar span { text-align: center; overflow-wrap: anywhere; }
 
 .pr-bars {
     display: flex;

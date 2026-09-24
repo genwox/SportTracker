@@ -1,24 +1,45 @@
 @page "/programs/{ProgramId:int}/sessions/{SessionId:int}/exercises/{ExerciseId:int}/live"
+@page "/workoutsessions/live/{FreeDraftId:guid}/exercises/{ExerciseId:int}"
 @using System.Net
 @using System.Globalization
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
+@using SportTracker.App.Services
 @inject HttpClient Http
-@implements IDisposable
+@inject LiveDraftService Drafts
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <div class="v4-live">
     @if (isLoading) { <V4Loading /> }
+    else if (sessionDeleted) { <V4State Title="Séance supprimée" Message="Cette séance a été supprimée depuis un autre écran. Son brouillon local, déjà synchronisé, a été retiré de cet appareil."><V4Button Href="/workoutsessions" Secondary="true">Revenir aux séances</V4Button></V4State> }
     else if (notFound) { <V4State Title="Exercice introuvable" Message="Cet exercice ne fait pas partie de la séance, ou la séance n’est plus accessible."><V4Button Href="@SessionHref" Secondary="true">Revenir à la séance</V4Button></V4State> }
     else if (loadError is not null) { <V4State Title="Impossible de charger l’exercice" Message="@loadError" IsError="true" OnRetry="LoadAsync" /> }
     else
     {
         <header class="v4-live__header">
             <h1>@exerciseName</h1>
+            <p class="v4-live__context">@(sessionName ?? "Séance libre")@(supersetGroupId is int group ? $" · superset {(char)('A' + group - 1)}" : "")</p>
             <nav class="v4-live__links" aria-label="Navigation de l’exercice">
                 <a href="@SessionHref">‹ Séance</a>
-                <span aria-hidden="true">•</span>
-                <a href="@($"{SessionHref}/exercises/{ExerciseId}/history")">Historique</a>
+                @if (!IsFree) { <span aria-hidden="true">•</span><a href="@($"{SessionHref}/exercises/{ExerciseId}/history")">Historique</a> }
             </nav>
         </header>
+
+        @if (prNotice is not null)
+        {
+            <div class="v4-live__pr" role="status"><strong>🏆 Nouveau record personnel !</strong><span>@prNotice</span></div>
+        }
+        <p class="v4-live__sync @(!isOnline || pendingSync ? "is-pending" : "")" role="status">
+            <span aria-hidden="true">●</span> @(SyncConflict ? "Sync bloquée — séance introuvable" : !isOnline ? "Hors ligne — sync en attente" : pendingSync ? "Sync en attente" : $"Enregistré · {lastSavedLocal:HH:mm}")
+        </p>
+        @if (SyncConflict)
+        {
+            <V4State Title="Séance introuvable sur le serveur" IsError="true" Message="@ConflictMessage">
+                <V4Button OnClick="RecreateSessionAsync">Recréer la séance</V4Button>
+                <V4Button Secondary="true" OnClick="DiscardDraftAsync">Abandonner le brouillon</V4Button>
+            </V4State>
+        }
 
         <ol class="v4-live__sets" aria-label="Séries">
             @for (var i = 1; i <= IndicatorCount; i++)
@@ -58,7 +79,43 @@
                 <button type="button" @onclick="() => AdjustReps(1)" aria-label="Ajouter une répétition">+</button>
             </div>
             <p class="v4-live__orm">1RM estimé : <strong>@(OneRm > 0 ? $"{FormatWeight(OneRm)} kg" : "—")</strong></p>
+            <div class="v4-live__option">
+                <span class="v4-live__label" id="set-type-label">Type de série</span>
+                <div class="v4-live__types" role="group" aria-labelledby="set-type-label">
+                    @foreach (var option in Enum.GetValues<SetType>())
+                    {
+                        <button type="button" class="@(setType == option ? "is-selected" : "") type-@option.ToString().ToLowerInvariant()" aria-label="@SetTypeFullLabel(option)" aria-pressed="@(setType == option)" title="@SetTypeFullLabel(option)" @onclick="() => SelectTypeAsync(option)">@SetTypeLabel(option)</button>
+                    }
+                </div>
+            </div>
+            <div class="v4-live__option">
+                <label class="v4-live__label" for="live-rpe">RPE @(rpe is null ? "(facultatif)" : $"· {rpe}")</label>
+                <div class="v4-live__rpe"><input id="live-rpe" type="range" min="1" max="10" value="@(rpe ?? 8)" @oninput="OnRpeInput" aria-valuetext="@(rpe?.ToString() ?? "Non renseigné")" /><button type="button" @onclick="ClearRpeAsync" aria-label="Effacer le RPE">×</button></div>
+            </div>
+            <div class="v4-live__option">
+                <label class="v4-live__label" for="live-notes">Notes de l’exercice</label>
+                <textarea id="live-notes" rows="2" placeholder="Repères, ressenti…" value="@notes" @oninput="OnNotesInput" @onchange="SyncNotesAsync"></textarea>
+            </div>
         </section>
+
+        @if (todaySets.Count > 0)
+        {
+            <section class="v4-live__completed" aria-label="Séries validées">
+                <h2>Séries validées</h2>
+                @for (var i = 0; i < todaySets.Count; i++)
+                {
+                    var idx = i;
+                    var set = todaySets[i];
+                    <div class="v4-live__completed-row">
+                        <span class="v4-live__number">@(i + 1)</span>
+                        <span class="v4-live__badge type-@set.SetType.ToString().ToLowerInvariant()" title="@SetTypeFullLabel(set.SetType)">@SetTypeLabel(set.SetType)</span>
+                        <strong>@FormatWeight(set.Weight) kg × @set.Repetitions</strong>
+                        @if (set.RPE is int value) { <span class="v4-live__rpe-badge">RPE @value</span> }
+                        <button type="button" aria-label="Supprimer la série @(i + 1)" @onclick="() => DeleteSetAsync(idx)">×</button>
+                    </div>
+                }
+            </section>
+        }
 
         @if (restSeconds > 0)
         {
@@ -104,6 +161,17 @@
             </div>
             <p aria-live="polite">Champ actif : @(padField == PadField.Weight ? "poids" : "répétitions")</p>
         </div>
+        <div class="v4-pad__log-options">
+            <span>Type de série</span>
+            <div class="v4-live__types" role="group" aria-label="Type de série, saisie précise">
+                @foreach (var option in Enum.GetValues<SetType>())
+                {
+                    <button type="button" class="@(setType == option ? "is-selected" : "") type-@option.ToString().ToLowerInvariant()" aria-label="@SetTypeFullLabel(option)" aria-pressed="@(setType == option)" @onclick="() => SelectTypeAsync(option)">@SetTypeLabel(option)</button>
+                }
+            </div>
+            <label for="pad-rpe">RPE @(rpe?.ToString() ?? "—")</label>
+            <div class="v4-live__rpe"><input id="pad-rpe" type="range" min="1" max="10" value="@(rpe ?? 8)" @oninput="OnRpeInput" /><button type="button" @onclick="ClearRpeAsync" aria-label="Effacer le RPE">×</button></div>
+        </div>
 
         <div class="v4-pad__keys">
             @foreach (var key in PadKeys)
@@ -114,7 +182,7 @@
         </div>
 
         <V4Button Secondary="true" OnClick="SetBodyweight">Poids du corps</V4Button>
-        <V4Button OnClick="ApplyPad">Appliquer les valeurs</V4Button>
+        <div class="v4-pad__actions"><V4Button Secondary="true" OnClick="ClosePad">Annuler</V4Button><V4Button OnClick="ValidateFromPadAsync">Valider la série</V4Button></div>
     </div>
 }
 
@@ -137,6 +205,11 @@
                 <p>@(timerFinished ? "Repos terminé" : $"sur {FormatRestLong(restSeconds)} de repos")</p>
                 <V4Button OnClick="ToggleTimer">@(timerFinished ? "Relancer le repos" : timerRunning ? "Mettre en pause" : TimerActive ? "Reprendre" : "Démarrer le repos")</V4Button>
             </section>
+            <div class="v4-timer__next">
+                <strong>Série @ActiveOrder · @exerciseName</strong>
+                <span>@SetTypeFullLabel(setType) · @FormatWeight(weightCurrent) kg × @repsCurrent reps@(rpe is int value ? $" · RPE {value}" : "")</span>
+            </div>
+            <p class="v4-live__sync" role="status"><span aria-hidden="true">●</span> @(pendingSync ? "Hors ligne — sync en attente" : "Séries précédentes enregistrées")</p>
             <p class="v4-timer__hint" aria-live="polite">@(timerFinished ? "C’est reparti : la série suivante t’attend." : "Respire. La prochaine série t’attend.")</p>
             <V4Button Secondary="true" OnClick="CloseTimer">Revenir à l’exercice</V4Button>
         </div>
@@ -162,6 +235,7 @@
     [Parameter] public int ProgramId { get; set; }
     [Parameter] public int SessionId { get; set; }
     [Parameter] public int ExerciseId { get; set; }
+    [Parameter] public Guid FreeDraftId { get; set; }
 
     private enum PadField { Weight, Reps }
     private static readonly string[] PadKeys = { "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "⌫" };
@@ -178,6 +252,21 @@
     private int restSeconds;
     private int targetSets;
     private int workoutProgramSessionId;
+    private string? sessionName;
+    private LiveExerciseDraft? draft;
+    private SetType setType = SetType.Normal;
+    private int? rpe;
+    private string? notes;
+    private int? supersetGroupId;
+    private bool pendingSync;
+    private bool isOnline = true;
+    private DateTime lastSavedLocal = DateTime.Now;
+    private string? prNotice;
+    private DotNetObjectReference<ExerciseLive>? networkRef;
+    private int networkWatcherId;
+    private bool disposed;
+    private bool sessionDeleted;
+    private bool SyncConflict => draft?.SyncConflict == true;
 
     private List<TodaySet> todaySets = new();
     private List<HistoryEntry> history = new();
@@ -204,7 +293,9 @@
     private ElementReference gifRef;
     private bool focusPad, focusTimer, focusGif, gifWasOpen;
 
-    private string SessionHref => $"/programs/{ProgramId}/sessions/{SessionId}";
+    private bool IsFree => FreeDraftId != Guid.Empty;
+    private string SessionHref => IsFree ? $"/workoutsessions/live/{FreeDraftId}" : $"/programs/{ProgramId}/sessions/{SessionId}";
+    private string DraftKey => IsFree ? $"free:{FreeDraftId}:{ExerciseId}" : $"routine:{SessionId}:{DateTime.Today:yyyyMMdd}:{ExerciseId}";
     private int ActiveOrder => todaySets.Count + 1;
     private int IndicatorCount => Math.Max(targetSets, ActiveOrder);
     private bool TimerActive => timerRunning || (timerRemaining > 0 && timerRemaining < restSeconds);
@@ -217,28 +308,39 @@
 
     private async Task LoadAsync()
     {
-        isLoading = true; notFound = false; loadError = null; saveError = null;
+        isLoading = true; notFound = false; sessionDeleted = false; loadError = null; saveError = null;
         StopTimer(); showTimer = false; timerFinished = false;
         try
         {
+            draft = await Drafts.GetAsync<LiveExerciseDraft>(DraftKey);
+            if (IsFree)
+            {
+                await LoadFreeExerciseAsync();
+                return;
+            }
             var programTask = Http.GetAsync($"api/programs/{ProgramId}");
             var historyTask = Http.GetAsync($"api/exercises/{ExerciseId}/history");
-            await Task.WhenAll(programTask, historyTask);
+            var workoutsTask = Http.GetAsync("api/workoutsessions");
+            await Task.WhenAll(programTask, historyTask, workoutsTask);
             var programResponse = programTask.Result;
             var historyResponse = historyTask.Result;
+            var workoutsResponse = workoutsTask.Result;
 
             if (programResponse.StatusCode == HttpStatusCode.NotFound || historyResponse.StatusCode == HttpStatusCode.NotFound) { notFound = true; return; }
             if (!programResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)programResponse.StatusCode}."; return; }
             if (!historyResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)historyResponse.StatusCode}."; return; }
+            if (!workoutsResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)workoutsResponse.StatusCode}."; return; }
 
             var program = await programResponse.Content.ReadFromJsonAsync<WorkoutProgram>();
             history = await historyResponse.Content.ReadFromJsonAsync<List<HistoryEntry>>() ?? new();
+            var workouts = await workoutsResponse.Content.ReadFromJsonAsync<List<WorkoutSession>>() ?? new();
 
             var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
             var pe = session?.Exercises.OrderBy(e => e.Order).FirstOrDefault(e => e.ExerciseId == ExerciseId);
             if (session is null || pe is null) { notFound = true; return; }
 
             workoutProgramSessionId = session.Id;
+            sessionName = session.Name;
             exerciseName = pe.Exercise?.Name ?? "Exercice";
             exerciseGifUrl = pe.Exercise?.GifUrl;
             exerciseInstructions = pe.Exercise?.InstructionsFr;
@@ -246,15 +348,151 @@
             restSeconds = Math.Max(0, pe.RestSeconds);
             timerRemaining = restSeconds;
 
-            var todayEntry = history.FirstOrDefault(h => h.Date.Date == DateTime.Today);
-            todaySets = todayEntry?.Sets.OrderBy(s => s.Order)
-                .Select(s => new TodaySet { Order = s.Order, Repetitions = s.Repetitions, Weight = s.Weight })
-                .ToList() ?? new();
+            // C1 : les séries « du jour » viennent uniquement de la séance ciblée (même règle que
+            // le serveur : séance du carnet + date du jour), jamais de l'historique agrégé par date
+            // qui mélange les séances libres, les autres carnets et les saisies manuelles.
+            var logged = workouts.FirstOrDefault(ws => ws.WorkoutProgramSessionId == session.Id && ws.Date.Date == DateTime.Today);
+            ApplyServerExercise(logged);
 
             InitCurrentValues(pe);
+            if (draft is { PendingSync: false }) ApplyLocalInputs();
+            // C2 : seul un brouillon réellement en attente de synchro prime sur le serveur.
+            if (draft is { PendingSync: true }) { ApplyDraft(); await SyncDraftAsync(); }
+            else await RefreshDraftFromServerAsync(logged);
         }
-        catch (Exception) { loadError = "Vérifie ta connexion, puis réessaie."; }
+        catch (Exception)
+        {
+            if (draft is not null) ApplyDraft();
+            else loadError = "Vérifie ta connexion, puis réessaie.";
+        }
         finally { isLoading = false; }
+    }
+
+    private async Task LoadFreeExerciseAsync()
+    {
+        if (draft is { PendingSync: true }) { ApplyDraft(); await LoadFreeHistoryAsync(); await SyncDraftAsync(); return; }
+
+        var (reachable, workout) = await FetchFreeWorkoutAsync();
+        if (reachable && workout is null && draft?.WorkoutSessionId is not null)
+        {
+            // La séance a été supprimée depuis un autre écran : le brouillon déjà synchronisé
+            // est périmé, on ne la ressuscite pas.
+            await Drafts.RemoveAsync(DraftKey);
+            draft = null;
+            sessionDeleted = true;
+            return;
+        }
+        if (draft is not null)
+        {
+            ApplyDraft();
+            if (reachable) { ApplyServerExercise(workout); await RefreshDraftFromServerAsync(workout); }
+            await LoadFreeHistoryAsync();
+            return;
+        }
+
+        Exercise? exercise = workout?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == ExerciseId)?.Exercise;
+        if (exercise is null)
+            try { exercise = await Http.GetFromJsonAsync<Exercise>($"api/exercises/{ExerciseId}"); }
+            catch (Exception) { /* Offline catalogue fallback below. */ }
+        if (exercise is null)
+        {
+            var catalogue = await Drafts.GetAsync<List<Exercise>>("exercise-catalogue");
+            exercise = catalogue?.FirstOrDefault(e => e.Id == ExerciseId);
+        }
+        if (exercise is null) { notFound = true; return; }
+        exerciseName = exercise.Name;
+        exerciseGifUrl = exercise.GifUrl;
+        exerciseInstructions = exercise.InstructionsFr;
+        targetSets = 3;
+        restSeconds = 90;
+        timerRemaining = restSeconds;
+        weightCurrent = 20;
+        repsCurrent = 10;
+        if (reachable)
+        {
+            ApplyServerExercise(workout);
+            if (todaySets.LastOrDefault() is { } last) { weightCurrent = last.Weight; repsCurrent = last.Repetitions; }
+            await RefreshDraftFromServerAsync(workout);
+        }
+        else await PersistDraftAsync(false);
+        await LoadFreeHistoryAsync();
+    }
+
+    // (joignable, séance) — 404 = serveur joignable mais la séance libre n'existe pas (ou plus).
+    private async Task<(bool Reachable, WorkoutSession? Workout)> FetchFreeWorkoutAsync()
+    {
+        try
+        {
+            using var response = await Http.GetAsync($"api/workoutsessions/live/{FreeDraftId}");
+            if (response.StatusCode == HttpStatusCode.NotFound) return (true, null);
+            if (!response.IsSuccessStatusCode) return (false, null);
+            return (true, await response.Content.ReadFromJsonAsync<WorkoutSession>());
+        }
+        catch (Exception) { return (false, null); }
+    }
+
+    // État serveur de l'exercice dans la séance ciblée, et seulement elle.
+    private void ApplyServerExercise(WorkoutSession? workout)
+    {
+        var workoutExercise = workout?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == ExerciseId);
+        todaySets = workoutExercise?.ExerciseSets?.OrderBy(s => s.Id)
+            .Select((s, i) => new TodaySet { Id = s.Id, Order = i + 1, Repetitions = s.Repetitions, Weight = s.Weight, SetType = s.SetType, RPE = s.RPE })
+            .ToList() ?? new();
+        notes = workoutExercise?.Notes;
+        supersetGroupId = workoutExercise?.SupersetGroupId;
+    }
+
+    // Brouillon non en attente : on le réaligne sur le serveur (seules les valeurs de saisie
+    // locales — poids, reps, type, RPE en cours — sont conservées) et on mémorise la séance
+    // serveur de rattachement, pour que le serveur refuse de la recréer si elle disparaît.
+    private async Task RefreshDraftFromServerAsync(WorkoutSession? workout)
+    {
+        draft ??= new LiveExerciseDraft { DraftId = IsFree ? FreeDraftId : Guid.NewGuid() };
+        draft.WorkoutSessionId = workout?.Id;
+        draft.SyncConflict = false;
+        draft.PendingSync = false;
+        await PersistDraftAsync(false);
+    }
+
+    private async Task LoadFreeHistoryAsync()
+    {
+        try { history = await Http.GetFromJsonAsync<List<HistoryEntry>>($"api/exercises/{ExerciseId}/history") ?? []; }
+        catch (Exception) { history = []; }
+    }
+
+    private void ApplyDraft()
+    {
+        if (draft is null) return;
+        exerciseName = draft.ExerciseName;
+        exerciseGifUrl = draft.GifUrl;
+        exerciseInstructions = draft.Instructions;
+        workoutProgramSessionId = draft.ProgramSessionId ?? 0;
+        sessionName = draft.SessionName;
+        targetSets = draft.TargetSets;
+        restSeconds = draft.RestSeconds;
+        timerRemaining = restSeconds;
+        todaySets = draft.Sets.Select((s, i) => new TodaySet
+        {
+            Id = s.Id, Order = i + 1, Weight = s.Weight, Repetitions = s.Repetitions,
+            SetType = s.SetType, RPE = s.RPE
+        }).ToList();
+        weightCurrent = draft.WeightCurrent;
+        repsCurrent = draft.RepsCurrent;
+        setType = draft.SetType;
+        rpe = draft.RPE;
+        notes = draft.Notes;
+        supersetGroupId = draft.SupersetGroupId;
+        pendingSync = draft.PendingSync;
+        lastSavedLocal = draft.SavedAtUtc == default ? DateTime.Now : draft.SavedAtUtc.ToLocalTime();
+    }
+
+    private void ApplyLocalInputs()
+    {
+        if (draft is null) return;
+        weightCurrent = draft.WeightCurrent;
+        repsCurrent = draft.RepsCurrent;
+        setType = draft.SetType;
+        rpe = draft.RPE;
     }
 
     private void InitCurrentValues(WorkoutProgramExercise pe)
@@ -280,8 +518,29 @@
         }
     }
 
-    private void AdjustWeight(double delta) => weightCurrent = Math.Max(0, Math.Round((weightCurrent + delta) * 100) / 100);
-    private void AdjustReps(int delta) => repsCurrent = Math.Max(0, repsCurrent + delta);
+    private async Task AdjustWeight(double delta) { weightCurrent = Math.Max(0, Math.Round((weightCurrent + delta) * 100) / 100); await PersistDraftAsync(false); }
+    private async Task AdjustReps(int delta) { repsCurrent = Math.Max(0, repsCurrent + delta); await PersistDraftAsync(false); }
+
+    private static string SetTypeLabel(SetType type) => type switch
+    {
+        SetType.Warmup => "Éch.", SetType.Normal => "Normal",
+        SetType.DropSet => "Drop", SetType.Failure => "Échec", _ => type.ToString()
+    };
+    private static string SetTypeFullLabel(SetType type) => type switch
+    {
+        SetType.Warmup => "Échauffement", SetType.Normal => "Normal",
+        SetType.DropSet => "Drop set", SetType.Failure => "Échec", _ => type.ToString()
+    };
+
+    private async Task SelectTypeAsync(SetType type) { setType = type; await PersistDraftAsync(false); }
+    private async Task OnRpeInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value)) rpe = Math.Clamp(value, 1, 10);
+        await PersistDraftAsync(false);
+    }
+    private async Task ClearRpeAsync() { rpe = null; await PersistDraftAsync(false); }
+    private async Task OnNotesInput(ChangeEventArgs e) { notes = e.Value?.ToString(); await PersistDraftAsync(true, false); }
+    private Task SyncNotesAsync(ChangeEventArgs _) => SyncDraftAsync();
 
     // ── Saisie précise ────────────────────────────────────────
     private void OpenPad(PadField field)
@@ -321,13 +580,20 @@
         padField = PadField.Reps;
     }
 
-    private void ApplyPad()
+    private async Task ApplyPad()
     {
         if (double.TryParse(weightInput.TrimEnd(',').Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var weight) && weight >= 0)
             weightCurrent = weight;
         if (int.TryParse(repsInput, out var reps) && reps >= 0)
             repsCurrent = reps;
         showPad = false;
+        await PersistDraftAsync(false);
+    }
+
+    private async Task ValidateFromPadAsync()
+    {
+        await ApplyPad();
+        await ValidateSetAsync();
     }
 
     private void OnPadKeyDown(KeyboardEventArgs e)
@@ -351,26 +617,120 @@
         if (isSaving || repsCurrent <= 0) return;
         isSaving = true;
         saveError = null;
+        var insertionIndex = todaySets.Count;
         try
         {
-            var response = await Http.PostAsJsonAsync($"api/exercises/{ExerciseId}/log",
-                new { workoutProgramSessionId, repetitions = repsCurrent, weight = weightCurrent });
-            if (!response.IsSuccessStatusCode)
-            {
-                saveError = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées.";
-                return;
-            }
-
-            var result = await response.Content.ReadFromJsonAsync<TodaySet>();
-            todaySets.Add(result ?? new TodaySet { Order = ActiveOrder, Repetitions = repsCurrent, Weight = weightCurrent });
+            var previousBest = history.SelectMany(h => h.Sets).Concat(todaySets)
+                .Where(s => s.Weight > 0 && s.Repetitions > 0)
+                .Select(s => s.Weight * (1 + s.Repetitions / 30.0))
+                .DefaultIfEmpty(0).Max();
+            var achieved = OneRm;
+            todaySets.Add(new TodaySet { Order = ActiveOrder, Repetitions = repsCurrent, Weight = weightCurrent, SetType = setType, RPE = rpe });
+            if (achieved > previousBest + 0.05)
+                prNotice = previousBest > 0
+                    ? $"1RM estimé {FormatWeight(achieved)} kg · +{FormatWeight(achieved - previousBest)} kg"
+                    : $"Premier 1RM estimé : {FormatWeight(achieved)} kg";
+            await PersistDraftAsync(true);
             if (restSeconds > 0)
             {
                 StartTimer();
                 OpenTimer();
             }
         }
-        catch (Exception) { saveError = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; }
+        catch (Exception)
+        {
+            if (todaySets.Count > insertionIndex) todaySets.RemoveAt(insertionIndex);
+            draft = null;
+            prNotice = null;
+            saveError = "Sauvegarde locale impossible. Garde cette page ouverte et réessaie.";
+        }
         finally { isSaving = false; }
+    }
+
+    private async Task DeleteSetAsync(int index)
+    {
+        if (index < 0 || index >= todaySets.Count) return;
+        var removed = todaySets[index];
+        todaySets.RemoveAt(index);
+        for (var i = 0; i < todaySets.Count; i++) todaySets[i].Order = i + 1;
+        prNotice = null;
+        try { await PersistDraftAsync(true); }
+        catch (Exception)
+        {
+            todaySets.Insert(index, removed);
+            for (var i = 0; i < todaySets.Count; i++) todaySets[i].Order = i + 1;
+            draft = null;
+            saveError = "Suppression non sauvegardée sur cet appareil. Réessaie.";
+        }
+    }
+
+    private async Task PersistDraftAsync(bool pending, bool syncNow = true)
+    {
+        draft ??= new LiveExerciseDraft { DraftId = IsFree ? FreeDraftId : Guid.NewGuid() };
+        draft.StorageKey = DraftKey;
+        draft.ProgramSessionId = IsFree ? null : workoutProgramSessionId;
+        draft.ExerciseId = ExerciseId;
+        draft.ExerciseName = exerciseName;
+        draft.GifUrl = exerciseGifUrl;
+        draft.Instructions = exerciseInstructions;
+        draft.SessionName = sessionName;
+        draft.RestSeconds = restSeconds;
+        draft.TargetSets = targetSets;
+        draft.Sets = todaySets.Select(s => new LiveSetDraft
+        {
+            Id = s.Id, Weight = s.Weight, Repetitions = s.Repetitions, SetType = s.SetType, RPE = s.RPE
+        }).ToList();
+        draft.WeightCurrent = weightCurrent;
+        draft.RepsCurrent = repsCurrent;
+        draft.SetType = setType;
+        draft.RPE = rpe;
+        draft.Notes = notes;
+        draft.SupersetGroupId = supersetGroupId;
+        draft.Revision++;
+        if (pending) draft.PendingSync = true;
+        draft.SavedAtUtc = DateTime.UtcNow;
+        await Drafts.PutAsync(DraftKey, draft);
+        pendingSync = draft.PendingSync;
+        lastSavedLocal = draft.SavedAtUtc.ToLocalTime();
+        if (pending && syncNow) await SyncDraftAsync();
+    }
+
+    private async Task SyncDraftAsync()
+    {
+        if (draft is null || !draft.PendingSync) return;
+        var synced = await Drafts.SyncAsync(DraftKey);
+        if (synced is null) return;
+        draft = synced;
+        pendingSync = synced.PendingSync;
+        lastSavedLocal = synced.SavedAtUtc.ToLocalTime();
+        for (var i = 0; i < Math.Min(todaySets.Count, synced.Sets.Count); i++)
+            todaySets[i].Id = synced.Sets[i].Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string ConflictMessage => todaySets.Count switch
+    {
+        0 => "Elle a été supprimée depuis un autre écran. Recrée une séance pour enregistrer cet exercice, ou abandonne ce brouillon.",
+        1 => "Elle a été supprimée depuis un autre écran. Ta série reste sur cet appareil : recrée une séance pour l’enregistrer, ou abandonne ce brouillon.",
+        var n => $"Elle a été supprimée depuis un autre écran. Tes {n} séries restent sur cet appareil : recrée une séance pour les enregistrer, ou abandonne ce brouillon."
+    };
+
+    private async Task RecreateSessionAsync()
+    {
+        var synced = await Drafts.ResolveConflictAsync(DraftKey, recreate: true);
+        if (synced is null) return;
+        draft = synced;
+        pendingSync = synced.PendingSync;
+        lastSavedLocal = synced.SavedAtUtc.ToLocalTime();
+        for (var i = 0; i < Math.Min(todaySets.Count, synced.Sets.Count); i++)
+            todaySets[i].Id = synced.Sets[i].Id;
+    }
+
+    private async Task DiscardDraftAsync()
+    {
+        await Drafts.ResolveConflictAsync(DraftKey, recreate: false);
+        draft = null;
+        await LoadAsync();
     }
 
     // ── Minuteur de repos ─────────────────────────────────────
@@ -429,6 +789,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            Drafts.Synced += OnDraftSynced;
+            networkRef = DotNetObjectReference.Create(this);
+            networkWatcherId = await JS.InvokeAsync<int>("liveDrafts.watchOnline", networkRef);
+            isOnline = await Drafts.IsOnlineAsync();
+        }
         if (showGif && !gifWasOpen) focusGif = true;
         gifWasOpen = showGif;
 
@@ -456,14 +823,52 @@
 
     private static string FormatWeight(double w) => w.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ',');
 
-    public void Dispose() => StopTimer();
+    [JSInvokable]
+    public async Task OnNetworkChanged(bool online)
+    {
+        if (disposed) return;
+        isOnline = online;
+        if (online) await SyncDraftAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnDraftSynced(string key)
+    {
+        if (key != DraftKey || disposed) return;
+        _ = InvokeAsync(async () =>
+        {
+            var latest = await Drafts.GetAsync<LiveExerciseDraft>(DraftKey);
+            if (latest is null) return;
+            draft = latest;
+            pendingSync = latest.PendingSync;
+            lastSavedLocal = latest.SavedAtUtc.ToLocalTime();
+            StateHasChanged();
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        Drafts.Synced -= OnDraftSynced;
+        StopTimer();
+        if (networkWatcherId != 0)
+        {
+            try { await JS.InvokeVoidAsync("liveDrafts.unwatchOnline", networkWatcherId); }
+            catch (JSDisconnectedException) { }
+        }
+        networkRef?.Dispose();
+    }
 
     private class TodaySet
     {
+        public int Id { get; set; }
         public int Order { get; set; }
         public int Repetitions { get; set; }
         public double Weight { get; set; }
+        public SetType SetType { get; set; } = SetType.Normal;
+        public int? RPE { get; set; }
     }
+
 
     private class HistoryEntry
     {

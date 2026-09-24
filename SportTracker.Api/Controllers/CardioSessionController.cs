@@ -54,6 +54,7 @@ public class CardioSessionController : ControllerBase
         {
             return NotFound();
         }
+        cardioSession.UserId = updatedCardioSession.UserId;
         await _cardioSessionRepository.UpdateAsync(cardioSession);
         return NoContent();
     }

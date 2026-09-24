@@ -185,6 +185,9 @@ namespace SportTracker.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Equipment")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("GifUrl")
                         .HasColumnType("TEXT");
 
@@ -213,8 +216,16 @@ namespace SportTracker.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("RPE")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Repetitions")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("SetType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
 
                     b.Property<double>("Weight")
                         .HasColumnType("REAL");
@@ -226,7 +237,10 @@ namespace SportTracker.Data.Migrations
 
                     b.HasIndex("WorkoutExerciseId");
 
-                    b.ToTable("ExerciseSets");
+                    b.ToTable("ExerciseSets", t =>
+                        {
+                            t.HasCheckConstraint("CK_ExerciseSets_RPE", "RPE IS NULL OR (RPE >= 1 AND RPE <= 10)");
+                        });
                 });
 
             modelBuilder.Entity("SportTracker.Core.Models.WorkoutExercise", b =>
@@ -236,6 +250,12 @@ namespace SportTracker.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ExerciseId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SupersetGroupId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("WorkoutSessionId")
@@ -341,6 +361,9 @@ namespace SportTracker.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("ClientDraftId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
@@ -361,6 +384,9 @@ namespace SportTracker.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("WorkoutProgramSessionId");
+
+                    b.HasIndex("UserId", "ClientDraftId")
+                        .IsUnique();
 
                     b.ToTable("WorkoutSessions");
                 });

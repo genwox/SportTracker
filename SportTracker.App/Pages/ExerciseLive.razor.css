@@ -5,8 +5,9 @@
 
 .v4-live__header { display: grid; gap: 5px; }
 .v4-live__header h1 { margin: 0; font: 400 25px/1.3 var(--st-font-display); color: var(--st-ink); overflow-wrap: anywhere; }
+.v4-live__context { margin: 0; color: var(--st-neon); font-size: 13px; font-weight: 700; }
 .v4-live__links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--st-neon); font-size: 12px; font-weight: 500; }
-.v4-live__links a { display: inline-flex; align-items: center; min-height: 32px; color: var(--st-neon); text-decoration: none; }
+.v4-live__links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--st-neon); text-decoration: none; }
 .v4-live__links a:hover { text-decoration: underline; }
 
 /* Séries : segmenté ✓ 1 / 2 / 3 */
@@ -36,6 +37,32 @@
 .v4-live__orm { margin: 0; color: var(--st-secondary); font-size: 12px; font-weight: 500; }
 .v4-live__orm strong { color: var(--st-ink); }
 
+.v4-live__sync { display: flex; align-items: center; gap: 9px; margin: 0; padding: 10px 14px; border-radius: 14px; background: #e8ffff9c; color: var(--st-secondary); font-size: 12px; font-weight: 700; }
+.v4-live__sync span { color: var(--st-neon); font-size: 15px; }
+.v4-live__sync.is-pending span { color: #f7b548; }
+.v4-live__pr { display: grid; gap: 4px; padding: 15px 18px; border-radius: 18px; background: var(--st-neon); color: var(--st-ink); }
+.v4-live__pr strong { font: 700 17px/1.2 var(--st-font-body); }
+.v4-live__pr span { font-size: 12px; }
+.v4-live__option { display: grid; gap: 8px; margin-top: 6px; }
+.v4-live__types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: #e2f7f8; }
+.v4-live__types button { min-height: 44px; padding: 6px 2px; border: 0; border-radius: 11px; background: transparent; color: var(--st-secondary); font-size: 12px; font-weight: 700; cursor: pointer; }
+.v4-live__types button.is-selected { background: #102737; color: #fff; }
+.v4-live__types button.is-selected.type-dropset { background: var(--st-neon); color: #102737; }
+.v4-live__rpe { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; gap: 8px; }
+.v4-live__rpe input { width: 100%; accent-color: #102737; }
+.v4-live__rpe button { min-height: 44px; border: 0; border-radius: 10px; background: #e2f7f8; color: var(--st-secondary); font-size: 18px; }
+.v4-live__option textarea { width: 100%; resize: vertical; padding: 10px 12px; border: 1px solid #acd9db; border-radius: 12px; background: #fff; color: var(--st-ink); font: inherit; font-size: 13px; }
+.v4-live__completed { display: grid; gap: 10px; padding: 15px; border-radius: 20px; background: #F8FFFFE6; }
+.v4-live__completed h2 { margin: 0; font: 700 16px/1.2 var(--st-font-body); }
+.v4-live__completed-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; }
+.v4-live__completed-row strong { font-size: 13px; white-space: nowrap; }
+.v4-live__completed-row button { margin-left: auto; width: 44px; height: 44px; border: 0; background: transparent; color: var(--st-secondary); font-size: 20px; cursor: pointer; }
+.v4-live__number { display: grid; place-items: center; width: 30px; height: 32px; border-radius: 9px; background: #e2f7f8; font-weight: 700; }
+.v4-live__badge, .v4-live__rpe-badge { padding: 4px 7px; border-radius: 12px; background: #e2f7f8; color: var(--st-secondary); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.v4-live__badge.type-normal, .v4-live__badge.type-failure { background: #102737; color: #fff; }
+.v4-live__badge.type-dropset { background: var(--st-neon); color: #102737; }
+.v4-live__rpe-badge { background: #fff; }
+
 .v4-live__actions { display: grid; gap: 14px; }
 
 /* ── Saisie précise : feuille 901 > backdrop 900 > nav 10 ── */
@@ -57,6 +84,10 @@
 .v4-pad__keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px; border-radius: 20px; background: #F8FFFFE6; }
 .v4-pad__keys button { min-height: 46px; border: 0; border-radius: 14px; background: #FFFFFF80; color: var(--st-ink); font-size: 16px; font-weight: 700; cursor: pointer; }
 .v4-pad__keys button:active:not(:disabled) { background: var(--st-neon); }
+.v4-pad__log-options { display: grid; gap: 8px; padding: 12px; border-radius: 20px; background: #F8FFFFE6; }
+.v4-pad__log-options > span, .v4-pad__log-options label { color: var(--st-secondary); font-size: 12px; font-weight: 700; }
+.v4-pad__log-options .v4-live__types { width: 100%; }
+.v4-pad__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* ── Minuteur de repos plein écran (1000, au-dessus de la feuille) ── */
 .v4-timer { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; background: var(--st-background) url('/assets/v4/background.jpg') center / cover no-repeat; color: var(--st-ink); overscroll-behavior: contain; }
@@ -76,6 +107,9 @@
 .v4-timer__track { stroke: #10273720; }
 .v4-timer__progress { stroke: #102737; stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
 .v4-timer__hint { margin: 0; color: var(--st-secondary); font-size: 12px; font-weight: 500; }
+.v4-timer__next { display: grid; gap: 6px; padding: 15px; border-radius: 16px; background: #F8FFFFE6; }
+.v4-timer__next strong { color: var(--st-ink); font-size: 15px; }
+.v4-timer__next span { color: var(--st-secondary); font-size: 12px; }
 
 @media (max-width: 360px) {
     .v4-live, .v4-pad, .v4-timer__inner { padding-inline: 16px; }

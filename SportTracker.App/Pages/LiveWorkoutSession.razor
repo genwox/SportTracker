@@ -1,0 +1,108 @@
+@page "/workoutsessions/live"
+@page "/workoutsessions/live/{DraftId:guid}"
+@using SportTracker.Core.Models
+@using SportTracker.App.Services
+@inject LiveDraftService Drafts
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="v4-free-live">
+    <V4Header Title="Séance à vide" Subtitle="‹ Séances" BackHref="/workoutsessions" />
+    @if (loading) { <V4Loading /> }
+    else
+    {
+        <p class="v4-free-live__intro">Ajoute tes exercices au fil de la séance. Chaque série est conservée sur cet appareil et synchronisée dès que possible.</p>
+        @if (drafts.Count > 0)
+        {
+            <div class="v4-free-live__summary">@drafts.Count exercice@(drafts.Count > 1 ? "s" : "") · @drafts.Sum(d => d.Sets.Count) série@(drafts.Sum(d => d.Sets.Count) > 1 ? "s" : "")</div>
+            <section class="v4-free-live__list" aria-label="Exercices de la séance">
+                @foreach (var draft in drafts.OrderBy(d => d.SavedAtUtc))
+                {
+                    <div class="v4-free-live__exercise @(draft.SupersetGroupId is not null ? "is-superset" : "") group-@(draft.SupersetGroupId ?? 0)">
+                        @if (draft.SupersetGroupId is int group) { <span class="v4-free-live__group">Superset @((char)('A' + group - 1)) · enchaîné sans repos</span> }
+                        <a href="@($"/workoutsessions/live/{DraftId}/exercises/{draft.ExerciseId}")"><strong>@draft.ExerciseName</strong><span>@draft.Sets.Count série@(draft.Sets.Count > 1 ? "s" : "") · @(draft.PendingSync ? "Sync en attente" : "Enregistré")</span></a>
+                        <label>Superset
+                            <select value="@(draft.SupersetGroupId?.ToString() ?? "")" @onchange="e => ChangeGroupAsync(draft, e.Value?.ToString())" aria-label="Groupe superset de @draft.ExerciseName">
+                                <option value="">Aucun</option><option value="1">A</option><option value="2">B</option><option value="3">C</option>
+                            </select>
+                        </label>
+                    </div>
+                }
+            </section>
+        }
+        else { <V4State Title="À toi de jouer" Message="Choisis ton premier exercice pour commencer la séance en direct." /> }
+
+        <div class="v4-free-live__picker">
+            <label for="free-exercise-search">Ajouter un exercice</label>
+            <input id="free-exercise-search" type="search" placeholder="Rechercher dans le catalogue" value="@search" @oninput="e => search = e.Value?.ToString() ?? string.Empty" />
+            @if (catalogue.Count == 0) { <p>@(isOnline ? "Le catalogue est vide pour le moment." : "Catalogue indisponible hors ligne. Ouvre-le une première fois avec une connexion.")</p> }
+            else
+            {
+                <div class="v4-free-live__results">
+                    @foreach (var exercise in Matches)
+                    {
+                        <a href="@($"/workoutsessions/live/{DraftId}/exercises/{exercise.Id}")">@exercise.Name <span>→</span></a>
+                    }
+                </div>
+            }
+        </div>
+        @if (drafts.Any(d => d.WorkoutSessionId is not null))
+        {
+            var sessionId = drafts.First(d => d.WorkoutSessionId is not null).WorkoutSessionId;
+            <V4Button Href="@($"/workoutsessions/{sessionId}")" Secondary="true">Voir la séance enregistrée</V4Button>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid DraftId { get; set; }
+    private bool loading = true;
+    private bool isOnline = true;
+    private string search = "";
+    private List<Exercise> catalogue = [];
+    private List<LiveExerciseDraft> drafts = [];
+    private IEnumerable<Exercise> Matches => string.IsNullOrWhiteSpace(search)
+        ? catalogue.Where(e => drafts.All(d => d.ExerciseId != e.Id)).Take(8)
+        : catalogue.Where(e => e.Name.Contains(search, StringComparison.OrdinalIgnoreCase) && drafts.All(d => d.ExerciseId != e.Id)).Take(12);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DraftId == Guid.Empty)
+        {
+            Nav.NavigateTo($"/workoutsessions/live/{Guid.NewGuid()}", replace: true);
+            return;
+        }
+        loading = true;
+        try
+        {
+            drafts = await Drafts.ListAsync<LiveExerciseDraft>($"free:{DraftId}:");
+            catalogue = await Drafts.GetAsync<List<Exercise>>("exercise-catalogue") ?? [];
+            isOnline = await Drafts.IsOnlineAsync();
+            if (isOnline)
+            {
+                try
+                {
+                    catalogue = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? catalogue;
+                    await Drafts.PutAsync("exercise-catalogue", catalogue);
+                }
+                catch (Exception) { /* Catalogue local disponible. */ }
+            }
+        }
+        finally { loading = false; }
+    }
+
+    private async Task ChangeGroupAsync(LiveExerciseDraft draft, string? value)
+    {
+        draft.SupersetGroupId = int.TryParse(value, out var group) ? group : null;
+        draft.PendingSync = true;
+        draft.Revision++;
+        draft.SavedAtUtc = DateTime.UtcNow;
+        await Drafts.PutAsync(draft.StorageKey, draft);
+        var synced = await Drafts.SyncAsync(draft.StorageKey);
+        if (synced is not null)
+        {
+            var index = drafts.IndexOf(draft);
+            if (index >= 0) drafts[index] = synced;
+        }
+    }
+}

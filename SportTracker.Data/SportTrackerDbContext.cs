@@ -52,6 +52,18 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
             .HasConversion(converter)
             .Metadata.SetValueComparer(comparer);
 
+        modelBuilder.Entity<ExerciseSet>()
+            .ToTable(t => t.HasCheckConstraint("CK_ExerciseSets_RPE", "RPE IS NULL OR (RPE >= 1 AND RPE <= 10)"));
+
+        modelBuilder.Entity<ExerciseSet>()
+            .Property(s => s.SetType)
+            .HasDefaultValue(SetType.Normal)
+            .HasSentinel(SetType.Normal);
+
+        modelBuilder.Entity<WorkoutSession>()
+            .HasIndex(ws => new { ws.UserId, ws.ClientDraftId })
+            .IsUnique();
+
         modelBuilder.Entity<WorkoutProgramSession>()
             .HasOne(s => s.WorkoutProgram)
             .WithMany(p => p.Sessions)

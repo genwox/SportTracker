@@ -11,20 +11,34 @@
 .v4-exercise-editor h2 { margin: 0 0 5px; font: 400 19px/1.15 var(--st-font-display); color: var(--st-ink); }
 .v4-exercise-editor small { color: var(--st-secondary); font-size: 12px; }
 .v4-exercise-editor small button { appearance: none; border: 0; padding: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
-.v4-icon-button, .v4-set-row button { border: 0; background: none; color: var(--st-secondary); cursor: pointer; font-size: 20px; }
+.v4-icon-button, .v4-set-row button { min-width: 44px; min-height: 44px; border: 0; background: none; color: var(--st-secondary); cursor: pointer; font-size: 20px; }
 .v4-search { position: relative; }
 .v4-search__options { position: absolute; z-index: 20; top: calc(100% + 4px); right: 0; left: 0; overflow: auto; max-height: 240px; border: 1px solid #ffffffcc; border-radius: 14px; background: #F8FFFF; box-shadow: 0 10px 24px #082d4530; }
 .v4-search__options button { display: block; width: 100%; padding: 11px 12px; border: 0; border-bottom: 1px solid #082d4510; background: none; color: var(--st-ink); text-align: left; }
-.v4-set-head, .v4-set-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr) 28px; gap: 8px; align-items: center; }
+.v4-set-head, .v4-set-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
 .v4-set-head { padding-top: 6px; }
 .v4-set-row > span { color: var(--st-ink); text-align: center; font-weight: 700; }
-.v4-set-row input { min-width: 0; min-height: 38px; padding: 8px; border-radius: 10px; }
-.v4-add-set { min-height: 40px; border: 0; border-radius: 12px; background: #F8FFFFCC; color: var(--st-ink); font-weight: 700; cursor: pointer; }
+.v4-set-row input { min-width: 0; min-height: 44px; padding: 8px; border-radius: 10px; }
+.v4-add-set { min-height: 44px; border: 0; border-radius: 12px; background: #F8FFFFCC; color: var(--st-ink); font-weight: 700; cursor: pointer; }
 .v4-form-actions { display: grid; gap: 14px; text-align: center; }
 .v4-form-actions .v4-button { width: 100%; }
 .v4-form-actions a { color: var(--st-secondary); font-size: 12px; text-decoration: none; }
-@media (max-width: 360px) { .v4-workout-form { padding-inline: 16px; } .v4-form-grid { gap: 8px; } .v4-set-head, .v4-set-row { gap: 5px; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 20px; } .v4-set-head { font-size: 10px; } }
+@media (max-width: 360px) { .v4-workout-form { padding-inline: 16px; } .v4-form-grid { gap: 8px; } .v4-set-head, .v4-set-row { gap: 5px; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 44px; } .v4-set-head { font-size: 10px; } }
 /* InputText/InputDate/InputNumber sont des composants : leur <input> ne porte pas l'attribut scoped de la page. */
 .v4-workout-form ::deep .v4-input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); padding: 10px 12px; font-size: 14px; }
 .v4-workout-form ::deep .v4-input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
 .v4-workout-form .v4-form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.v4-start-live { display: block; min-height: 44px; margin: 0 0 16px; padding: 12px 15px; border-radius: 14px; background: var(--st-neon); color: var(--st-ink); font-weight: 700; text-align: center; text-decoration: none; }
+.v4-exercise-wrap { position: relative; display: grid; gap: 8px; min-width: 0; }
+.v4-exercise-wrap.is-superset { padding: 10px 0 10px 12px; border-left: 5px solid var(--st-neon); border-radius: 4px; background: #e8ffff70; }
+.v4-exercise-wrap.group-1 + .v4-exercise-wrap.group-1::before, .v4-exercise-wrap.group-2 + .v4-exercise-wrap.group-2::before, .v4-exercise-wrap.group-3 + .v4-exercise-wrap.group-3::before { content: ""; position: absolute; top: -12px; left: -5px; width: 5px; height: 12px; background: var(--st-neon); }
+.v4-superset-tag { justify-self: start; padding: 5px 10px; border-radius: 20px; background: var(--st-neon); color: var(--st-ink); font-size: 11px; font-weight: 800; }
+.v4-set-options { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 0 12px 38px; border-bottom: 1px solid #10273719; }
+.v4-set-types { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; }
+.v4-set-types button { min-height: 44px; padding: 4px 9px; border: 0; border-radius: 15px; background: #e2f7f8; color: var(--st-secondary); font-size: 11px; font-weight: 700; }
+.v4-set-types button.is-selected { background: #102737; color: #fff; }
+.v4-set-types button.is-selected.type-dropset { background: var(--st-neon); color: #102737; }
+.v4-set-options label { display: flex; align-items: center; gap: 8px; color: var(--st-secondary); font-size: 12px; font-weight: 700; }
+.v4-set-options input[type=range] { min-height: 30px; flex: 1; accent-color: #102737; }
+.v4-set-options .v4-clear-rpe { width: 44px; height: 44px; border: 0; background: #e2f7f8; border-radius: 9px; color: var(--st-secondary); }
+.v4-exercise-wrap textarea { resize: vertical; }

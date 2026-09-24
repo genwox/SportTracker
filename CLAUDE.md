@@ -88,7 +88,7 @@ SportTracker/
 - [x] Timer de repos pré-rempli depuis `RestSeconds`
 - [x] Schéma cible structuré (TargetSets, TargetRepsMin/Max, RestSeconds)
 
-### Étape 4d — Authentification & profils ⏳ En cours
+### Étape 4d — Authentification & profils ✅
 - Design arbitré (voir vault : décision *Authentification & multi-utilisateurs* + note *Étape 4d*)
 - **Bloc 1 — Backend Identity + modèle + migration ✅**
   - [x] Package `Microsoft.AspNetCore.Identity.EntityFrameworkCore` dans `SportTracker.Data`
@@ -96,13 +96,26 @@ SportTracker/
   - [x] `SportTrackerDbContext : IdentityDbContext<ApplicationUser>` (`base.OnModelCreating` en 1ʳᵉ ligne)
   - [x] `string UserId` sur `WorkoutSession`, `CardioSession`, `WorkoutProgram` (Core pur)
   - [x] Migration `AddIdentityAndUserScoping` appliquée (7 tables `AspNet*` + `UserId`)
-- **Bloc 2 — Endpoints & sécurisation** ⏳ À faire : `MapIdentityApi`, token ~30 j, `[Authorize]`, filtrage `UserId` → `404`, CORS resserré
-- **Bloc 3 — Front Blazor** ⏳ À faire : `localStorage`, `AuthenticationStateProvider`, `DelegatingHandler`, routes protégées
+- **Bloc 2 — Endpoints & sécurisation ✅** : `MapIdentityApi`, token ~30 j, `[Authorize]`, filtrage `UserId` (`HasQueryFilter` global) → `404`, CORS resserré
+- **Bloc 3 — Front Blazor ✅** : `localStorage`, `AuthenticationStateProvider`, `DelegatingHandler`, routes protégées — flux register/login/logout/persistance validé E2E navigateur
+
+### Étape 4e — Refonte design UI (Stitch → pen.dev) ✅
+- Design system Blazor repensé (palette cyan `#78E8E4` / néon `#D4F53C` / dark `#172713`, Barlow / Barlow Condensed), trio Today/Programs/ExerciseLive porté, PWA hors ligne bout en bout (lot 10).
+- `design.pen` + exports pen.dev conservés comme référence visuelle (`docs/analyse-hevy/exports-v5/`, palette V4→V5).
+
+### Étape 4f — Implémentation design V5 (analyse Hevy) ✅
+- Analyse comparative Hevy vs SportTracker (`docs/analyse-hevy/`) → P0/P1 priorisés, design V5 dans `design.pen` (27 écrans).
+- **P0** — types de série (Warmup/Normal/DropSet/Failure), détection de record personnel (PR) en direct, résilience offline de la séance live (brouillons IndexedDB + replay idempotent au retour réseau), suppression de série en direct, démarrage d'une séance à vide en mode live.
+- **P1** — RPE et notes par exercice, supersets (regroupement + connecteur visuel), filtres muscle+équipement sur le catalogue d'exercices, création d'exercice personnalisé (UI), graphiques enrichis (volume/meilleur poids/reps) sur l'historique, répartition musculaire + séries/semaine sur Progrès.
+- Modèle : `ExerciseSet.SetType/RPE`, `WorkoutExercise.Notes/SupersetGroupId`, `Exercise.Equipment`, `WorkoutSession.ClientDraftId` — migrations `AddWorkoutLoggingDetailsAndEquipment` et `AddLiveWorkoutDraftKey`.
+- Implémenté via orchestration multi-agent (`jev-orchestrator`/Orca) — détail dans le vault : [[2026-09-24 Orchestration V5]], [[V5 Fondations backend]], [[Synchronisation des brouillons live V5]].
+- Hors scope V5 (P2, non demandé) : dossiers de routines, calendrier d'entraînement, mesures corporelles/photos, wearables.
 
 ### Étape 5 — Docker + déploiement VPS ✅
 - [x] Déployé sur VPS Hostinger via Docker + Traefik (HTTPS Let's Encrypt)
 - [x] App : `https://app.fmon-vps-n8n.fr` — API : `https://api.fmon-vps-n8n.fr`
 - ⚠️ Point ouvert pour l'auth : persister le trousseau Data Protection dans un volume
+- ⚠️ À revérifier avant déploiement : build WASM complet (`ConvertDllsToWebCil`) buté sur un verrou Windows local pendant l'implémentation V5 (probable conflit de builds concurrents entre worktrees) — `dotnet build`/`dotnet test` classiques passent sans erreur.
 
 ### Étape 6 — Intégration LLM ⏳ À faire
 

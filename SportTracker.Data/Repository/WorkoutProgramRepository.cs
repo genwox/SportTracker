@@ -35,8 +35,35 @@ public class WorkoutProgramRepository : IRepository<WorkoutProgram>
 
     public async Task UpdateAsync(WorkoutProgram entity)
     {
-        var existingExercises = await _context.WorkoutProgramExercises
-            .Where(e => e.WorkoutProgramSession!.WorkoutProgramId == entity.Id)
+        var existing = await _context.WorkoutPrograms.AsNoTracking()
+            .Include(p => p.Sessions)
+                .ThenInclude(s => s.Exercises)
+            .FirstOrDefaultAsync(p => p.Id == entity.Id);
+        if (existing == null) return;
+
+        var ownedSessionIds = existing.Sessions.Select(s => s.Id).ToHashSet();
+        var ownedExerciseIds = existing.Sessions.SelectMany(s => s.Exercises).Select(e => e.Id).ToHashSet();
+        if (entity.Sessions.Any(s =>
+                (s.Id != 0 && !ownedSessionIds.Contains(s.Id)) ||
+                s.Exercises.Any(e => e.Id != 0 && !ownedExerciseIds.Contains(e.Id))))
+            return;
+
+        entity.UserId = existing.UserId;
+        foreach (var session in entity.Sessions)
+        {
+            session.WorkoutProgramId = entity.Id;
+            session.WorkoutProgram = null;
+            foreach (var exercise in session.Exercises)
+            {
+                exercise.WorkoutProgramSessionId = session.Id;
+                exercise.WorkoutProgramSession = null;
+                exercise.Exercise = null;
+            }
+        }
+        var existingExercises = await _context.WorkoutPrograms
+            .Where(p => p.Id == entity.Id)
+            .SelectMany(p => p.Sessions)
+            .SelectMany(s => s.Exercises)
             .ToListAsync();
         _context.WorkoutProgramExercises.RemoveRange(existingExercises);
         await _context.SaveChangesAsync();

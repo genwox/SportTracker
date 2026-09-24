@@ -9,8 +9,11 @@ namespace SportTracker.App.Auth;
 public class TokenStore(IJSRuntime js)
 {
     private const string Key = "st-auth-token";
+    private const string DraftOwnerKey = "st-draft-owner";
     private string? _cached;
     private bool _loaded;
+    private string? _draftOwner;
+    private bool _draftOwnerLoaded;
 
     public async ValueTask<string?> GetTokenAsync()
     {
@@ -20,17 +23,36 @@ public class TokenStore(IJSRuntime js)
         return _cached;
     }
 
-    public async Task SetTokenAsync(string token)
+    public async ValueTask<string?> GetDraftOwnerAsync()
+    {
+        if (_draftOwnerLoaded) return _draftOwner;
+        _draftOwner = await js.InvokeAsync<string?>("localStorage.getItem", DraftOwnerKey);
+        _draftOwnerLoaded = true;
+        return _draftOwner;
+    }
+
+    public async Task SetDraftOwnerAsync(string email)
+    {
+        _draftOwner = email.Trim().ToLowerInvariant();
+        _draftOwnerLoaded = true;
+        await js.InvokeVoidAsync("localStorage.setItem", DraftOwnerKey, _draftOwner);
+    }
+
+    public async Task SetTokenAsync(string token, string? email = null)
     {
         _cached = token;
         _loaded = true;
         await js.InvokeVoidAsync("localStorage.setItem", Key, token);
+        if (!string.IsNullOrWhiteSpace(email)) await SetDraftOwnerAsync(email);
     }
 
     public async Task ClearAsync()
     {
         _cached = null;
         _loaded = true;
+        _draftOwner = null;
+        _draftOwnerLoaded = true;
         await js.InvokeVoidAsync("localStorage.removeItem", Key);
+        await js.InvokeVoidAsync("localStorage.removeItem", DraftOwnerKey);
     }
 }

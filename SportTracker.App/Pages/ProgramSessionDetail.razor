@@ -2,7 +2,9 @@
 @using System.Net
 @using SportTracker.Core.Models
 @using SportTracker.Core.Enums
+@using SportTracker.App.Services
 @inject HttpClient Http
+@inject LiveDraftService Drafts
 
 <div class="v4-session-detail">
     <div class="v4-session-topbar">
@@ -103,12 +105,16 @@
         }
 
         <V4Button Href="@(firstLiveExerciseId > 0 ? $"/programs/{ProgramId}/sessions/{SessionId}/exercises/{firstLiveExerciseId}/live" : null)" Disabled="firstLiveExerciseId <= 0">Démarrer en live</V4Button>
+        <V4Button Href="/workoutsessions/live" Secondary="true">Séance à vide</V4Button>
 
         <div class="v4-exercise-list">
             @foreach (var pe in session.Exercises.OrderBy(e => e.Order))
             {
                 var ex = pe.Exercise;
                 if (ex == null) continue;
+                var liveDraft = GetDraft(ex.Id);
+                <div class="v4-exercise-card @(liveDraft?.SupersetGroupId is not null ? "is-superset" : "") group-@(liveDraft?.SupersetGroupId ?? 0)">
+                @if (liveDraft?.SupersetGroupId is int group) { <span class="v4-exercise-card__group">Superset @((char)('A' + group - 1)) · enchaîné sans repos</span> }
                 <a href="/programs/@ProgramId/sessions/@SessionId/exercises/@ex.Id/live" class="v4-exercise-row">
                     @if (!string.IsNullOrEmpty(ex.GifUrl))
                     {
@@ -122,6 +128,22 @@
                     }
                     <span><strong>@ex.Name</strong><small>@FormatSchema(pe)</small></span>
                 </a>
+                @if (liveDraft?.SyncConflict == true)
+                {
+                    <p class="v4-exercise-card__conflict" role="alert">Séance du jour introuvable sur le serveur : ouvre l’exercice pour la recréer ou abandonner le brouillon.</p>
+                }
+                @if (liveDraft is not null)
+                {
+                    <div class="v4-exercise-card__fields">
+                        <label for="session-note-@ex.Id">Notes de @ex.Name</label>
+                        <textarea id="session-note-@ex.Id" rows="2" placeholder="Repères, ressenti…" value="@liveDraft.Notes" @oninput="e => SaveExerciseNoteLocalAsync(ex.Id, e.Value?.ToString())" @onchange="e => SaveExerciseNoteAsync(ex.Id, e.Value?.ToString())"></textarea>
+                        <label for="session-rpe-@ex.Id">RPE de la prochaine série · @(liveDraft.RPE?.ToString() ?? "—")</label>
+                        <div class="v4-exercise-card__rpe"><input id="session-rpe-@ex.Id" type="range" min="1" max="10" value="@(liveDraft.RPE ?? 8)" @oninput="e => SaveNextRpeAsync(ex.Id, e.Value?.ToString())" /><button type="button" @onclick="() => ClearNextRpeAsync(ex.Id)" aria-label="Effacer le RPE de @ex.Name">×</button></div>
+                        <label for="session-group-@ex.Id">Groupe superset</label>
+                        <select id="session-group-@ex.Id" value="@(liveDraft.SupersetGroupId?.ToString() ?? "")" @onchange="e => SaveSupersetAsync(ex.Id, e.Value?.ToString())"><option value="">Aucun</option><option value="1">A</option><option value="2">B</option><option value="3">C</option></select>
+                    </div>
+                }
+                </div>
             }
         </div>
     }
@@ -139,6 +161,7 @@
     private string editName = string.Empty;
     private List<ExerciseEditForm> editExercises = new();
     private List<Exercise> availableExercises = new();
+    private Dictionary<int, LiveExerciseDraft> exerciseDrafts = new();
 
     private bool pickerOpen;
     private string searchText = string.Empty;
@@ -182,9 +205,116 @@
             session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
             if (session is null) { notFound = true; return; }
             availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? new();
+            await LoadExerciseDraftsAsync();
         }
         catch (Exception) { loadError = "Vérifie ta connexion, puis réessaie."; }
         finally { isLoading = false; }
+    }
+
+    private string DraftKey(int exerciseId) => $"routine:{SessionId}:{DateTime.Today:yyyyMMdd}:{exerciseId}";
+    private LiveExerciseDraft? GetDraft(int exerciseId) => exerciseDrafts.GetValueOrDefault(exerciseId);
+
+    private async Task LoadExerciseDraftsAsync()
+    {
+        WorkoutSession? logged = null;
+        var serverKnown = false;
+        try
+        {
+            var workouts = await Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions") ?? [];
+            logged = workouts.FirstOrDefault(ws => ws.WorkoutProgramSessionId == SessionId && ws.Date.Date == DateTime.Today);
+            serverKnown = true;
+        }
+        catch (Exception) { /* Les brouillons locaux restent consultables hors ligne. */ }
+
+        exerciseDrafts.Clear();
+        foreach (var pe in session!.Exercises)
+        {
+            var key = DraftKey(pe.ExerciseId);
+            var draft = await Drafts.GetAsync<LiveExerciseDraft>(key);
+            // Un brouillon en attente de synchro reste la référence (saisies locales non envoyées).
+            // Sinon le serveur fait foi : le brouillon est réaligné sur la séance du jour, pour ne
+            // jamais renvoyer plus tard un instantané périmé (séries modifiées ou séance supprimée
+            // ailleurs). Hors ligne sans brouillon, on n'en fabrique pas un vide qui écraserait
+            // ensuite les séries serveur.
+            if (draft is { PendingSync: false } or null)
+            {
+                if (!serverKnown)
+                {
+                    if (draft is not null) exerciseDrafts[pe.ExerciseId] = draft;
+                    continue;
+                }
+                var workoutExercise = logged?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == pe.ExerciseId);
+                draft ??= new LiveExerciseDraft { RepsCurrent = pe.TargetRepsMin > 0 ? pe.TargetRepsMin : 10 };
+                draft.StorageKey = key;
+                draft.ProgramSessionId = SessionId;
+                draft.ExerciseId = pe.ExerciseId;
+                draft.ExerciseName = pe.Exercise?.Name ?? "Exercice";
+                draft.GifUrl = pe.Exercise?.GifUrl;
+                draft.Instructions = pe.Exercise?.InstructionsFr;
+                draft.SessionName = session.Name;
+                draft.TargetSets = pe.TargetSets;
+                draft.RestSeconds = pe.RestSeconds;
+                draft.WorkoutSessionId = logged?.Id;
+                draft.SyncConflict = false;
+                draft.Notes = workoutExercise?.Notes;
+                draft.SupersetGroupId = workoutExercise?.SupersetGroupId;
+                draft.Sets = workoutExercise?.ExerciseSets?.OrderBy(s => s.Id).Select(s => new LiveSetDraft
+                {
+                    Id = s.Id, Weight = s.Weight, Repetitions = s.Repetitions, SetType = s.SetType, RPE = s.RPE
+                }).ToList() ?? [];
+                await Drafts.PutAsync(key, draft);
+            }
+            exerciseDrafts[pe.ExerciseId] = draft;
+        }
+    }
+
+    private async Task SaveExerciseNoteAsync(int exerciseId, string? note)
+    {
+        if (GetDraft(exerciseId) is not { } draft) return;
+        draft.Notes = note;
+        await SaveDraftAsync(draft, true);
+    }
+
+    private async Task SaveExerciseNoteLocalAsync(int exerciseId, string? note)
+    {
+        if (GetDraft(exerciseId) is not { } draft) return;
+        draft.Notes = note;
+        draft.PendingSync = true;
+        await SaveDraftAsync(draft, false);
+    }
+
+    private async Task SaveNextRpeAsync(int exerciseId, string? value)
+    {
+        if (GetDraft(exerciseId) is not { } draft) return;
+        draft.RPE = int.TryParse(value, out var rpe) ? Math.Clamp(rpe, 1, 10) : null;
+        await SaveDraftAsync(draft, false);
+    }
+
+    private async Task ClearNextRpeAsync(int exerciseId)
+    {
+        if (GetDraft(exerciseId) is not { } draft) return;
+        draft.RPE = null;
+        await SaveDraftAsync(draft, false);
+    }
+
+    private async Task SaveSupersetAsync(int exerciseId, string? value)
+    {
+        if (GetDraft(exerciseId) is not { } draft) return;
+        draft.SupersetGroupId = int.TryParse(value, out var group) ? group : null;
+        await SaveDraftAsync(draft, true);
+    }
+
+    private async Task SaveDraftAsync(LiveExerciseDraft draft, bool sync)
+    {
+        draft.Revision++;
+        if (sync) draft.PendingSync = true;
+        draft.SavedAtUtc = DateTime.UtcNow;
+        await Drafts.PutAsync(draft.StorageKey, draft);
+        if (sync)
+        {
+            var synced = await Drafts.SyncAsync(draft.StorageKey);
+            if (synced is not null) exerciseDrafts[draft.ExerciseId] = synced;
+        }
     }
 
     private void EnterEditMode()

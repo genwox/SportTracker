@@ -12,4 +12,6 @@ public class WorkoutSession : ISession, IUserOwned
     public int? WorkoutProgramSessionId { get; set; }
     public WorkoutProgramSession? WorkoutProgramSession { get; set; }
     public string UserId { get; set; } =  string.Empty;
+    // Stable client key for an ad-hoc live workout, allowing safe replay after reconnect.
+    public Guid? ClientDraftId { get; set; }
 }

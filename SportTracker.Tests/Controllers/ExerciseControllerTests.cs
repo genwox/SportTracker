@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using SportTracker.Api.Controllers;
 using SportTracker.Core.Interfaces;
+using SportTracker.Core.Enums;
 using SportTracker.Core.Models;
 using SportTracker.Data;
+using SportTracker.Data.Repository;
 using SportTracker.Tests.Support;
 
 namespace SportTracker.Tests.Controllers;
@@ -44,6 +46,64 @@ public class ExerciseControllerTests : IDisposable
     // dynamic respecte la visibilité du type déclarant et échoue dans ce cas.
     private static T Prop<T>(object obj, string name) =>
         (T)obj.GetType().GetProperty(name)!.GetValue(obj)!;
+
+    [Fact]
+    public async Task GetAll_WithCombinedFilters_ReturnsOnlyMatchingExercises()
+    {
+        var exercises = new[]
+        {
+            new Exercise { Name = "Bench", MuscleGroups = [MuscleGroup.Chest], Equipment = "Barbell" },
+            new Exercise { Name = "Fly", MuscleGroups = [MuscleGroup.Chest], Equipment = "Cable" },
+            new Exercise { Name = "Row", MuscleGroups = [MuscleGroup.Back], Equipment = "Barbell" }
+        };
+        _exerciseRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(exercises);
+
+        var all = Assert.IsType<OkObjectResult>(await _controller.GetAllAsync());
+        Assert.Equal(3, Assert.IsAssignableFrom<IEnumerable<Exercise>>(all.Value).Count());
+
+        var filtered = Assert.IsType<OkObjectResult>(
+            await _controller.GetAllAsync(MuscleGroup.Chest, " barbell "));
+        Assert.Equal("Bench", Assert.Single(Assert.IsAssignableFrom<IEnumerable<Exercise>>(filtered.Value)).Name);
+    }
+
+    [Fact]
+    public async Task Create_PersistsEquipmentAndReturnsCreatedWithRetrievableLocation()
+    {
+        var controller = new ExerciseController(new ExerciseRepository(_context), _context);
+        var exercise = new Exercise
+        {
+            Name = "Custom press",
+            Type = ExerciseType.Strength,
+            MuscleGroups = [MuscleGroup.Chest],
+            Equipment = "Dumbbell"
+        };
+
+        var created = Assert.IsType<CreatedAtActionResult>(await controller.CreateAsync(exercise));
+        Assert.Equal(nameof(ExerciseController.GetByIdAsync), created.ActionName);
+        Assert.Equal(exercise.Id, created.RouteValues!["id"]);
+        var retrieved = Assert.IsType<OkObjectResult>(await controller.GetByIdAsync(exercise.Id));
+        Assert.Equal("Dumbbell", Assert.IsType<Exercise>(retrieved.Value).Equipment);
+        Assert.Equal("Dumbbell", (await _context.Exercises.FindAsync(exercise.Id))!.Equipment);
+    }
+
+    [Fact]
+    public async Task Create_WithoutName_ReturnsBadRequest()
+    {
+        var result = await _controller.CreateAsync(new Exercise { Name = " " });
+        Assert.IsType<BadRequestObjectResult>(result);
+        _exerciseRepoMock.Verify(r => r.AddAsync(It.IsAny<Exercise>()), Times.Never);
+    }
+
+    [Fact]
+    public void ExerciseSet_DefaultAndRpeRange()
+    {
+        var set = new ExerciseSet();
+        Assert.Equal(SetType.Normal, set.SetType);
+        set.RPE = 10;
+        Assert.Equal(10, set.RPE);
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.RPE = 0);
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.RPE = 11);
+    }
 
     // -------------------------------------------------------------------------
     // LogSetAsync — guards
@@ -331,5 +391,27 @@ public class ExerciseControllerTests : IDisposable
         Assert.Equal(dateOld.Date, Prop<DateTime>(items[1], "Date"));
         Assert.Equal(20,     Prop<int>   (items[1], "TotalReps"));
         Assert.Equal(1200.0, Prop<double>(items[1], "TotalVolume"));
+    }
+
+    [Fact]
+    public async Task DeleteSet_OnlyRemovesSetFromOwnedWorkout()
+    {
+        var owned = new WorkoutSession { Name = "Owned", Date = DateTime.Today,
+            WorkoutExercises = [new WorkoutExercise { ExerciseId = 1,
+                ExerciseSets = [new ExerciseSet { Repetitions = 10, Weight = 60 }] }] };
+        var foreign = new WorkoutSession { Name = "Foreign", Date = DateTime.Today,
+            WorkoutExercises = [new WorkoutExercise { ExerciseId = 1,
+                ExerciseSets = [new ExerciseSet { Repetitions = 8, Weight = 80 }] }] };
+        _context.WorkoutSessions.AddRange(owned, foreign);
+        await _context.SaveChangesAsync();
+        foreign.UserId = "other-user";
+        await _context.SaveChangesAsync();
+
+        var ownSetId = owned.WorkoutExercises![0].ExerciseSets![0].Id;
+        var foreignSetId = foreign.WorkoutExercises![0].ExerciseSets![0].Id;
+        Assert.IsType<NoContentResult>(await _controller.DeleteSetAsync(1, ownSetId));
+        Assert.IsType<NotFoundResult>(await _controller.DeleteSetAsync(1, ownSetId));
+        Assert.IsType<NotFoundResult>(await _controller.DeleteSetAsync(1, foreignSetId));
+        Assert.NotNull(await _context.ExerciseSets.FindAsync(foreignSetId));
     }
 }
