@@ -28,3 +28,4 @@ graphify-out/
 
 # Dataset exercises (17 MB — téléchargé via Dockerfile en prod)
 SportTracker.Data/Seed/exercises.json
+debug.log
