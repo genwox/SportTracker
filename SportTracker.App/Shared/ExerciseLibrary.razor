@@ -1,0 +1,89 @@
+@using SportTracker.Core.Enums
+@using SportTracker.Core.Models
+@inject HttpClient Http
+
+<div class="library-backdrop" @onclick="CloseAsync"></div>
+<section class="library" role="dialog" aria-modal="true" aria-label="Bibliothèque d’exercices" data-escape-close>
+    <header><div><h2>BIBLIOTHÈQUE</h2><p>@(allExercises.Count) exercices</p></div><button type="button" aria-label="Fermer" @onclick="CloseAsync">✕</button></header>
+    @if (creating)
+    {
+        <div class="library-form">
+            <h3>Créer un exercice personnalisé</h3>
+            <label>Nom <input required maxlength="160" @bind="newExercise.Name" /></label>
+            <label>Type <select @bind="newExercise.Type"><option value="Strength">Musculation</option><option value="Cardio">Cardio</option></select></label>
+            <fieldset><legend>Groupes musculaires</legend><div class="library-chips">@foreach (var group in Enum.GetValues<MuscleGroup>()) { <label class="library-chip"><input type="checkbox" checked="@newExercise.MuscleGroups.Contains(group)" @onchange="e => ToggleGroup(group, e.Value is true)" />@GroupLabel(group)</label> }</div></fieldset>
+            <label>Équipement <input list="equipment-list" @bind="newExercise.Equipment" placeholder="Ex. Barre" /></label>
+            <label>URL du GIF <span>(facultatif)</span><input type="url" @bind="newExercise.GifUrl" /></label>
+            <label>Instructions <span>(facultatif)</span><textarea rows="4" @bind="newExercise.InstructionsFr"></textarea></label>
+            @if (error is not null) { <p class="library-error">@error</p> }
+            <button class="library-primary" type="button" disabled="@saving" @onclick="CreateAsync">@(saving ? "Création…" : "Créer et choisir")</button>
+            <button class="library-quiet" type="button" @onclick="() => creating = false">Retour à la bibliothèque</button>
+        </div>
+    }
+    else
+    {
+        <input class="library-search" aria-label="Rechercher un exercice" placeholder="⌕  Rechercher un exercice" @bind="search" @bind:event="oninput" />
+        <div class="library-filter"><strong>Groupe musculaire</strong><div class="library-chips"><button type="button" class="@(muscle is null ? "active" : "")" @onclick="() => SetMuscleAsync(null)">Tous</button>@foreach (var group in Enum.GetValues<MuscleGroup>()) { <button type="button" class="@(muscle == group ? "active" : "")" @onclick="() => SetMuscleAsync(group)">@GroupLabel(group)</button> }</div></div>
+        <div class="library-filter"><strong>Équipement</strong><div class="library-chips"><button type="button" class="@(equipment is null ? "active" : "")" @onclick="() => SetEquipmentAsync(null)">Tous</button>@foreach (var item in EquipmentOptions) { <button type="button" class="@(equipment == item ? "active" : "")" @onclick="() => SetEquipmentAsync(item)">@item</button> }</div></div>
+        <p class="library-count">@Filtered.Count exercice@(Filtered.Count > 1 ? "s" : "") trouvé@(Filtered.Count > 1 ? "s" : "")</p>
+        @if (loading) { <p>Chargement des exercices…</p> }
+        else if (error is not null) { <p class="library-error">@error <button type="button" @onclick="LoadAsync">Réessayer</button></p> }
+        else { <div class="library-results">@foreach (var exercise in Filtered.Take(100)) { <button type="button" class="library-result @(selected?.Id == exercise.Id ? "selected" : "")" @onclick="() => selected = exercise"><span class="library-icon">✦</span><span><strong>@exercise.Name</strong><small>@string.Join(" · ", exercise.MuscleGroups.Select(GroupLabel))@(!string.IsNullOrWhiteSpace(exercise.Equipment) ? $" · {exercise.Equipment}" : "")</small></span><span class="library-plus">@(selected?.Id == exercise.Id ? "✓" : "+")</span></button> } @if (Filtered.Count > 100) { <p>Affichage des 100 premiers résultats. Affine ta recherche.</p> }</div> }
+        <button type="button" class="library-create" @onclick="() => { creating = true; error = null; }"><span class="library-icon">＋</span><span><strong>Créer un exercice personnalisé</strong><small>Mouvement absent de la bibliothèque</small></span></button>
+        <button type="button" class="library-primary" disabled="@(selected is null)" @onclick="ChooseAsync">Ajouter à la séance</button>
+    }
+    <datalist id="equipment-list">@foreach (var item in EquipmentOptions) { <option value="@item"></option> }</datalist>
+</section>
+
+@code {
+    [Parameter] public EventCallback<Exercise> OnSelected { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    private List<Exercise> allExercises = new();
+    private List<Exercise> exercises = new();
+    private Exercise newExercise = new();
+    private Exercise? selected;
+    private MuscleGroup? muscle;
+    private string? equipment, error;
+    private string search = string.Empty;
+    private bool loading, creating, saving;
+    private List<string> EquipmentOptions => allExercises.Select(e => e.Equipment).Where(e => !string.IsNullOrWhiteSpace(e)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(e => e).Select(e => e!).ToList();
+    private List<Exercise> Filtered => exercises.Where(e => string.IsNullOrWhiteSpace(search) || e.Name.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+    protected override async Task OnInitializedAsync() { await LoadAsync(); }
+    private async Task LoadAsync()
+    {
+        loading = true; error = null;
+        try
+        {
+            if (allExercises.Count == 0) allExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? new();
+            var query = new List<string>();
+            if (muscle is not null) query.Add($"muscleGroup={muscle}");
+            if (equipment is not null) query.Add($"equipment={Uri.EscapeDataString(equipment)}");
+            exercises = query.Count == 0 ? allExercises : await Http.GetFromJsonAsync<List<Exercise>>("api/exercises?" + string.Join("&", query)) ?? new();
+        }
+        catch { error = "Impossible de charger les exercices. Vérifie ta connexion."; }
+        finally { loading = false; }
+    }
+    private async Task SetMuscleAsync(MuscleGroup? value) { muscle = value; selected = null; await LoadAsync(); }
+    private async Task SetEquipmentAsync(string? value) { equipment = value; selected = null; await LoadAsync(); }
+    private void ToggleGroup(MuscleGroup group, bool active) { if (active) newExercise.MuscleGroups.Add(group); else newExercise.MuscleGroups.Remove(group); }
+    private async Task CreateAsync()
+    {
+        if (saving) return;
+        if (string.IsNullOrWhiteSpace(newExercise.Name) || newExercise.MuscleGroups.Count == 0) { error = "Indique un nom et au moins un groupe musculaire."; return; }
+        saving = true; error = null; newExercise.Name = newExercise.Name.Trim();
+        try
+        {
+            using var response = await Http.PostAsJsonAsync("api/exercises", newExercise);
+            if (!response.IsSuccessStatusCode) { error = $"Création impossible (erreur {(int)response.StatusCode})."; return; }
+            var created = await response.Content.ReadFromJsonAsync<Exercise>();
+            if (created is null) { error = "L’exercice a été créé, mais la réponse est illisible. Rouvre la bibliothèque."; return; }
+            await OnSelected.InvokeAsync(created);
+        }
+        catch { error = "Vérifie ta connexion, puis réessaie."; }
+        finally { saving = false; }
+    }
+    private Task ChooseAsync() => selected is null ? Task.CompletedTask : OnSelected.InvokeAsync(selected);
+    private Task CloseAsync() => OnClose.InvokeAsync();
+    private static string GroupLabel(MuscleGroup group) => group switch { MuscleGroup.Chest => "Pecs", MuscleGroup.Back => "Dos", MuscleGroup.Shoulders => "Épaules", MuscleGroup.Legs => "Jambes", MuscleGroup.Glutes => "Fessiers", MuscleGroup.Abs => "Abdos", MuscleGroup.FullBody => "Corps entier", _ => group.ToString() };
+}
+

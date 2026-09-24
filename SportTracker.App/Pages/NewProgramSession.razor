@@ -59,44 +59,7 @@
 
         @if (pickerIndex is not null)
         {
-            <div class="sheet-backdrop" @onclick="ClosePicker"></div>
-            <div class="sheet v4-exercise-picker" role="dialog" aria-modal="true" aria-label="Ajouter un exercice" data-escape-close>
-                <div class="sheet-header"><span>Ajouter un exercice</span><button type="button" class="sheet-close" aria-label="Fermer" @onclick="ClosePicker">✕</button></div>
-                <input class="v4-input" placeholder="Rechercher un exercice" value="@searchText" @oninput="e => { searchText = e.Value?.ToString() ?? string.Empty; candidate = null; }" autofocus />
-
-                @if (candidate is null)
-                {
-                    @if (string.IsNullOrWhiteSpace(searchText))
-                    {
-                        <p class="v4-picker-hint">Tape le nom d’un exercice pour commencer.</p>
-                    }
-                    else
-                    {
-                        var results = availableExercises.Where(e => e.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)).Take(8).ToList();
-                        <p class="v4-picker-count">@results.Count exercice@(results.Count > 1 ? "s trouvés" : results.Count == 1 ? " trouvé" : " trouvé")</p>
-                        <div class="v4-picker-results">
-                            @foreach (var exercise in results)
-                            {
-                                <button type="button" class="v4-picker-result" @onclick="() => candidate = exercise">
-                                    <span class="v4-picker-result__icon" aria-hidden="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14"/><path d="M18 5v14"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="6" y1="15" x2="18" y2="15"/></svg>
-                                    </span>
-                                    <span><strong>@exercise.Name</strong><small>@MuscleGroupsLabel(exercise)</small></span>
-                                </button>
-                            }
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="v4-picker-confirm">
-                        <strong>@candidate.Name</strong>
-                        <p>Sélectionne cet exercice pour définir les séries, répétitions et temps de repos.</p>
-                        <V4Button OnClick="ConfirmCandidate">Choisir cet exercice</V4Button>
-                        <button type="button" class="v4-picker-cancel" @onclick="() => candidate = null">Annuler</button>
-                    </div>
-                }
-            </div>
+            <ExerciseLibrary OnSelected="SelectFromLibrary" OnClose="ClosePicker" />
         }
     }
 </div>
@@ -111,28 +74,6 @@
     private bool isLoading = true, isSaving, notFound;
     private string? errorMessage, loadError;
     private int? pickerIndex;
-    private string searchText = string.Empty;
-    private Exercise? candidate;
-
-    private static readonly Dictionary<MuscleGroup, string> MuscleGroupLabels = new()
-    {
-        [MuscleGroup.Chest] = "Pectoraux",
-        [MuscleGroup.Back] = "Dos",
-        [MuscleGroup.Shoulders] = "Épaules",
-        [MuscleGroup.Biceps] = "Biceps",
-        [MuscleGroup.Triceps] = "Triceps",
-        [MuscleGroup.Legs] = "Jambes",
-        [MuscleGroup.Glutes] = "Fessiers",
-        [MuscleGroup.Abs] = "Abdominaux",
-        [MuscleGroup.FullBody] = "Full body",
-    };
-
-    private static string MuscleGroupsLabel(Exercise exercise)
-    {
-        var known = exercise.MuscleGroups.Where(MuscleGroupLabels.ContainsKey).Select(g => MuscleGroupLabels[g]);
-        var label = string.Join(" · ", known);
-        return string.IsNullOrEmpty(label) ? "Groupe musculaire non renseigné" : label;
-    }
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -154,13 +95,13 @@
     private void AddExerciseSlot() => exercises.Add(new());
     private void ClearExercise(int idx) => exercises[idx].ExerciseId = 0;
 
-    private void OpenPicker(int idx) { pickerIndex = idx; searchText = string.Empty; candidate = null; }
-    private void ClosePicker() { pickerIndex = null; candidate = null; }
-
-    private void ConfirmCandidate()
+    private void OpenPicker(int idx) => pickerIndex = idx;
+    private void ClosePicker() => pickerIndex = null;
+    private void SelectFromLibrary(Exercise exercise)
     {
-        if (pickerIndex is not int idx || candidate is null) return;
-        exercises[idx].ExerciseId = candidate.Id;
+        if (pickerIndex is not int idx) return;
+        if (availableExercises.All(e => e.Id != exercise.Id)) availableExercises.Add(exercise);
+        exercises[idx].ExerciseId = exercise.Id;
         ClosePicker();
     }
 
