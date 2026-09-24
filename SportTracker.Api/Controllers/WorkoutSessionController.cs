@@ -55,6 +55,7 @@ public class WorkoutSessionController : ControllerBase
         {
             return NotFound();
         }
+        workoutSession.UserId = updatedWorkoutSession.UserId;
         await _workoutSessionRepository.UpdateAsync(workoutSession);
         return NoContent();
     }

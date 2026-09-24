@@ -35,8 +35,15 @@ public class WorkoutProgramRepository : IRepository<WorkoutProgram>
 
     public async Task UpdateAsync(WorkoutProgram entity)
     {
-        var existingExercises = await _context.WorkoutProgramExercises
-            .Where(e => e.WorkoutProgramSession!.WorkoutProgramId == entity.Id)
+        var existing = await _context.WorkoutPrograms.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == entity.Id);
+        if (existing == null) return;
+
+        entity.UserId = existing.UserId;
+        var existingExercises = await _context.WorkoutPrograms
+            .Where(p => p.Id == entity.Id)
+            .SelectMany(p => p.Sessions)
+            .SelectMany(s => s.Exercises)
             .ToListAsync();
         _context.WorkoutProgramExercises.RemoveRange(existingExercises);
         await _context.SaveChangesAsync();
