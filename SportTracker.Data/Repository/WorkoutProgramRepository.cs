@@ -51,9 +51,11 @@ public class WorkoutProgramRepository : IRepository<WorkoutProgram>
         entity.UserId = existing.UserId;
         foreach (var session in entity.Sessions)
         {
+            session.WorkoutProgramId = entity.Id;
             session.WorkoutProgram = null;
             foreach (var exercise in session.Exercises)
             {
+                exercise.WorkoutProgramSessionId = session.Id;
                 exercise.WorkoutProgramSession = null;
                 exercise.Exercise = null;
             }
