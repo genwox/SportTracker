@@ -58,6 +58,10 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
             .HasDefaultValue(SetType.Normal)
             .HasSentinel(SetType.Normal);
 
+        modelBuilder.Entity<WorkoutSession>()
+            .HasIndex(ws => new { ws.UserId, ws.ClientDraftId })
+            .IsUnique();
+
         modelBuilder.Entity<WorkoutProgramSession>()
             .HasOne(s => s.WorkoutProgram)
             .WithMany(p => p.Sessions)
