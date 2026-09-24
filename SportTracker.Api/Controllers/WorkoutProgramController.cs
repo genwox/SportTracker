@@ -45,6 +45,7 @@ public class WorkoutProgramController : ControllerBase
         if (id != program.Id) return BadRequest();
         var existing = await _programRepository.GetByIdAsync(id);
         if (existing == null) return NotFound();
+        program.UserId = existing.UserId;
         await _programRepository.UpdateAsync(program);
         return NoContent();
     }

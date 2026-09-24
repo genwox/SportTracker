@@ -30,6 +30,12 @@ public class CardioSessionRepository : IRepository<CardioSession>
 
     public async Task UpdateAsync(CardioSession entity)
     {
+        var existing = await _context.CardioSessions.AsNoTracking()
+            .FirstOrDefaultAsync(cs => cs.Id == entity.Id);
+        if (existing == null) return;
+
+        entity.UserId = existing.UserId;
+        _context.ChangeTracker.Clear();
         _context.CardioSessions.Update(entity);
         await _context.SaveChangesAsync();
     }

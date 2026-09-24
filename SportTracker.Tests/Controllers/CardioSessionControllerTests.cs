@@ -98,6 +98,19 @@ public class CardioSessionControllerTests
         _repoMock.Verify(r => r.UpdateAsync(updated), Times.Once);
     }
 
+    [Fact]
+    public async Task Update_ForgedUserId_PreservesStoredOwner()
+    {
+        var existing = new CardioSession { Id = 1, UserId = "owner" };
+        var forged = new CardioSession { Id = 1, Name = "Changed", UserId = "attacker" };
+        _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+
+        Assert.IsType<NoContentResult>(await _controller.UpdateAsync(1, forged));
+
+        Assert.Equal("owner", forged.UserId);
+        _repoMock.Verify(r => r.UpdateAsync(It.Is<CardioSession>(s => s.UserId == "owner" && s.Name == "Changed")), Times.Once);
+    }
+
     // -------------------------------------------------------------------------
     // Delete
     // -------------------------------------------------------------------------

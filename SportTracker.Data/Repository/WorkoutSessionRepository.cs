@@ -40,6 +40,13 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
 
     public async Task UpdateAsync(WorkoutSession entity)
     {
+        var existing = await _context.WorkoutSessions.AsNoTracking()
+            .FirstOrDefaultAsync(ws => ws.Id == entity.Id);
+        if (existing == null) return;
+
+        entity.UserId = existing.UserId;
+        // The controller may have loaded the same graph for its scoped existence check.
+        _context.ChangeTracker.Clear();
         _context.WorkoutSessions.Update(entity);
         await _context.SaveChangesAsync();
     }
