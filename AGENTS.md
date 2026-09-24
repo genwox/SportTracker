@@ -88,7 +88,7 @@ SportTracker/
 - [x] Timer de repos pré-rempli depuis `RestSeconds`
 - [x] Schéma cible structuré (TargetSets, TargetRepsMin/Max, RestSeconds)
 
-### Étape 4d — Authentification & profils ⏳ En cours
+### Étape 4d — Authentification & profils ✅
 - Design arbitré (voir vault : décision *Authentification & multi-utilisateurs* + note *Étape 4d*)
 - **Bloc 1 — Backend Identity + modèle + migration ✅**
   - [x] Package `Microsoft.AspNetCore.Identity.EntityFrameworkCore` dans `SportTracker.Data`
@@ -96,8 +96,13 @@ SportTracker/
   - [x] `SportTrackerDbContext : IdentityDbContext<ApplicationUser>` (`base.OnModelCreating` en 1ʳᵉ ligne)
   - [x] `string UserId` sur `WorkoutSession`, `CardioSession`, `WorkoutProgram` (Core pur)
   - [x] Migration `AddIdentityAndUserScoping` appliquée (7 tables `AspNet*` + `UserId`)
-- **Bloc 2 — Endpoints & sécurisation** ⏳ À faire : `MapIdentityApi`, token ~30 j, `[Authorize]`, filtrage `UserId` → `404`, CORS resserré
-- **Bloc 3 — Front Blazor** ⏳ À faire : `localStorage`, `AuthenticationStateProvider`, `DelegatingHandler`, routes protégées
+- **Bloc 2 — Endpoints & sécurisation ✅** : `MapIdentityApi`, token ~30 j, `[Authorize]`, filtrage `UserId` → `404`, CORS production et trousseau persistant
+- **Bloc 3 — Front Blazor ✅** : `localStorage`, `AuthenticationStateProvider`, `DelegatingHandler`, routes protégées
+
+### Étape 4f — Expérience V5 ✅
+- Bibliothèque d'exercices, historique et graphiques de progression.
+- Journalisation live avec types de séries, RPE, notes, supersets et reprise hors ligne.
+- Synchronisation des brouillons avec détection et résolution des conflits.
 
 ### Étape 5 — Docker + déploiement VPS ✅
 - [x] Déployé sur VPS Hostinger via Docker + Traefik (HTTPS Let's Encrypt)
