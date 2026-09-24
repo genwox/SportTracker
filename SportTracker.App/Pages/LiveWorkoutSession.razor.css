@@ -1,0 +1,21 @@
+.v4-free-live { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; padding: 52px 20px calc(var(--st-nav-height) + 30px); display: grid; align-content: start; gap: 16px; color: var(--st-ink); }
+.v4-free-live__intro { margin: 0; color: #efffff; font-size: 13px; line-height: 1.5; }
+.v4-free-live__summary { color: var(--st-ink); font-weight: 800; font-size: 13px; }
+.v4-free-live__list { display: grid; gap: 10px; }
+.v4-free-live__exercise { position: relative; display: grid; gap: 10px; padding: 13px; border-radius: 18px; background: #f8ffffe6; }
+.v4-free-live__exercise.is-superset { border-left: 5px solid var(--st-neon); }
+.v4-free-live__exercise.group-1 + .v4-free-live__exercise.group-1::before, .v4-free-live__exercise.group-2 + .v4-free-live__exercise.group-2::before, .v4-free-live__exercise.group-3 + .v4-free-live__exercise.group-3::before { content: ""; position: absolute; top: -10px; left: -5px; width: 5px; height: 10px; background: var(--st-neon); }
+.v4-free-live__group { justify-self: start; padding: 5px 9px; border-radius: 20px; background: var(--st-neon); font-size: 11px; font-weight: 800; }
+.v4-free-live__exercise a { display: grid; gap: 3px; color: var(--st-ink); text-decoration: none; }
+.v4-free-live__exercise a strong { font-size: 15px; }
+.v4-free-live__exercise a span { color: var(--st-secondary); font-size: 12px; }
+.v4-free-live__exercise label { display: flex; align-items: center; gap: 8px; color: var(--st-secondary); font-size: 12px; }
+.v4-free-live__exercise select { min-height: 32px; padding: 4px 8px; border: 1px solid #acd9db; border-radius: 9px; background: #fff; color: var(--st-ink); }
+.v4-free-live__picker { display: grid; gap: 10px; padding: 15px; border-radius: 20px; background: #f8ffffe6; }
+.v4-free-live__picker label { font-weight: 800; }
+.v4-free-live__picker input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #acd9db; border-radius: 12px; background: #fff; color: var(--st-ink); }
+.v4-free-live__picker p { margin: 0; color: var(--st-secondary); font-size: 12px; }
+.v4-free-live__results { display: grid; max-height: 320px; overflow: auto; }
+.v4-free-live__results a { display: flex; justify-content: space-between; gap: 8px; padding: 10px 3px; border-bottom: 1px solid #10273718; color: var(--st-ink); text-decoration: none; font-size: 13px; }
+.v4-free-live__results a span { color: var(--st-secondary); }
+.v4-free-live ::deep .v4-button { width: 100%; }

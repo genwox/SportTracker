@@ -34,5 +34,6 @@ builder.Services.AddScoped(sp =>
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<WeeklyGoalService>();
+builder.Services.AddScoped<LiveDraftService>();
 
 await builder.Build().RunAsync();

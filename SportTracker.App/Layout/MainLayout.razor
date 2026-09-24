@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject SportTracker.App.Services.LiveDraftService Drafts
+@inject IJSRuntime JS
 
 <AuthorizeView>
     <Authorized>
@@ -19,3 +22,35 @@
         </div>
     </Authorizing>
 </AuthorizeView>
+
+@code {
+    private DotNetObjectReference<MainLayout>? networkRef;
+    private int watcherId;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        networkRef = DotNetObjectReference.Create(this);
+        watcherId = await JS.InvokeAsync<int>("liveDrafts.watchOnline", networkRef);
+        try { await Drafts.SyncPendingAsync(); }
+        catch (Exception) { /* La reprise sera retentée à la prochaine reconnexion. */ }
+    }
+
+    [JSInvokable]
+    public async Task OnNetworkChanged(bool online)
+    {
+        if (!online) return;
+        try { await Drafts.SyncPendingAsync(); }
+        catch (Exception) { /* Brouillon conservé dans IndexedDB. */ }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (watcherId != 0)
+        {
+            try { await JS.InvokeVoidAsync("liveDrafts.unwatchOnline", watcherId); }
+            catch (JSDisconnectedException) { }
+        }
+        networkRef?.Dispose();
+    }
+}

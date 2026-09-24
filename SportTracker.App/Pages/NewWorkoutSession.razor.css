@@ -28,3 +28,17 @@
 .v4-workout-form ::deep .v4-input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #ffffffbb; border-radius: 14px; background: #F8FFFFE6; color: var(--st-ink); padding: 10px 12px; font-size: 14px; }
 .v4-workout-form ::deep .v4-input:focus { outline: 2px solid var(--st-ink); outline-offset: 1px; border-color: var(--st-ink); }
 .v4-workout-form .v4-form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.v4-start-live { display: block; margin: 0 0 16px; padding: 12px 15px; border-radius: 14px; background: var(--st-neon); color: var(--st-ink); font-weight: 700; text-align: center; text-decoration: none; }
+.v4-exercise-wrap { position: relative; display: grid; gap: 8px; min-width: 0; }
+.v4-exercise-wrap.is-superset { padding: 10px 0 10px 12px; border-left: 5px solid var(--st-neon); border-radius: 4px; background: #e8ffff70; }
+.v4-exercise-wrap.group-1 + .v4-exercise-wrap.group-1::before, .v4-exercise-wrap.group-2 + .v4-exercise-wrap.group-2::before, .v4-exercise-wrap.group-3 + .v4-exercise-wrap.group-3::before { content: ""; position: absolute; top: -12px; left: -5px; width: 5px; height: 12px; background: var(--st-neon); }
+.v4-superset-tag { justify-self: start; padding: 5px 10px; border-radius: 20px; background: var(--st-neon); color: var(--st-ink); font-size: 11px; font-weight: 800; }
+.v4-set-options { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 0 12px 38px; border-bottom: 1px solid #10273719; }
+.v4-set-types { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; }
+.v4-set-types button { min-height: 30px; padding: 4px 9px; border: 0; border-radius: 15px; background: #e2f7f8; color: var(--st-secondary); font-size: 11px; font-weight: 700; }
+.v4-set-types button.is-selected { background: #102737; color: #fff; }
+.v4-set-types button.is-selected.type-dropset { background: var(--st-neon); color: #102737; }
+.v4-set-options label { display: flex; align-items: center; gap: 8px; color: var(--st-secondary); font-size: 12px; font-weight: 700; }
+.v4-set-options input[type=range] { min-height: 30px; flex: 1; accent-color: #102737; }
+.v4-set-options .v4-clear-rpe { width: 28px; height: 28px; border: 0; background: #e2f7f8; border-radius: 9px; color: var(--st-secondary); }
+.v4-exercise-wrap textarea { resize: vertical; }

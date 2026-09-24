@@ -37,6 +37,7 @@ public class ExerciseController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("{id:int}")]
+    [ActionName(nameof(GetByIdAsync))]
     public async Task<IActionResult> GetByIdAsync(int id)
     {
         var exercise = await _exerciseRepository.GetByIdAsync(id);
@@ -81,8 +82,11 @@ public class ExerciseController : ControllerBase
                     .Select((x, i) => new
                     {
                         Order = i + 1,
+                        x.Set.Id,
                         x.Set.Repetitions,
-                        x.Set.Weight
+                        x.Set.Weight,
+                        x.Set.SetType,
+                        x.Set.RPE
                     }).ToList()
             })
             .OrderByDescending(h => h.Date)
@@ -94,6 +98,8 @@ public class ExerciseController : ControllerBase
     [HttpPost("{exerciseId}/log")]
     public async Task<IActionResult> LogSetAsync(int exerciseId, [FromBody] LogSetRequest request)
     {
+        if (request.Repetitions < 1 || request.Weight < 0 || request.RPE is < 1 or > 10 ||
+            !Enum.IsDefined(request.SetType)) return BadRequest("Invalid set data.");
         var exercise = await _exerciseRepository.GetByIdAsync(exerciseId);
         if (exercise == null) return NotFound();
 
@@ -141,11 +147,15 @@ public class ExerciseController : ControllerBase
         }
 
         workoutExercise.ExerciseSets ??= new List<ExerciseSet>();
+        if (request.Notes is not null) workoutExercise.Notes = request.Notes;
+        if (request.SupersetGroupId is not null) workoutExercise.SupersetGroupId = request.SupersetGroupId;
 
         var newSet = new ExerciseSet
         {
             Repetitions = request.Repetitions,
-            Weight = request.Weight
+            Weight = request.Weight,
+            SetType = request.SetType,
+            RPE = request.RPE
         };
         workoutExercise.ExerciseSets.Add(newSet);
 
@@ -154,10 +164,31 @@ public class ExerciseController : ControllerBase
         return Ok(new
         {
             order = workoutExercise.ExerciseSets.Count,
+            id = newSet.Id,
             repetitions = newSet.Repetitions,
-            weight = newSet.Weight
+            weight = newSet.Weight,
+            setType = newSet.SetType,
+            rpe = newSet.RPE
         });
     }
 
-    public record LogSetRequest(int WorkoutProgramSessionId, int Repetitions, double Weight);
+    public record LogSetRequest(int WorkoutProgramSessionId, int Repetitions, double Weight,
+        SetType SetType = SetType.Normal, int? RPE = null, string? Notes = null, int? SupersetGroupId = null);
+
+    [HttpDelete("{exerciseId:int}/sets/{setId:int}")]
+    public async Task<IActionResult> DeleteSetAsync(int exerciseId, int setId)
+    {
+        var workout = await _context.WorkoutSessions
+            .Include(ws => ws.WorkoutExercises!).ThenInclude(we => we.ExerciseSets)
+            .FirstOrDefaultAsync(ws => ws.WorkoutExercises!.Any(we =>
+                we.ExerciseId == exerciseId && we.ExerciseSets!.Any(s => s.Id == setId)));
+        if (workout is null) return NotFound();
+        var set = workout.WorkoutExercises!
+            .Where(we => we.ExerciseId == exerciseId)
+            .SelectMany(we => we.ExerciseSets!)
+            .First(s => s.Id == setId);
+        _context.ExerciseSets.Remove(set);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 }
