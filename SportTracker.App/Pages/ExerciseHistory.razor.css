@@ -58,6 +58,7 @@
     color: var(--st-secondary);
     margin: 12px 0 4px 0;
 }
+.eh-chart-caption { color: var(--st-secondary); font-size: 11px; text-align: right; margin-bottom: 4px; }
 
 .eh-bars {
     display: flex;
@@ -65,11 +66,12 @@
     gap: 12px;
     height: 120px;
     padding-top: 8px;
+    overflow-x: auto;
 }
 
 .eh-bar-col {
     flex: 1;
-    min-width: 0;
+    min-width: 36px;
     display: flex;
     flex-direction: column;
     align-items: center;

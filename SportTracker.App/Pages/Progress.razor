@@ -1,5 +1,6 @@
 @page "/progress"
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
 @using SportTracker.App.Services
 @using System.Globalization
 @inject HttpClient Http
@@ -49,6 +50,51 @@
             </V4Card>
         </div>
 
+        <div class="pr-section-label">Répartition musculaire · 30 jours</div>
+        <V4Card>
+            @if (muscleDistribution.Count == 0)
+            {
+                <p class="pr-empty">Aucune série musculaire sur les 30 derniers jours.</p>
+            }
+            else
+            {
+                <div class="pr-muscle-strip" role="img" aria-label="Répartition des séries par groupe musculaire">
+                    @foreach (var group in muscleDistribution)
+                    {
+                        <div class="pr-muscle-segment" style="width: @((100d * group.Count / muscleDistribution.Sum(item => item.Count)).ToString("0.##", CultureInfo.InvariantCulture))%; background: @group.Color" title="@($"{group.Label} : {group.Count} séries")"></div>
+                    }
+                </div>
+                <div class="pr-muscle-legend">
+                    @foreach (var group in muscleDistribution)
+                    {
+                        <span><i style="background: @group.Color"></i>@group.Label · @group.Count</span>
+                    }
+                </div>
+            }
+        </V4Card>
+
+        <div class="pr-section-label">Séries par groupe · cette semaine</div>
+        <V4Card>
+            @if (weeklyMuscleSets.Count == 0)
+            {
+                <p class="pr-empty">Aucune série enregistrée cette semaine.</p>
+            }
+            else
+            {
+                <div class="pr-group-bars">
+                    @{ var maxSets = weeklyMuscleSets.Max(group => group.Count); }
+                    @foreach (var group in weeklyMuscleSets)
+                    {
+                        <div class="pr-group-bar" title="@($"{group.Label} : {group.Count} séries")">
+                            <strong>@group.Count</strong>
+                            <div class="pr-group-bar__track"><div class="pr-group-bar__fill" style="height: @((100d * group.Count / maxSets).ToString("0.#", CultureInfo.InvariantCulture))%; background: @group.Color"></div></div>
+                            <span>@group.Label</span>
+                        </div>
+                    }
+                </div>
+            }
+        </V4Card>
+
         <div class="pr-section-label">Séances par jour</div>
         <V4Card>
             <div class="pr-bars">
@@ -92,6 +138,17 @@
     private int weekSessions;
     private int weeklyGoal = WeeklyGoalService.DefaultGoal;
     private List<(string label, int count, bool isToday)> volumeData = [];
+    private List<MuscleStat> muscleDistribution = [];
+    private List<MuscleStat> weeklyMuscleSets = [];
+    private sealed record MuscleStat(string Label, int Count, string Color);
+    private static readonly (MuscleGroup Group, string Label, string Color)[] muscleGroups =
+    [
+        (MuscleGroup.Chest, "Pecs", "#17374a"), (MuscleGroup.Back, "Dos", "#d4f53c"),
+        (MuscleGroup.Legs, "Jambes", "#24495b"), (MuscleGroup.Shoulders, "Épaules", "#527181"),
+        (MuscleGroup.Biceps, "Biceps", "#75a0a5"), (MuscleGroup.Triceps, "Triceps", "#92b8b6"),
+        (MuscleGroup.Glutes, "Fessiers", "#a8c9c3"), (MuscleGroup.Abs, "Abdos", "#bedbd3"),
+        (MuscleGroup.FullBody, "Corps entier", "#d7eae5")
+    ];
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
@@ -148,6 +205,9 @@
                 return (labels[i], count, day == today);
             }).ToList();
 
+            muscleDistribution = CountMuscleSets(workouts.Where(s => s.Date.Date >= today.AddDays(-29)));
+            weeklyMuscleSets = CountMuscleSets(thisWeekWorkouts);
+
             loading = false;
         }
         catch
@@ -155,5 +215,18 @@
             errorMessage = "Impossible de récupérer tes séances.";
             loading = false;
         }
+    }
+
+    private static List<MuscleStat> CountMuscleSets(IEnumerable<WorkoutSession> sessions)
+    {
+        var counts = sessions.SelectMany(session => session.WorkoutExercises ?? [])
+            .Where(workoutExercise => workoutExercise.Exercise is not null)
+            .SelectMany(workoutExercise => workoutExercise.Exercise!.MuscleGroups.Distinct()
+                .Select(group => (Group: group, Count: workoutExercise.ExerciseSets?.Count ?? 0)))
+            .GroupBy(item => item.Group)
+            .ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
+
+        return muscleGroups.Where(group => counts.GetValueOrDefault(group.Group) > 0)
+            .Select(group => new MuscleStat(group.Label, counts[group.Group], group.Color)).ToList();
     }
 }
