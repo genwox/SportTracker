@@ -55,3 +55,4 @@
 .v4-picker-confirm ::deep .v4-button { width: 100%; }
 .v4-picker-cancel { border: 0; background: none; color: var(--st-secondary); font-size: 13px; text-decoration: underline; cursor: pointer; justify-self: center; }
 @media (max-width: 360px) { .v4-session-detail { padding-inline: 16px; } .v4-target-grid { gap: 8px; } }
+.v4-exercise-card__conflict { margin: 0; padding: 8px 10px; border: 1px solid #b42318; border-radius: 10px; font-size: 13px; font-weight: 700; }
