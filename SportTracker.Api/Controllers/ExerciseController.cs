@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportTracker.Core.Interfaces;
+using SportTracker.Core.Enums;
 using SportTracker.Core.Models;
 using SportTracker.Data;
 
@@ -24,17 +25,31 @@ public class ExerciseController : ControllerBase
     // Catalogue global partagé : consultable sans compte.
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync([FromQuery] MuscleGroup? muscleGroup = null, [FromQuery] string? equipment = null)
     {
         var exercises = await _exerciseRepository.GetAllAsync();
+        if (muscleGroup is not null)
+            exercises = exercises.Where(e => e.MuscleGroups.Contains(muscleGroup.Value));
+        if (!string.IsNullOrWhiteSpace(equipment))
+            exercises = exercises.Where(e => string.Equals(e.Equipment, equipment.Trim(), StringComparison.OrdinalIgnoreCase));
         return Ok(exercises);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetByIdAsync(int id)
+    {
+        var exercise = await _exerciseRepository.GetByIdAsync(id);
+        return exercise is null ? NotFound() : Ok(exercise);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] Exercise exercise)
     {
+        if (string.IsNullOrWhiteSpace(exercise.Name))
+            return BadRequest("Exercise name is required.");
         await _exerciseRepository.AddAsync(exercise);
-        return Ok(exercise);
+        return CreatedAtAction(nameof(GetByIdAsync), new { id = exercise.Id }, exercise);
     }
 
     [HttpGet("{id}/history")]

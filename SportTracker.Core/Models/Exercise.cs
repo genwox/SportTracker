@@ -10,4 +10,5 @@ public class Exercise
     public List<MuscleGroup> MuscleGroups { get; set; } = new();
     public string? GifUrl { get; set; }
     public string? InstructionsFr { get; set; }
+    public string? Equipment { get; set; }
 }

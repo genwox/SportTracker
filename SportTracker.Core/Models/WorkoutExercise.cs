@@ -8,4 +8,6 @@ public class WorkoutExercise
     public Exercise?  Exercise { get; set; }
     public WorkoutSession? WorkoutSession { get; set; }
     public int WorkoutSessionId { get; set; }
+    public string? Notes { get; set; }
+    public int? SupersetGroupId { get; set; }
 }
