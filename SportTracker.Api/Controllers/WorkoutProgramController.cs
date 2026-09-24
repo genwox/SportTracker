@@ -45,6 +45,12 @@ public class WorkoutProgramController : ControllerBase
         if (id != program.Id) return BadRequest();
         var existing = await _programRepository.GetByIdAsync(id);
         if (existing == null) return NotFound();
+        var ownedSessionIds = existing.Sessions.Select(s => s.Id).ToHashSet();
+        var ownedExerciseIds = existing.Sessions.SelectMany(s => s.Exercises).Select(e => e.Id).ToHashSet();
+        if (program.Sessions.Any(s =>
+                (s.Id != 0 && !ownedSessionIds.Contains(s.Id)) ||
+                s.Exercises.Any(e => e.Id != 0 && !ownedExerciseIds.Contains(e.Id))))
+            return NotFound();
         program.UserId = existing.UserId;
         await _programRepository.UpdateAsync(program);
         return NoContent();

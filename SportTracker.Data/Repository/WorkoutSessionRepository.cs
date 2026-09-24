@@ -41,10 +41,28 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
     public async Task UpdateAsync(WorkoutSession entity)
     {
         var existing = await _context.WorkoutSessions.AsNoTracking()
+            .Include(ws => ws.WorkoutExercises)!
+                .ThenInclude(we => we.ExerciseSets)
             .FirstOrDefaultAsync(ws => ws.Id == entity.Id);
         if (existing == null) return;
 
+        var ownedExercises = existing.WorkoutExercises ?? [];
+        var ownedExerciseIds = ownedExercises.Select(e => e.Id).ToHashSet();
+        var ownedSetIds = ownedExercises.SelectMany(e => e.ExerciseSets ?? []).Select(s => s.Id).ToHashSet();
+        if ((entity.WorkoutExercises ?? []).Any(e =>
+                (e.Id != 0 && !ownedExerciseIds.Contains(e.Id)) ||
+                (e.ExerciseSets ?? []).Any(s => s.Id != 0 && !ownedSetIds.Contains(s.Id))))
+            return;
+
         entity.UserId = existing.UserId;
+        entity.WorkoutProgramSession = null;
+        foreach (var exercise in entity.WorkoutExercises ?? [])
+        {
+            exercise.WorkoutSession = null;
+            exercise.Exercise = null;
+            foreach (var set in exercise.ExerciseSets ?? [])
+                set.WorkoutExercise = null;
+        }
         // The controller may have loaded the same graph for its scoped existence check.
         _context.ChangeTracker.Clear();
         _context.WorkoutSessions.Update(entity);
