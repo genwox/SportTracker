@@ -12,6 +12,7 @@
 
 <div class="v4-live">
     @if (isLoading) { <V4Loading /> }
+    else if (sessionDeleted) { <V4State Title="Séance supprimée" Message="Cette séance a été supprimée depuis un autre écran. Son brouillon local, déjà synchronisé, a été retiré de cet appareil."><V4Button Href="/workoutsessions" Secondary="true">Revenir aux séances</V4Button></V4State> }
     else if (notFound) { <V4State Title="Exercice introuvable" Message="Cet exercice ne fait pas partie de la séance, ou la séance n’est plus accessible."><V4Button Href="@SessionHref" Secondary="true">Revenir à la séance</V4Button></V4State> }
     else if (loadError is not null) { <V4State Title="Impossible de charger l’exercice" Message="@loadError" IsError="true" OnRetry="LoadAsync" /> }
     else
@@ -30,8 +31,15 @@
             <div class="v4-live__pr" role="status"><strong>🏆 Nouveau record personnel !</strong><span>@prNotice</span></div>
         }
         <p class="v4-live__sync @(!isOnline || pendingSync ? "is-pending" : "")" role="status">
-            <span aria-hidden="true">●</span> @(!isOnline ? "Hors ligne — sync en attente" : pendingSync ? "Sync en attente" : $"Enregistré · {lastSavedLocal:HH:mm}")
+            <span aria-hidden="true">●</span> @(SyncConflict ? "Sync bloquée — séance introuvable" : !isOnline ? "Hors ligne — sync en attente" : pendingSync ? "Sync en attente" : $"Enregistré · {lastSavedLocal:HH:mm}")
         </p>
+        @if (SyncConflict)
+        {
+            <V4State Title="Séance introuvable sur le serveur" IsError="true" Message="@ConflictMessage">
+                <V4Button OnClick="RecreateSessionAsync">Recréer la séance</V4Button>
+                <V4Button Secondary="true" OnClick="DiscardDraftAsync">Abandonner le brouillon</V4Button>
+            </V4State>
+        }
 
         <ol class="v4-live__sets" aria-label="Séries">
             @for (var i = 1; i <= IndicatorCount; i++)
@@ -257,6 +265,8 @@
     private DotNetObjectReference<ExerciseLive>? networkRef;
     private int networkWatcherId;
     private bool disposed;
+    private bool sessionDeleted;
+    private bool SyncConflict => draft?.SyncConflict == true;
 
     private List<TodaySet> todaySets = new();
     private List<HistoryEntry> history = new();
@@ -298,7 +308,7 @@
 
     private async Task LoadAsync()
     {
-        isLoading = true; notFound = false; loadError = null; saveError = null;
+        isLoading = true; notFound = false; sessionDeleted = false; loadError = null; saveError = null;
         StopTimer(); showTimer = false; timerFinished = false;
         try
         {
@@ -310,16 +320,20 @@
             }
             var programTask = Http.GetAsync($"api/programs/{ProgramId}");
             var historyTask = Http.GetAsync($"api/exercises/{ExerciseId}/history");
-            await Task.WhenAll(programTask, historyTask);
+            var workoutsTask = Http.GetAsync("api/workoutsessions");
+            await Task.WhenAll(programTask, historyTask, workoutsTask);
             var programResponse = programTask.Result;
             var historyResponse = historyTask.Result;
+            var workoutsResponse = workoutsTask.Result;
 
             if (programResponse.StatusCode == HttpStatusCode.NotFound || historyResponse.StatusCode == HttpStatusCode.NotFound) { notFound = true; return; }
             if (!programResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)programResponse.StatusCode}."; return; }
             if (!historyResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)historyResponse.StatusCode}."; return; }
+            if (!workoutsResponse.IsSuccessStatusCode) { loadError = $"Le serveur a répondu {(int)workoutsResponse.StatusCode}."; return; }
 
             var program = await programResponse.Content.ReadFromJsonAsync<WorkoutProgram>();
             history = await historyResponse.Content.ReadFromJsonAsync<List<HistoryEntry>>() ?? new();
+            var workouts = await workoutsResponse.Content.ReadFromJsonAsync<List<WorkoutSession>>() ?? new();
 
             var session = program?.Sessions.FirstOrDefault(s => s.Id == SessionId);
             var pe = session?.Exercises.OrderBy(e => e.Order).FirstOrDefault(e => e.ExerciseId == ExerciseId);
@@ -334,14 +348,17 @@
             restSeconds = Math.Max(0, pe.RestSeconds);
             timerRemaining = restSeconds;
 
-            var todayEntry = history.FirstOrDefault(h => h.Date.Date == DateTime.Today);
-            todaySets = todayEntry?.Sets.OrderBy(s => s.Order)
-                .Select(s => new TodaySet { Id = s.Id, Order = s.Order, Repetitions = s.Repetitions, Weight = s.Weight, SetType = s.SetType, RPE = s.RPE })
-                .ToList() ?? new();
+            // C1 : les séries « du jour » viennent uniquement de la séance ciblée (même règle que
+            // le serveur : séance du carnet + date du jour), jamais de l'historique agrégé par date
+            // qui mélange les séances libres, les autres carnets et les saisies manuelles.
+            var logged = workouts.FirstOrDefault(ws => ws.WorkoutProgramSessionId == session.Id && ws.Date.Date == DateTime.Today);
+            ApplyServerExercise(logged);
 
             InitCurrentValues(pe);
-            if (draft is not null) { ApplyDraft(); await SyncDraftAsync(); }
-            else await PersistDraftAsync(false);
+            if (draft is { PendingSync: false }) ApplyLocalInputs();
+            // C2 : seul un brouillon réellement en attente de synchro prime sur le serveur.
+            if (draft is { PendingSync: true }) { ApplyDraft(); await SyncDraftAsync(); }
+            else await RefreshDraftFromServerAsync(logged);
         }
         catch (Exception)
         {
@@ -353,10 +370,30 @@
 
     private async Task LoadFreeExerciseAsync()
     {
-        if (draft is not null) { ApplyDraft(); await LoadFreeHistoryAsync(); await SyncDraftAsync(); return; }
-        Exercise? exercise = null;
-        try { exercise = await Http.GetFromJsonAsync<Exercise>($"api/exercises/{ExerciseId}"); }
-        catch (Exception) { /* Offline catalogue fallback below. */ }
+        if (draft is { PendingSync: true }) { ApplyDraft(); await LoadFreeHistoryAsync(); await SyncDraftAsync(); return; }
+
+        var (reachable, workout) = await FetchFreeWorkoutAsync();
+        if (reachable && workout is null && draft?.WorkoutSessionId is not null)
+        {
+            // La séance a été supprimée depuis un autre écran : le brouillon déjà synchronisé
+            // est périmé, on ne la ressuscite pas.
+            await Drafts.RemoveAsync(DraftKey);
+            draft = null;
+            sessionDeleted = true;
+            return;
+        }
+        if (draft is not null)
+        {
+            ApplyDraft();
+            if (reachable) { ApplyServerExercise(workout); await RefreshDraftFromServerAsync(workout); }
+            await LoadFreeHistoryAsync();
+            return;
+        }
+
+        Exercise? exercise = workout?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == ExerciseId)?.Exercise;
+        if (exercise is null)
+            try { exercise = await Http.GetFromJsonAsync<Exercise>($"api/exercises/{ExerciseId}"); }
+            catch (Exception) { /* Offline catalogue fallback below. */ }
         if (exercise is null)
         {
             var catalogue = await Drafts.GetAsync<List<Exercise>>("exercise-catalogue");
@@ -371,8 +408,50 @@
         timerRemaining = restSeconds;
         weightCurrent = 20;
         repsCurrent = 10;
-        await PersistDraftAsync(false);
+        if (reachable)
+        {
+            ApplyServerExercise(workout);
+            if (todaySets.LastOrDefault() is { } last) { weightCurrent = last.Weight; repsCurrent = last.Repetitions; }
+            await RefreshDraftFromServerAsync(workout);
+        }
+        else await PersistDraftAsync(false);
         await LoadFreeHistoryAsync();
+    }
+
+    // (joignable, séance) — 404 = serveur joignable mais la séance libre n'existe pas (ou plus).
+    private async Task<(bool Reachable, WorkoutSession? Workout)> FetchFreeWorkoutAsync()
+    {
+        try
+        {
+            using var response = await Http.GetAsync($"api/workoutsessions/live/{FreeDraftId}");
+            if (response.StatusCode == HttpStatusCode.NotFound) return (true, null);
+            if (!response.IsSuccessStatusCode) return (false, null);
+            return (true, await response.Content.ReadFromJsonAsync<WorkoutSession>());
+        }
+        catch (Exception) { return (false, null); }
+    }
+
+    // État serveur de l'exercice dans la séance ciblée, et seulement elle.
+    private void ApplyServerExercise(WorkoutSession? workout)
+    {
+        var workoutExercise = workout?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == ExerciseId);
+        todaySets = workoutExercise?.ExerciseSets?.OrderBy(s => s.Id)
+            .Select((s, i) => new TodaySet { Id = s.Id, Order = i + 1, Repetitions = s.Repetitions, Weight = s.Weight, SetType = s.SetType, RPE = s.RPE })
+            .ToList() ?? new();
+        notes = workoutExercise?.Notes;
+        supersetGroupId = workoutExercise?.SupersetGroupId;
+    }
+
+    // Brouillon non en attente : on le réaligne sur le serveur (seules les valeurs de saisie
+    // locales — poids, reps, type, RPE en cours — sont conservées) et on mémorise la séance
+    // serveur de rattachement, pour que le serveur refuse de la recréer si elle disparaît.
+    private async Task RefreshDraftFromServerAsync(WorkoutSession? workout)
+    {
+        draft ??= new LiveExerciseDraft { DraftId = IsFree ? FreeDraftId : Guid.NewGuid() };
+        draft.WorkoutSessionId = workout?.Id;
+        draft.SyncConflict = false;
+        draft.PendingSync = false;
+        await PersistDraftAsync(false);
     }
 
     private async Task LoadFreeHistoryAsync()
@@ -405,6 +484,15 @@
         supersetGroupId = draft.SupersetGroupId;
         pendingSync = draft.PendingSync;
         lastSavedLocal = draft.SavedAtUtc == default ? DateTime.Now : draft.SavedAtUtc.ToLocalTime();
+    }
+
+    private void ApplyLocalInputs()
+    {
+        if (draft is null) return;
+        weightCurrent = draft.WeightCurrent;
+        repsCurrent = draft.RepsCurrent;
+        setType = draft.SetType;
+        rpe = draft.RPE;
     }
 
     private void InitCurrentValues(WorkoutProgramExercise pe)
@@ -618,6 +706,31 @@
         for (var i = 0; i < Math.Min(todaySets.Count, synced.Sets.Count); i++)
             todaySets[i].Id = synced.Sets[i].Id;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string ConflictMessage => todaySets.Count switch
+    {
+        0 => "Elle a été supprimée depuis un autre écran. Recrée une séance pour enregistrer cet exercice, ou abandonne ce brouillon.",
+        1 => "Elle a été supprimée depuis un autre écran. Ta série reste sur cet appareil : recrée une séance pour l’enregistrer, ou abandonne ce brouillon.",
+        var n => $"Elle a été supprimée depuis un autre écran. Tes {n} séries restent sur cet appareil : recrée une séance pour les enregistrer, ou abandonne ce brouillon."
+    };
+
+    private async Task RecreateSessionAsync()
+    {
+        var synced = await Drafts.ResolveConflictAsync(DraftKey, recreate: true);
+        if (synced is null) return;
+        draft = synced;
+        pendingSync = synced.PendingSync;
+        lastSavedLocal = synced.SavedAtUtc.ToLocalTime();
+        for (var i = 0; i < Math.Min(todaySets.Count, synced.Sets.Count); i++)
+            todaySets[i].Id = synced.Sets[i].Id;
+    }
+
+    private async Task DiscardDraftAsync()
+    {
+        await Drafts.ResolveConflictAsync(DraftKey, recreate: false);
+        draft = null;
+        await LoadAsync();
     }
 
     // ── Minuteur de repos ─────────────────────────────────────
