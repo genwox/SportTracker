@@ -72,4 +72,67 @@ public class LiveWorkoutControllerTests
         Assert.IsType<NotFoundResult>(await controller.SyncExerciseAsync(Guid.NewGuid(), 11, request));
         Assert.Empty(await db.WorkoutSessions.ToListAsync());
     }
+
+    [Fact]
+    public async Task SnapshotForDeletedStandaloneSession_IsRejectedInsteadOfRecreated()
+    {
+        await using var db = CreateContext();
+        db.Exercises.Add(new Exercise { Id = 12, Name = "Row", MuscleGroups = [MuscleGroup.Back] });
+        await db.SaveChangesAsync();
+        var controller = new LiveWorkoutController(db);
+        var draftId = Guid.NewGuid();
+        var request = new LiveWorkoutController.SyncExerciseRequest(null, DateTime.Today, null, null, null,
+            [new LiveWorkoutController.LiveSet(50, 10, SetType.Normal, null)]);
+        Assert.IsType<OkObjectResult>(await controller.SyncExerciseAsync(draftId, 12, request));
+        var created = await db.WorkoutSessions.SingleAsync();
+
+        db.WorkoutSessions.Remove(created);
+        await db.SaveChangesAsync();
+
+        var stale = request with { ExpectedWorkoutSessionId = created.Id };
+        Assert.IsType<ConflictObjectResult>(await controller.SyncExerciseAsync(draftId, 12, stale));
+        Assert.Empty(await db.WorkoutSessions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task SnapshotForDeletedRoutineSession_IsRejected_WhileKnownSessionStillSyncs()
+    {
+        await using var db = CreateContext();
+        db.Exercises.Add(new Exercise { Id = 13, Name = "Press", MuscleGroups = [MuscleGroup.Shoulders] });
+        db.WorkoutPrograms.Add(new WorkoutProgram
+        {
+            Name = "Push",
+            Sessions = [new WorkoutProgramSession
+            {
+                Id = 7, Name = "Day A", Exercises = [new WorkoutProgramExercise
+                {
+                    ExerciseId = 13, TargetSets = 3, TargetRepsMin = 8, TargetRepsMax = 10
+                }]
+            }]
+        });
+        await db.SaveChangesAsync();
+        var controller = new LiveWorkoutController(db);
+        var request = new LiveWorkoutController.SyncExerciseRequest(7, DateTime.Today, null, null, null,
+            [new LiveWorkoutController.LiveSet(40, 8, SetType.Normal, null)]);
+
+        Assert.IsType<OkObjectResult>(await controller.SyncExerciseAsync(Guid.NewGuid(), 13, request));
+        var workout = await db.WorkoutSessions.SingleAsync();
+        var known = request with
+        {
+            ExpectedWorkoutSessionId = workout.Id,
+            Sets = [new LiveWorkoutController.LiveSet(40, 8, SetType.Normal, null), new LiveWorkoutController.LiveSet(42.5, 6, SetType.Normal, 9)]
+        };
+        Assert.IsType<OkObjectResult>(await controller.SyncExerciseAsync(Guid.NewGuid(), 13, known));
+
+        db.WorkoutSessions.Remove(workout);
+        await db.SaveChangesAsync();
+
+        Assert.IsType<ConflictObjectResult>(await controller.SyncExerciseAsync(Guid.NewGuid(), 13, known));
+        Assert.Empty(await db.WorkoutSessions.ToListAsync());
+
+        // Choix explicite « Recréer la séance » : le client n'envoie plus d'identifiant attendu.
+        Assert.IsType<OkObjectResult>(await controller.SyncExerciseAsync(Guid.NewGuid(), 13, known with { ExpectedWorkoutSessionId = null }));
+        var recreated = await db.WorkoutSessions.Include(ws => ws.WorkoutExercises!).ThenInclude(we => we.ExerciseSets).SingleAsync();
+        Assert.Equal(2, Assert.Single(recreated.WorkoutExercises!).ExerciseSets!.Count);
+    }
 }

@@ -14,10 +14,12 @@ public class LiveWorkoutController(SportTrackerDbContext context) : ControllerBa
 {
     public record LiveSet(double Weight, int Repetitions, SetType SetType, int? RPE);
     public record SyncExerciseRequest(int? WorkoutProgramSessionId, DateTime? WorkoutDate, string? SessionName,
-        string? Notes, int? SupersetGroupId, List<LiveSet> Sets);
+        string? Notes, int? SupersetGroupId, List<LiveSet> Sets, int? ExpectedWorkoutSessionId = null);
 
     // Each request is a complete snapshot of one exercise. Replaying the same draft after
     // a lost acknowledgement leaves the same sets on the server instead of adding duplicates.
+    // A draft that was already attached to a server session sends its id: if that session
+    // is gone (deleted elsewhere), the snapshot is rejected with 409 instead of recreating it.
     [HttpPut("{draftId:guid}/exercises/{exerciseId:int}")]
     public async Task<IActionResult> SyncExerciseAsync(Guid draftId, int exerciseId,
         [FromBody] SyncExerciseRequest request)
@@ -51,6 +53,9 @@ public class LiveWorkoutController(SportTrackerDbContext context) : ControllerBa
             ? await workouts.FirstOrDefaultAsync(ws => ws.ClientDraftId == draftId)
             : await workouts.FirstOrDefaultAsync(ws =>
                 ws.WorkoutProgramSessionId == programSession.Id && ws.Date.Date == today);
+
+        if (request.ExpectedWorkoutSessionId is int expectedId && workout?.Id != expectedId)
+            return Conflict("La séance ciblée n'existe plus : le brouillon n'a pas été appliqué.");
 
         if (workout is null)
         {

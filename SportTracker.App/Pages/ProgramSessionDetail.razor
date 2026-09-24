@@ -128,6 +128,10 @@
                     }
                     <span><strong>@ex.Name</strong><small>@FormatSchema(pe)</small></span>
                 </a>
+                @if (liveDraft?.SyncConflict == true)
+                {
+                    <p class="v4-exercise-card__conflict" role="alert">Séance du jour introuvable sur le serveur : ouvre l’exercice pour la recréer ou abandonner le brouillon.</p>
+                }
                 @if (liveDraft is not null)
                 {
                     <div class="v4-exercise-card__fields">
@@ -213,10 +217,12 @@
     private async Task LoadExerciseDraftsAsync()
     {
         WorkoutSession? logged = null;
+        var serverKnown = false;
         try
         {
             var workouts = await Http.GetFromJsonAsync<List<WorkoutSession>>("api/workoutsessions") ?? [];
             logged = workouts.FirstOrDefault(ws => ws.WorkoutProgramSessionId == SessionId && ws.Date.Date == DateTime.Today);
+            serverKnown = true;
         }
         catch (Exception) { /* Les brouillons locaux restent consultables hors ligne. */ }
 
@@ -225,22 +231,37 @@
         {
             var key = DraftKey(pe.ExerciseId);
             var draft = await Drafts.GetAsync<LiveExerciseDraft>(key);
-            if (draft is null)
+            // Un brouillon en attente de synchro reste la référence (saisies locales non envoyées).
+            // Sinon le serveur fait foi : le brouillon est réaligné sur la séance du jour, pour ne
+            // jamais renvoyer plus tard un instantané périmé (séries modifiées ou séance supprimée
+            // ailleurs). Hors ligne sans brouillon, on n'en fabrique pas un vide qui écraserait
+            // ensuite les séries serveur.
+            if (draft is { PendingSync: false } or null)
             {
-                var workoutExercise = logged?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == pe.ExerciseId);
-                draft = new LiveExerciseDraft
+                if (!serverKnown)
                 {
-                    StorageKey = key, ProgramSessionId = SessionId, ExerciseId = pe.ExerciseId,
-                    ExerciseName = pe.Exercise?.Name ?? "Exercice", GifUrl = pe.Exercise?.GifUrl,
-                    Instructions = pe.Exercise?.InstructionsFr, SessionName = session.Name,
-                    TargetSets = pe.TargetSets, RestSeconds = pe.RestSeconds,
-                    RepsCurrent = pe.TargetRepsMin > 0 ? pe.TargetRepsMin : 10,
-                    Notes = workoutExercise?.Notes, SupersetGroupId = workoutExercise?.SupersetGroupId,
-                    Sets = workoutExercise?.ExerciseSets?.Select(s => new LiveSetDraft
-                    {
-                        Id = s.Id, Weight = s.Weight, Repetitions = s.Repetitions, SetType = s.SetType, RPE = s.RPE
-                    }).ToList() ?? []
-                };
+                    if (draft is not null) exerciseDrafts[pe.ExerciseId] = draft;
+                    continue;
+                }
+                var workoutExercise = logged?.WorkoutExercises?.FirstOrDefault(we => we.ExerciseId == pe.ExerciseId);
+                draft ??= new LiveExerciseDraft { RepsCurrent = pe.TargetRepsMin > 0 ? pe.TargetRepsMin : 10 };
+                draft.StorageKey = key;
+                draft.ProgramSessionId = SessionId;
+                draft.ExerciseId = pe.ExerciseId;
+                draft.ExerciseName = pe.Exercise?.Name ?? "Exercice";
+                draft.GifUrl = pe.Exercise?.GifUrl;
+                draft.Instructions = pe.Exercise?.InstructionsFr;
+                draft.SessionName = session.Name;
+                draft.TargetSets = pe.TargetSets;
+                draft.RestSeconds = pe.RestSeconds;
+                draft.WorkoutSessionId = logged?.Id;
+                draft.SyncConflict = false;
+                draft.Notes = workoutExercise?.Notes;
+                draft.SupersetGroupId = workoutExercise?.SupersetGroupId;
+                draft.Sets = workoutExercise?.ExerciseSets?.OrderBy(s => s.Id).Select(s => new LiveSetDraft
+                {
+                    Id = s.Id, Weight = s.Weight, Repetitions = s.Repetitions, SetType = s.SetType, RPE = s.RPE
+                }).ToList() ?? [];
                 await Drafts.PutAsync(key, draft);
             }
             exerciseDrafts[pe.ExerciseId] = draft;

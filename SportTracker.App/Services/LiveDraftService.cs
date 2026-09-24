@@ -1,4 +1,5 @@
 using Microsoft.JSInterop;
+using System.Net;
 using System.Net.Http.Json;
 using SportTracker.App.Auth;
 using SportTracker.Core.Enums;
@@ -54,7 +55,7 @@ public sealed class LiveDraftService(IJSRuntime js, TokenStore tokens, HttpClien
             for (var attempt = 0; attempt < 3; attempt++)
             {
                 var draft = await GetAsync<LiveExerciseDraft>(key);
-                if (draft is null || !draft.PendingSync || !await IsOnlineAsync()) return draft;
+                if (draft is null || !draft.PendingSync || draft.SyncConflict || !await IsOnlineAsync()) return draft;
                 var body = new
                 {
                     workoutProgramSessionId = draft.ProgramSessionId,
@@ -62,10 +63,22 @@ public sealed class LiveDraftService(IJSRuntime js, TokenStore tokens, HttpClien
                     sessionName = draft.SessionName,
                     notes = draft.Notes,
                     supersetGroupId = draft.SupersetGroupId,
-                    sets = draft.Sets.Select(s => new { s.Weight, s.Repetitions, s.SetType, s.RPE }).ToArray()
+                    sets = draft.Sets.Select(s => new { s.Weight, s.Repetitions, s.SetType, s.RPE }).ToArray(),
+                    expectedWorkoutSessionId = await KnownWorkoutSessionIdAsync(draft)
                 };
                 using var response = await http.PutAsJsonAsync(
                     $"api/workoutsessions/live/{draft.DraftId}/exercises/{draft.ExerciseId}", body);
+                if (response.StatusCode == HttpStatusCode.Conflict)
+                {
+                    // La séance serveur a disparu : on garde les séries localement et on laisse
+                    // l'utilisateur choisir (recréer ou abandonner) au lieu de la recréer en silence.
+                    var current = await GetAsync<LiveExerciseDraft>(key);
+                    if (current is null) return null;
+                    current.SyncConflict = true;
+                    await PutAsync(key, current);
+                    Synced?.Invoke(key);
+                    return current;
+                }
                 if (!response.IsSuccessStatusCode) return draft;
 
                 var result = await response.Content.ReadFromJsonAsync<SyncResponse>();
@@ -93,10 +106,51 @@ public sealed class LiveDraftService(IJSRuntime js, TokenStore tokens, HttpClien
         if (!await IsOnlineAsync()) return;
         var free = await ListAsync<LiveExerciseDraft>("free:");
         var routine = await ListAsync<LiveExerciseDraft>("routine:");
-        foreach (var draft in free.Concat(routine).Where(d => d.PendingSync))
+        foreach (var draft in free.Concat(routine).Where(d => d.PendingSync && !d.SyncConflict))
         {
             if (!string.IsNullOrEmpty(draft.StorageKey)) await SyncAsync(draft.StorageKey);
         }
+    }
+
+    // Séance serveur à laquelle ce brouillon (ou un exercice frère de la même séance) est déjà
+    // rattaché. Envoyée au serveur pour qu'il refuse de recréer une séance supprimée entre-temps.
+    private async Task<int?> KnownWorkoutSessionIdAsync(LiveExerciseDraft draft)
+    {
+        if (draft.WorkoutSessionId is int id) return id;
+        var siblings = await ListAsync<LiveExerciseDraft>(SiblingPrefix(draft.StorageKey));
+        return siblings.Select(d => d.WorkoutSessionId).FirstOrDefault(known => known is not null);
+    }
+
+    // "free:{draftId}:{exerciseId}" → "free:{draftId}:" ; "routine:{session}:{date}:{exerciseId}" → "routine:{session}:{date}:"
+    private static string SiblingPrefix(string key) => key[..(key.LastIndexOf(':') + 1)];
+
+    /// <summary>
+    /// Sortie d'un conflit de synchro : soit on recrée une séance serveur avec les séries
+    /// locales, soit on abandonne le brouillon de cet exercice.
+    /// </summary>
+    public async Task<LiveExerciseDraft?> ResolveConflictAsync(string key, bool recreate)
+    {
+        if (!recreate) { await RemoveAsync(key); return null; }
+        var draft = await GetAsync<LiveExerciseDraft>(key);
+        if (draft is null) return null;
+        var lostId = await KnownWorkoutSessionIdAsync(draft);
+        if (lostId is not null)
+        {
+            // Les exercices frères pointaient vers la même séance supprimée : on les détache aussi.
+            foreach (var sibling in await ListAsync<LiveExerciseDraft>(SiblingPrefix(key)))
+            {
+                if (sibling.WorkoutSessionId != lostId || sibling.StorageKey == key) continue;
+                sibling.WorkoutSessionId = null;
+                await PutAsync(sibling.StorageKey, sibling);
+            }
+        }
+        draft.WorkoutSessionId = null;
+        draft.SyncConflict = false;
+        draft.PendingSync = true;
+        draft.Revision++;
+        draft.SavedAtUtc = DateTime.UtcNow;
+        await PutAsync(key, draft);
+        return await SyncAsync(key);
     }
 
     private sealed class SyncResponse
@@ -128,6 +182,8 @@ public sealed class LiveExerciseDraft
     public string? Notes { get; set; }
     public int? SupersetGroupId { get; set; }
     public bool PendingSync { get; set; }
+    /// <summary>La séance serveur ciblée n'existe plus : synchro suspendue jusqu'à décision de l'utilisateur.</summary>
+    public bool SyncConflict { get; set; }
     public int Revision { get; set; }
     public DateTime SavedAtUtc { get; set; }
     public int? WorkoutSessionId { get; set; }
