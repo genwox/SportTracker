@@ -127,6 +127,18 @@ public class WorkoutSessionControllerTests
         _repoMock.Verify(r => r.UpdateAsync(It.IsAny<WorkoutSession>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Update_ForgedProgramSessionId_IsReplacedWithStoredForeignKey()
+    {
+        var existing = new WorkoutSession { Id = 1, WorkoutProgramSessionId = 7 };
+        var forged = new WorkoutSession { Id = 1, WorkoutProgramSessionId = 999 };
+        _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+
+        Assert.IsType<NoContentResult>(await _controller.UpdateAsync(1, forged));
+        Assert.Equal(7, forged.WorkoutProgramSessionId);
+        _repoMock.Verify(r => r.UpdateAsync(It.Is<WorkoutSession>(s => s.WorkoutProgramSessionId == 7)), Times.Once);
+    }
+
     // -------------------------------------------------------------------------
     // Delete
     // -------------------------------------------------------------------------

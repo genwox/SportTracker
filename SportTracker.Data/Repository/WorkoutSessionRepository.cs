@@ -55,13 +55,20 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
             return;
 
         entity.UserId = existing.UserId;
+        entity.WorkoutProgramSessionId = existing.WorkoutProgramSessionId;
         entity.WorkoutProgramSession = null;
         foreach (var exercise in entity.WorkoutExercises ?? [])
         {
+            var existingExercise = ownedExercises.FirstOrDefault(e => e.Id == exercise.Id);
+            exercise.WorkoutSessionId = existingExercise?.WorkoutSessionId ?? entity.Id;
             exercise.WorkoutSession = null;
             exercise.Exercise = null;
             foreach (var set in exercise.ExerciseSets ?? [])
+            {
+                var existingSet = existingExercise?.ExerciseSets?.FirstOrDefault(s => s.Id == set.Id);
+                set.WorkoutExerciseId = existingSet?.WorkoutExerciseId ?? (exercise.Id == 0 ? 0 : exercise.Id);
                 set.WorkoutExercise = null;
+            }
         }
         // The controller may have loaded the same graph for its scoped existence check.
         _context.ChangeTracker.Clear();

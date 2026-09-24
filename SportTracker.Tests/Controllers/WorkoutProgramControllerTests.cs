@@ -127,6 +127,22 @@ public class WorkoutProgramControllerTests
         _repoMock.Verify(r => r.UpdateAsync(It.IsAny<WorkoutProgram>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Update_ForgedProgramForeignKey_ReturnsNotFound()
+    {
+        _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new WorkoutProgram
+        {
+            Id = 1, Sessions = [new WorkoutProgramSession { Id = 10, WorkoutProgramId = 1 }]
+        });
+        var forged = new WorkoutProgram
+        {
+            Id = 1, Sessions = [new WorkoutProgramSession { Id = 10, WorkoutProgramId = 999 }]
+        };
+
+        Assert.IsType<NotFoundResult>(await _controller.UpdateAsync(1, forged));
+        _repoMock.Verify(r => r.UpdateAsync(It.IsAny<WorkoutProgram>()), Times.Never);
+    }
+
     // -------------------------------------------------------------------------
     // Delete
     // -------------------------------------------------------------------------

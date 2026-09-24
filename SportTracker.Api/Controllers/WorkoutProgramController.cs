@@ -49,6 +49,7 @@ public class WorkoutProgramController : ControllerBase
         var ownedExerciseIds = existing.Sessions.SelectMany(s => s.Exercises).Select(e => e.Id).ToHashSet();
         if (program.Sessions.Any(s =>
                 (s.Id != 0 && !ownedSessionIds.Contains(s.Id)) ||
+                (s.WorkoutProgramId != 0 && s.WorkoutProgramId != id) ||
                 s.Exercises.Any(e => e.Id != 0 && !ownedExerciseIds.Contains(e.Id))))
             return NotFound();
         program.UserId = existing.UserId;
