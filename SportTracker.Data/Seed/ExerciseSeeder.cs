@@ -11,8 +11,6 @@ public static class ExerciseSeeder
 
     public static async Task SeedAsync(SportTrackerDbContext db)
     {
-        if (await db.Exercises.AnyAsync()) return;
-
         var seedPath = Path.Combine(AppContext.BaseDirectory, "Seed", "exercises.json");
         if (!File.Exists(seedPath)) return;
 
@@ -22,6 +20,27 @@ public static class ExerciseSeeder
 
         if (dtos is null) return;
 
+        if (await db.Exercises.AnyAsync())
+        {
+            // The original seed did not store the dataset id. Match only names
+            // with one unambiguous equipment value, and keep any existing value.
+            var equipmentByName = dtos
+                .Where(d => !string.IsNullOrWhiteSpace(d.Equipment))
+                .GroupBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Select(d => d.Equipment.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 1)
+                .ToDictionary(g => g.Key, g => g.First().Equipment.Trim(), StringComparer.OrdinalIgnoreCase);
+
+            var missingEquipment = await db.Exercises
+                .Where(e => e.Equipment == null)
+                .ToListAsync();
+            foreach (var exercise in missingEquipment)
+                if (equipmentByName.TryGetValue(exercise.Name, out var equipment))
+                    exercise.Equipment = equipment;
+
+            if (db.ChangeTracker.HasChanges()) await db.SaveChangesAsync();
+            return;
+        }
+
         var exercises = dtos
             .Select(d => new Exercise
             {
@@ -29,7 +48,8 @@ public static class ExerciseSeeder
                 Type = d.Body_Part == "cardio" ? ExerciseType.Cardio : ExerciseType.Strength,
                 MuscleGroups = MapMuscle(d.Target),
                 GifUrl = string.IsNullOrEmpty(d.Gif_Url) ? null : BaseUrl + d.Gif_Url,
-                InstructionsFr = d.Instructions.TryGetValue("fr", out var fr) ? fr : null
+                InstructionsFr = d.Instructions.TryGetValue("fr", out var fr) ? fr : null,
+                Equipment = string.IsNullOrWhiteSpace(d.Equipment) ? null : d.Equipment
             })
             .ToList();
 

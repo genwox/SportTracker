@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using SportTracker.Api.Controllers;
 using SportTracker.Core.Interfaces;
+using SportTracker.Core.Enums;
 using SportTracker.Core.Models;
 using SportTracker.Data;
+using SportTracker.Data.Repository;
 using SportTracker.Tests.Support;
 
 namespace SportTracker.Tests.Controllers;
@@ -44,6 +46,64 @@ public class ExerciseControllerTests : IDisposable
     // dynamic respecte la visibilité du type déclarant et échoue dans ce cas.
     private static T Prop<T>(object obj, string name) =>
         (T)obj.GetType().GetProperty(name)!.GetValue(obj)!;
+
+    [Fact]
+    public async Task GetAll_WithCombinedFilters_ReturnsOnlyMatchingExercises()
+    {
+        var exercises = new[]
+        {
+            new Exercise { Name = "Bench", MuscleGroups = [MuscleGroup.Chest], Equipment = "Barbell" },
+            new Exercise { Name = "Fly", MuscleGroups = [MuscleGroup.Chest], Equipment = "Cable" },
+            new Exercise { Name = "Row", MuscleGroups = [MuscleGroup.Back], Equipment = "Barbell" }
+        };
+        _exerciseRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(exercises);
+
+        var all = Assert.IsType<OkObjectResult>(await _controller.GetAllAsync());
+        Assert.Equal(3, Assert.IsAssignableFrom<IEnumerable<Exercise>>(all.Value).Count());
+
+        var filtered = Assert.IsType<OkObjectResult>(
+            await _controller.GetAllAsync(MuscleGroup.Chest, " barbell "));
+        Assert.Equal("Bench", Assert.Single(Assert.IsAssignableFrom<IEnumerable<Exercise>>(filtered.Value)).Name);
+    }
+
+    [Fact]
+    public async Task Create_PersistsEquipmentAndReturnsCreatedWithRetrievableLocation()
+    {
+        var controller = new ExerciseController(new ExerciseRepository(_context), _context);
+        var exercise = new Exercise
+        {
+            Name = "Custom press",
+            Type = ExerciseType.Strength,
+            MuscleGroups = [MuscleGroup.Chest],
+            Equipment = "Dumbbell"
+        };
+
+        var created = Assert.IsType<CreatedAtActionResult>(await controller.CreateAsync(exercise));
+        Assert.Equal(nameof(ExerciseController.GetByIdAsync), created.ActionName);
+        Assert.Equal(exercise.Id, created.RouteValues!["id"]);
+        var retrieved = Assert.IsType<OkObjectResult>(await controller.GetByIdAsync(exercise.Id));
+        Assert.Equal("Dumbbell", Assert.IsType<Exercise>(retrieved.Value).Equipment);
+        Assert.Equal("Dumbbell", (await _context.Exercises.FindAsync(exercise.Id))!.Equipment);
+    }
+
+    [Fact]
+    public async Task Create_WithoutName_ReturnsBadRequest()
+    {
+        var result = await _controller.CreateAsync(new Exercise { Name = " " });
+        Assert.IsType<BadRequestObjectResult>(result);
+        _exerciseRepoMock.Verify(r => r.AddAsync(It.IsAny<Exercise>()), Times.Never);
+    }
+
+    [Fact]
+    public void ExerciseSet_DefaultAndRpeRange()
+    {
+        var set = new ExerciseSet();
+        Assert.Equal(SetType.Normal, set.SetType);
+        set.RPE = 10;
+        Assert.Equal(10, set.RPE);
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.RPE = 0);
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.RPE = 11);
+    }
 
     // -------------------------------------------------------------------------
     // LogSetAsync — guards
