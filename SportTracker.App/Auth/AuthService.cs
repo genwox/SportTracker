@@ -33,7 +33,7 @@ public class AuthService(
         if (token?.AccessToken is null)
             return "Réponse du serveur invalide.";
 
-        await store.SetTokenAsync(token.AccessToken);
+        await store.SetTokenAsync(token.AccessToken, email);
         authState.NotifyStateChanged();
         return null;
     }

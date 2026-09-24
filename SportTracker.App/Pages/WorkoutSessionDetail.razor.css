@@ -8,4 +8,7 @@
 .v4-detail-exercise__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--st-surface); font-size: 18px; }
 .v4-detail-exercise h2 { overflow: hidden; margin: 0 0 5px; color: var(--st-ink); font-size: 15px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .v4-detail-exercise p { overflow: hidden; margin: 0; color: var(--st-secondary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.v4-detail-exercise.is-superset { border-left: 5px solid var(--st-neon); }
+.v4-detail-exercise__group { grid-column: 1 / -1; justify-self: start; padding: 4px 8px; border-radius: 16px; background: var(--st-neon); color: var(--st-ink); font-size: 10px; font-weight: 800; }
+.v4-detail-exercise__notes { display: block; margin-top: 4px; color: var(--st-secondary); font-size: 11px; }
 @media (max-width: 360px) { .v4-workout-detail { padding-inline: 16px; } .v4-session-summary { gap: 5px; padding: 10px; } .v4-session-summary strong { font-size: 19px; } .v4-detail-exercise { gap: 8px; padding: 10px; } }

@@ -1,5 +1,6 @@
 @page "/workoutsessions/{Id:int}"
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
 @using System.Globalization
 @inject HttpClient Http
 
@@ -24,9 +25,12 @@
             <section class="v4-detail-exercises" aria-label="Exercices de la séance">
                 @foreach (var workoutExercise in session.WorkoutExercises)
                 {
-                    <article class="v4-detail-exercise">
+                    <article class="v4-detail-exercise @(workoutExercise.SupersetGroupId is not null ? "is-superset" : "")">
+                        @if (workoutExercise.SupersetGroupId is int group) { <span class="v4-detail-exercise__group">Superset @((char)('A' + group - 1))</span> }
                         <span class="v4-detail-exercise__icon" aria-hidden="true">♟</span>
-                        <div><h2>@(workoutExercise.Exercise?.Name ?? $"Exercice #{workoutExercise.ExerciseId}")</h2><p>@FormatSets(workoutExercise.ExerciseSets)</p></div>
+                        <div><h2>@(workoutExercise.Exercise?.Name ?? $"Exercice #{workoutExercise.ExerciseId}")</h2><p>@FormatSets(workoutExercise.ExerciseSets)</p>
+                            @if (!string.IsNullOrWhiteSpace(workoutExercise.Notes)) { <small class="v4-detail-exercise__notes">✎ @workoutExercise.Notes</small> }
+                        </div>
                         <span aria-hidden="true">›</span>
                     </article>
                 }
@@ -46,7 +50,8 @@
     private async Task LoadSessionAsync() { isLoading = true; notFound = false; errorMessage = null; try { var response = await Http.GetAsync($"api/workoutsessions/{Id}"); if (response.StatusCode == System.Net.HttpStatusCode.NotFound) { notFound = true; return; } if (!response.IsSuccessStatusCode) { errorMessage = $"Le serveur a répondu {(int)response.StatusCode}."; return; } session = await response.Content.ReadFromJsonAsync<WorkoutSession>(); if (session is null) errorMessage = "La réponse de la séance est invalide."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie."; } finally { isLoading = false; } }
     private static string FormatDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:D2}" : $"{duration.Minutes} min";
     private static string FormatVolume(double value) => value >= 1000 ? $"{(value / 1000).ToString("0.#", Fr)} t" : $"{value.ToString("0", Fr)} kg";
-    private static string FormatSets(IEnumerable<ExerciseSet>? sets) => sets is null || !sets.Any() ? "Aucune série enregistrée" : string.Join(" · ", sets.Select(set => $"{FormatWeight(set.Weight)} × {set.Repetitions}"));
+    private static string FormatSets(IEnumerable<ExerciseSet>? sets) => sets is null || !sets.Any() ? "Aucune série enregistrée" : string.Join(" · ", sets.Select(set => $"{SetTypeLabel(set.SetType)} {FormatWeight(set.Weight)} kg × {set.Repetitions}{(set.RPE is int rpe ? $" · RPE {rpe}" : "")}"));
+    private static string SetTypeLabel(SetType type) => type switch { SetType.Warmup => "Éch.", SetType.DropSet => "Drop", SetType.Failure => "Échec", _ => "Normal" };
     private static string FormatWeight(double weight) => weight.ToString(weight % 1 == 0 ? "0" : "0.#", Fr);
     private static string Capitalize(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpper(value[0]) + value[1..];
 }

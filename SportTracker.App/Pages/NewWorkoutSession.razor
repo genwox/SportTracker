@@ -1,10 +1,12 @@
 @page "/workoutsessions/new"
 @using SportTracker.Core.Models
+@using SportTracker.Core.Enums
 @inject HttpClient Http
 @inject NavigationManager Nav
 
 <div class="v4-workout-form">
     <V4Header Title="Nouvelle séance" Subtitle="‹ Retour aux séances" BackHref="/workoutsessions" />
+    <a class="v4-start-live" href="/workoutsessions/live">Démarrer une séance à vide en direct →</a>
     @if (isLoading)
     {
         <V4Loading />
@@ -38,7 +40,8 @@
                     var idx = i;
                     var item = workoutExercises[idx];
                     var selected = availableExercises!.FirstOrDefault(e => e.Id == item.ExerciseId);
-
+                    <div class="v4-exercise-wrap @(item.SupersetGroupId is not null ? "is-superset" : "") group-@(item.SupersetGroupId ?? 0)">
+                    @if (item.SupersetGroupId is int group) { <span class="v4-superset-tag">Superset @((char)('A' + group - 1)) · enchaîné sans repos</span> }
                     <V4Card>
                         <div class="v4-exercise-editor__title">
                             @if (selected is null)
@@ -51,15 +54,28 @@
                             }
                             <button type="button" class="v4-icon-button" aria-label="Retirer l’exercice" @onclick="() => RemoveExercise(idx)">×</button>
                         </div>
+                        <div class="v4-field"><label for="superset-@idx">Groupe superset</label><select id="superset-@idx" class="v4-input" value="@(item.SupersetGroupId?.ToString() ?? "")" @onchange="e => SetSuperset(idx, e.Value?.ToString())"><option value="">Aucun</option><option value="1">A</option><option value="2">B</option><option value="3">C</option></select></div>
                         <div class="v4-set-head"><span>Série</span><span>Poids (kg)</span><span>Reps</span><span></span></div>
                         @for (var j = 0; j < item.Sets.Count; j++)
                         {
                             var setIndex = j;
                             var set = item.Sets[setIndex];
                             <div class="v4-set-row"><span>@(setIndex + 1)</span><input type="number" @bind="set.Weight" min="0" step="0.5" aria-label="Poids série @(setIndex + 1)" /><input type="number" @bind="set.Repetitions" min="1" aria-label="Répétitions série @(setIndex + 1)" /><button type="button" aria-label="Supprimer la série @(setIndex + 1)" @onclick="() => RemoveSet(idx, setIndex)">×</button></div>
+                            <div class="v4-set-options">
+                                <div class="v4-set-types" role="group" aria-label="Type série @(setIndex + 1)">
+                                    @foreach (var type in Enum.GetValues<SetType>())
+                                    {
+                                        <button type="button" class="@(set.SetType == type ? "is-selected" : "") type-@type.ToString().ToLowerInvariant()" aria-label="@SetTypeFullLabel(type)" aria-pressed="@(set.SetType == type)" title="@SetTypeFullLabel(type)" @onclick="() => set.SetType = type">@SetTypeLabel(type)</button>
+                                    }
+                                </div>
+                                <label>RPE @(set.RPE?.ToString() ?? "—") <input type="range" min="1" max="10" value="@(set.RPE ?? 8)" @oninput="e => SetRpe(set, e.Value?.ToString())" /></label>
+                                <button type="button" class="v4-clear-rpe" @onclick="() => set.RPE = null" aria-label="Effacer le RPE série @(setIndex + 1)">×</button>
+                            </div>
                         }
+                        <div class="v4-field"><label for="notes-@idx">Notes de l’exercice</label><textarea id="notes-@idx" class="v4-input" rows="2" @bind="item.Notes" placeholder="Repères, ressenti…"></textarea></div>
                         <button type="button" class="v4-add-set" @onclick="() => AddSet(idx)">+ Ajouter une série</button>
                     </V4Card>
+                    </div>
                 }
             </section>
             <V4Button Secondary="true" OnClick="AddExercise">+ Ajouter un exercice</V4Button>
@@ -89,6 +105,10 @@
     private void RemoveSet(int exerciseIndex, int setIndex) => workoutExercises[exerciseIndex].Sets.RemoveAt(setIndex);
     private void SelectFromLibrary(Exercise exercise) { if (pickerIndex is not int index) return; if (availableExercises is not null && availableExercises.All(e => e.Id != exercise.Id)) availableExercises.Add(exercise); workoutExercises[index].ExerciseId = exercise.Id; pickerIndex = null; }
     private void ClearExercise(int index) { workoutExercises[index].ExerciseId = 0; workoutExercises[index].SearchText = string.Empty; }
-    private async Task HandleSubmit() { if (workoutExercises.Any(we => we.ExerciseId == 0)) { errorMessage = "Sélectionne un exercice pour chaque bloc."; return; } isSaving = true; errorMessage = null; form.Duration = TimeSpan.FromMinutes(durationMinutes); form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise { ExerciseId = we.ExerciseId, ExerciseSets = we.Sets }).ToList(); try { var response = await Http.PostAsJsonAsync("api/workoutsessions", form); if (response.IsSuccessStatusCode) { Nav.NavigateTo("/workoutsessions"); return; } errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; } finally { isSaving = false; } }
-    private class WorkoutExerciseForm { public int ExerciseId { get; set; } public string SearchText { get; set; } = string.Empty; public bool ShowDropdown { get; set; } public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() }; }
+    private static string SetTypeLabel(SetType type) => type switch { SetType.Warmup => "Éch.", SetType.Normal => "Normal", SetType.DropSet => "Drop", SetType.Failure => "Échec", _ => type.ToString() };
+    private static string SetTypeFullLabel(SetType type) => type switch { SetType.Warmup => "Échauffement", SetType.Normal => "Normal", SetType.DropSet => "Drop set", SetType.Failure => "Échec", _ => type.ToString() };
+    private void SetSuperset(int index, string? value) => workoutExercises[index].SupersetGroupId = int.TryParse(value, out var group) ? group : null;
+    private static void SetRpe(ExerciseSet set, string? value) => set.RPE = int.TryParse(value, out var rpe) ? Math.Clamp(rpe, 1, 10) : null;
+    private async Task HandleSubmit() { if (workoutExercises.Any(we => we.ExerciseId == 0)) { errorMessage = "Sélectionne un exercice pour chaque bloc."; return; } isSaving = true; errorMessage = null; form.Duration = TimeSpan.FromMinutes(durationMinutes); form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise { ExerciseId = we.ExerciseId, ExerciseSets = we.Sets, Notes = we.Notes, SupersetGroupId = we.SupersetGroupId }).ToList(); try { var response = await Http.PostAsJsonAsync("api/workoutsessions", form); if (response.IsSuccessStatusCode) { Nav.NavigateTo("/workoutsessions"); return; } errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; } finally { isSaving = false; } }
+    private class WorkoutExerciseForm { public int ExerciseId { get; set; } public string SearchText { get; set; } = string.Empty; public bool ShowDropdown { get; set; } public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() }; public string? Notes { get; set; } public int? SupersetGroupId { get; set; } }
 }

@@ -392,4 +392,26 @@ public class ExerciseControllerTests : IDisposable
         Assert.Equal(20,     Prop<int>   (items[1], "TotalReps"));
         Assert.Equal(1200.0, Prop<double>(items[1], "TotalVolume"));
     }
+
+    [Fact]
+    public async Task DeleteSet_OnlyRemovesSetFromOwnedWorkout()
+    {
+        var owned = new WorkoutSession { Name = "Owned", Date = DateTime.Today,
+            WorkoutExercises = [new WorkoutExercise { ExerciseId = 1,
+                ExerciseSets = [new ExerciseSet { Repetitions = 10, Weight = 60 }] }] };
+        var foreign = new WorkoutSession { Name = "Foreign", Date = DateTime.Today,
+            WorkoutExercises = [new WorkoutExercise { ExerciseId = 1,
+                ExerciseSets = [new ExerciseSet { Repetitions = 8, Weight = 80 }] }] };
+        _context.WorkoutSessions.AddRange(owned, foreign);
+        await _context.SaveChangesAsync();
+        foreign.UserId = "other-user";
+        await _context.SaveChangesAsync();
+
+        var ownSetId = owned.WorkoutExercises![0].ExerciseSets![0].Id;
+        var foreignSetId = foreign.WorkoutExercises![0].ExerciseSets![0].Id;
+        Assert.IsType<NoContentResult>(await _controller.DeleteSetAsync(1, ownSetId));
+        Assert.IsType<NotFoundResult>(await _controller.DeleteSetAsync(1, ownSetId));
+        Assert.IsType<NotFoundResult>(await _controller.DeleteSetAsync(1, foreignSetId));
+        Assert.NotNull(await _context.ExerciseSets.FindAsync(foreignSetId));
+    }
 }
