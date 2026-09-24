@@ -38,23 +38,12 @@
                     var idx = i;
                     var item = workoutExercises[idx];
                     var selected = availableExercises!.FirstOrDefault(e => e.Id == item.ExerciseId);
-                    var filtered = string.IsNullOrWhiteSpace(item.SearchText) ? Enumerable.Empty<Exercise>() : (availableExercises ?? []).Where(e => e.Name.Contains(item.SearchText, StringComparison.OrdinalIgnoreCase)).Take(8);
+
                     <V4Card>
                         <div class="v4-exercise-editor__title">
                             @if (selected is null)
                             {
-                                <div class="v4-search">
-                                    <input class="v4-input" placeholder="Rechercher un exercice" value="@item.SearchText" @oninput="e => item.SearchText = e.Value?.ToString() ?? string.Empty" @onfocusin="() => item.ShowDropdown = true" @onfocusout="() => item.ShowDropdown = false" />
-                                    @if (item.ShowDropdown && filtered.Any())
-                                    {
-                                        <div class="v4-search__options">
-                                            @foreach (var exercise in filtered)
-                                            {
-                                                <button type="button" @onmousedown:preventDefault @onclick="() => SelectExercise(idx, exercise)">@exercise.Name</button>
-                                            }
-                                        </div>
-                                    }
-                                </div>
+                                <V4Button Secondary="true" OnClick="() => pickerIndex = idx">+ Choisir un exercice</V4Button>
                             }
                             else
                             {
@@ -78,6 +67,10 @@
             <div class="v4-form-actions"><V4Button Type="submit" Disabled="isSaving">@(isSaving ? "Enregistrement…" : "Enregistrer la séance")</V4Button><a href="/workoutsessions">Annuler</a></div>
         </EditForm>
     }
+    @if (pickerIndex is not null)
+    {
+        <ExerciseLibrary OnSelected="SelectFromLibrary" OnClose="() => pickerIndex = null" />
+    }
 </div>
 
 @code {
@@ -86,6 +79,7 @@
     private List<WorkoutExerciseForm> workoutExercises = new();
     private List<Exercise>? availableExercises;
     private bool isLoading = true, isSaving;
+    private int? pickerIndex;
     private string? errorMessage, loadError;
     protected override Task OnInitializedAsync() => LoadExercisesAsync();
     private async Task LoadExercisesAsync() { isLoading = true; loadError = null; try { availableExercises = await Http.GetFromJsonAsync<List<Exercise>>("api/exercises") ?? new(); } catch (Exception) { loadError = "Vérifie ta connexion, puis réessaie."; } finally { isLoading = false; } }
@@ -93,7 +87,7 @@
     private void RemoveExercise(int index) => workoutExercises.RemoveAt(index);
     private void AddSet(int exerciseIndex) => workoutExercises[exerciseIndex].Sets.Add(new());
     private void RemoveSet(int exerciseIndex, int setIndex) => workoutExercises[exerciseIndex].Sets.RemoveAt(setIndex);
-    private void SelectExercise(int index, Exercise exercise) { workoutExercises[index].ExerciseId = exercise.Id; workoutExercises[index].SearchText = string.Empty; workoutExercises[index].ShowDropdown = false; }
+    private void SelectFromLibrary(Exercise exercise) { if (pickerIndex is not int index) return; if (availableExercises is not null && availableExercises.All(e => e.Id != exercise.Id)) availableExercises.Add(exercise); workoutExercises[index].ExerciseId = exercise.Id; pickerIndex = null; }
     private void ClearExercise(int index) { workoutExercises[index].ExerciseId = 0; workoutExercises[index].SearchText = string.Empty; }
     private async Task HandleSubmit() { if (workoutExercises.Any(we => we.ExerciseId == 0)) { errorMessage = "Sélectionne un exercice pour chaque bloc."; return; } isSaving = true; errorMessage = null; form.Duration = TimeSpan.FromMinutes(durationMinutes); form.WorkoutExercises = workoutExercises.Select(we => new WorkoutExercise { ExerciseId = we.ExerciseId, ExerciseSets = we.Sets }).ToList(); try { var response = await Http.PostAsJsonAsync("api/workoutsessions", form); if (response.IsSuccessStatusCode) { Nav.NavigateTo("/workoutsessions"); return; } errorMessage = $"Le serveur a répondu {(int)response.StatusCode}. Réessaie : tes valeurs sont conservées."; } catch (Exception) { errorMessage = "Vérifie ta connexion, puis réessaie : tes valeurs sont conservées."; } finally { isSaving = false; } }
     private class WorkoutExerciseForm { public int ExerciseId { get; set; } public string SearchText { get; set; } = string.Empty; public bool ShowDropdown { get; set; } public List<ExerciseSet> Sets { get; set; } = new() { new ExerciseSet() }; }
