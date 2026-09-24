@@ -26,6 +26,8 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
     {
         return await _context.WorkoutSessions
             .Include(ws => ws.WorkoutExercises)!
+                .ThenInclude(we => we.Exercise)
+            .Include(ws => ws.WorkoutExercises)!
                 .ThenInclude(we => we.ExerciseSets)
             .ToListAsync();
     }
