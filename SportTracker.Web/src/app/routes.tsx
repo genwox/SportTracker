@@ -7,6 +7,7 @@ import { HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionDetailPa
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
 import { AuthGate } from '../api/AuthGate'
+import { NotFoundPage } from '../ui/AuthPages'
 
 // Paths stay here with their Route declarations so feature lots need not edit the router.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -82,6 +83,7 @@ export function AppRoutes() {
         <Route exact path={paths.live} component={LiveWorkoutPage} />
         <Route path="/tabs" component={Tabs} />
         <Redirect exact from="/" to={paths.today} />
+        <Route component={NotFoundPage} />
       </IonRouterOutlet></AuthGate>
     </IonReactRouter>
   )
