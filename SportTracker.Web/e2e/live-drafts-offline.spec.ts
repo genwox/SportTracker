@@ -28,10 +28,10 @@ test('an offline draft survives reopening and is sent once when the network retu
   })
 
   await page.goto('/tabs/today')
-  await page.evaluate(async () => { await import('../src/features/live/drafts/index') })
+  await page.evaluate(async () => { await import('/src/features/live/drafts/index.ts') })
   await context.setOffline(true)
   await page.evaluate(async () => {
-    const { draftStore } = await import('../src/features/live/drafts/index')
+    const { draftStore } = await import('/src/features/live/drafts/index.ts')
     await draftStore.put('athlete@example.com', 'free:00000000-0000-4000-8000-000000000001:7', {
       storageKey: 'free:00000000-0000-4000-8000-000000000001:7',
       draftId: '00000000-0000-4000-8000-000000000001', workoutDate: '2026-09-25',
@@ -45,7 +45,7 @@ test('an offline draft survives reopening and is sent once when the network retu
   })
   expect(putCount).toBe(0)
   expect(await page.evaluate(async () => {
-    const { draftStore } = await import('../src/features/live/drafts/index')
+    const { draftStore } = await import('/src/features/live/drafts/index.ts')
     return (await draftStore.get('athlete@example.com', 'free:00000000-0000-4000-8000-000000000001:7'))?.sets[0].weight
   })).toBe(80)
   // Vite's development server has no offline service worker. Reopen the app
@@ -57,7 +57,7 @@ test('an offline draft survives reopening and is sent once when the network retu
   await reopenedPage.goto('/tabs/today')
   expect(new URL(reopenedPage.url()).origin).toBe(initialOrigin)
   const restored = await reopenedPage.evaluate(async () => {
-    const { draftStore } = await import('../src/features/live/drafts/index')
+    const { draftStore } = await import('/src/features/live/drafts/index.ts')
     return draftStore.get('athlete@example.com', 'free:00000000-0000-4000-8000-000000000001:7')
   })
   expect(restored?.sets[0].weight).toBe(80)
@@ -67,7 +67,7 @@ test('an offline draft survives reopening and is sent once when the network retu
   })
   await expect.poll(() => putCount).toBe(1)
   await expect.poll(async () => reopenedPage.evaluate(async () => {
-    const { draftStore } = await import('../src/features/live/drafts/index')
+    const { draftStore } = await import('/src/features/live/drafts/index.ts')
     return (await draftStore.get('athlete@example.com', 'free:00000000-0000-4000-8000-000000000001:7'))?.pendingSync
   })).toBe(false)
   expect(putCount).toBe(1)

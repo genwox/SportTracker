@@ -1,8 +1,8 @@
-import { apiRequest, ApiError } from '../../api/client'
 import { getDraftOwner, getToken } from '../../api/tokenStore'
-import { createSyncQueue } from '../../domain/syncQueue'
 import type { LiveExerciseDraft } from '../../domain/liveDraft'
-import { draftStore } from './drafts'
+import { draftStore, draftSyncQueue } from './drafts'
+
+export const liveQueue = draftSyncQueue
 
 export interface Exercise { id: number; name: string; type: number; muscleGroups: number[]; equipment: string | null; gifUrl: string | null; instructionsFr: string | null }
 export interface ServerSet { id: number; weight: number; repetitions: number; setType: number; rpe: number | null }
@@ -18,29 +18,6 @@ export const freeKey = (draftId: string, exerciseId: number) => `free:${draftId}
 const localDate = () => new Date().toLocaleDateString('sv-SE')
 export const routineKey = (sessionId: number, exerciseId: number) => `routine:${sessionId}:${localDate().replaceAll('-', '')}:${exerciseId}`
 export const sessionPrefix = (draftId: string) => `free:${draftId}:`
-
-export const liveQueue = createSyncQueue(draftStore, {
-  async put(draft, expectedWorkoutSessionId) {
-    try {
-      const result = await apiRequest<{ workoutSessionId: number; sets: { id: number }[] }>(
-        `api/workoutsessions/live/${draft.draftId}/exercises/${draft.exerciseId}`, {
-          method: 'PUT',
-          body: {
-            workoutProgramSessionId: draft.programSessionId,
-            workoutDate: draft.workoutDate,
-            sessionName: draft.sessionName,
-            notes: draft.notes,
-            supersetGroupId: draft.supersetGroupId,
-            sets: draft.sets.map(set => ({ weight: set.weight, repetitions: set.repetitions, setType: setTypeNumber(set.setType), rpe: set.rpe })),
-            expectedWorkoutSessionId,
-          },
-        })
-      return { status: 'ok' as const, ...result }
-    } catch (error) {
-      return { status: error instanceof ApiError && error.status === 409 ? 'conflict' as const : 'error' as const }
-    }
-  },
-}, () => navigator.onLine)
 
 const setTypeCodes: Record<string, number> = { Warmup: 0, Normal: 1, DropSet: 2, Dropset: 2, Failure: 3 }
 export const setTypeNumber = (type: string) => setTypeCodes[type] ?? 1
@@ -60,5 +37,5 @@ export async function persistDraft(draft: LiveExerciseDraft, pending: boolean): 
   const saved = { ...draft, pendingSync: draft.pendingSync || pending, revision: draft.revision + 1, savedAtUtc: new Date().toISOString() }
   await draftStore.put(owner(), saved.storageKey, saved)
   if (!pending || !navigator.onLine) return saved
-  return await liveQueue.sync(owner(), saved.storageKey) ?? saved
+  return await draftSyncQueue.sync(owner(), saved.storageKey) ?? saved
 }
