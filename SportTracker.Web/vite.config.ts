@@ -9,6 +9,7 @@ export default defineConfig({
       registerType: 'prompt',
       filename: 'service-worker.js',
       strategies: 'generateSW',
+      workbox: { globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,ttf}'] },
       manifest: {
         name: 'SportTracker',
         short_name: 'SportTracker',

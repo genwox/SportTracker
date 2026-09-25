@@ -4,7 +4,7 @@
 .v5-card { padding: 20px; border: 1px solid #ffffff99; border-radius: 20px; background: #f8ffffe6; color: #082d45; }
 .v5-header { display: flex; align-items: center; gap: 12px; min-height: 56px; margin-bottom: 24px; }
 .v5-header__copy { flex: 1; min-width: 0; }
-.v5-header h1 { margin: 0; font: 800 clamp(30px, 9vw, 42px)/.95 var(--st-font-display); text-transform: uppercase; overflow-wrap: anywhere; }
+.v5-header h1 { margin: 0; font: 400 clamp(27px, 8vw, 34px)/1.1 var(--st-font-display); color: var(--st-dark); overflow-wrap: anywhere; }
 .v5-header p { margin: 6px 0 0; color: #3a5c00; }
 .v5-header__back, .v5-header__avatar { --color: #082d45; --background: #f8ffffe6; width: 44px; height: 44px; margin: 0; border-radius: 14px; }
 .v5-header__avatar { margin-left: auto; }
