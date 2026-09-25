@@ -1,5 +1,6 @@
 @page "/programs/{ProgramId:int}/sessions/{SessionId:int}/exercises/{ExerciseId:int}/history"
 @using SportTracker.Core.Models
+@using SportTracker.Core.Services
 @using System.Globalization
 @inject HttpClient Http
 
@@ -143,9 +144,8 @@
 
     private async Task Reload() => await LoadData();
 
-    // Epley : 1RM ≈ poids × (1 + reps/30)
     private static double MaxOneRm(HistoryEntry entry)
-        => entry.Sets.Count == 0 ? 0 : entry.Sets.Max(s => s.Weight * (1 + s.Repetitions / 30.0));
+        => entry.Sets.Count == 0 ? 0 : entry.Sets.Max(s => StrengthMath.EstimateOneRm(s.Weight, s.Repetitions, round: false));
 
     private static string FormatWeight(double w)
         => w % 1 == 0 ? w.ToString("0", frFR) : w.ToString("0.#", frFR);

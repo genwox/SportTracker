@@ -1,0 +1,63 @@
+{
+  "estimateCases": [
+    { "name": "zero weight", "weight": 0, "reps": 10, "round": true, "expected": 0 },
+    { "name": "zero repetitions", "weight": 75, "reps": 0, "round": false, "expected": 0 },
+    { "name": "round to one decimal", "weight": 72.5, "reps": 8, "round": true, "expected": 91.8 },
+    { "name": "retain unrounded estimate", "weight": 72.5, "reps": 8, "round": false, "expected": 91.83333333333333 }
+  ],
+  "recordCases": [
+    {
+      "name": "first estimated one RM with empty history",
+      "historySets": [], "todaySets": [], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 0, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": true, "expectedIsFirst": true
+    },
+    {
+      "name": "exact equality",
+      "historySets": [{ "weight": 75, "repetitions": 10 }], "todaySets": [], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 100, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": false, "expectedIsFirst": false
+    },
+    {
+      "name": "difference plus 0.04",
+      "historySets": [{ "weight": 74.97, "repetitions": 10 }], "todaySets": [], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 99.96, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": false, "expectedIsFirst": false
+    },
+    {
+      "name": "difference plus 0.05 is not strict improvement",
+      "historySets": [{ "weight": 74.9625, "repetitions": 10 }], "todaySets": [], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 99.95, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": false, "expectedIsFirst": false
+    },
+    {
+      "name": "difference plus 0.06",
+      "historySets": [{ "weight": 74.955, "repetitions": 10 }], "todaySets": [], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 99.94, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": true, "expectedIsFirst": false
+    },
+    {
+      "name": "heavier warmup remains the previous best",
+      "historySets": [
+        { "weight": 90, "repetitions": 10, "setType": "Warmup" },
+        { "weight": 75, "repetitions": 10, "setType": "Normal" }
+      ],
+      "todaySets": [], "weight": 82.5, "reps": 10,
+      "expectedPreviousBest": 120, "expectedAchieved": 110,
+      "expectedIsPersonalRecord": false, "expectedIsFirst": false
+    },
+    {
+      "name": "empty history still includes today sets",
+      "historySets": [], "todaySets": [{ "weight": 75, "repetitions": 10 }], "weight": 78.75, "reps": 10,
+      "expectedPreviousBest": 100, "expectedAchieved": 105,
+      "expectedIsPersonalRecord": true, "expectedIsFirst": false
+    },
+    {
+      "name": "invalid previous sets do not establish a best",
+      "historySets": [{ "weight": 0, "repetitions": 10 }],
+      "todaySets": [{ "weight": 75, "repetitions": 0 }], "weight": 75, "reps": 10,
+      "expectedPreviousBest": 0, "expectedAchieved": 100,
+      "expectedIsPersonalRecord": true, "expectedIsFirst": true
+    }
+  ]
+}

@@ -32,4 +32,8 @@
     <ProjectReference Include="..\SportTracker.App\SportTracker.App.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\Docs\test-cases\strength-math.json" Link="strength-math.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

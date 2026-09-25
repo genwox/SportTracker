@@ -4,6 +4,7 @@
 @using System.Globalization
 @using SportTracker.Core.Models
 @using SportTracker.Core.Enums
+@using SportTracker.Core.Services
 @using SportTracker.App.Services
 @inject HttpClient Http
 @inject LiveDraftService Drafts
@@ -301,8 +302,7 @@
     private bool TimerActive => timerRunning || (timerRemaining > 0 && timerRemaining < restSeconds);
     private string ValidateLabel => isSaving ? "Enregistrement…" : saveError is not null ? "Réessayer" : $"Valider la série {ActiveOrder}";
 
-    // Epley : 1RM ≈ poids × (1 + reps/30), même formule que l'historique.
-    private double OneRm => weightCurrent > 0 && repsCurrent > 0 ? Math.Round(weightCurrent * (1 + repsCurrent / 30.0), 1) : 0;
+    private double OneRm => StrengthMath.EstimateOneRm(weightCurrent, repsCurrent, round: true);
 
     protected override Task OnParametersSetAsync() => LoadAsync();
 
@@ -620,16 +620,15 @@
         var insertionIndex = todaySets.Count;
         try
         {
-            var previousBest = history.SelectMany(h => h.Sets).Concat(todaySets)
-                .Where(s => s.Weight > 0 && s.Repetitions > 0)
-                .Select(s => s.Weight * (1 + s.Repetitions / 30.0))
-                .DefaultIfEmpty(0).Max();
-            var achieved = OneRm;
+            var record = StrengthMath.DetectPersonalRecord(
+                history.SelectMany(h => h.Sets).Select(s => new StrengthSet(s.Weight, s.Repetitions))
+                    .Concat(todaySets.Select(s => new StrengthSet(s.Weight, s.Repetitions))),
+                weightCurrent, repsCurrent);
             todaySets.Add(new TodaySet { Order = ActiveOrder, Repetitions = repsCurrent, Weight = weightCurrent, SetType = setType, RPE = rpe });
-            if (achieved > previousBest + 0.05)
-                prNotice = previousBest > 0
-                    ? $"1RM estimé {FormatWeight(achieved)} kg · +{FormatWeight(achieved - previousBest)} kg"
-                    : $"Premier 1RM estimé : {FormatWeight(achieved)} kg";
+            if (record.IsPersonalRecord)
+                prNotice = record.IsFirst
+                    ? $"Premier 1RM estimé : {FormatWeight(record.Achieved)} kg"
+                    : $"1RM estimé {FormatWeight(record.Achieved)} kg · +{FormatWeight(record.Achieved - record.PreviousBest)} kg";
             await PersistDraftAsync(true);
             if (restSeconds > 0)
             {
