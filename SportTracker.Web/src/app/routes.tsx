@@ -1,6 +1,5 @@
-import { IonIcon, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/react'
+import { IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/react'
 import { IonReactRouter } from '@ionic/react-router'
-import { calendarOutline, barChartOutline, timeOutline } from 'ionicons/icons'
 import { Redirect, Route } from 'react-router-dom'
 import { TodayPage } from '../features/today/pages'
 import { ProgramsPage, NewProgramPage, ProgramDetailPage, ProgramSessionDetailPage, NewProgramSessionPage, NewWorkoutSessionPage, ExerciseHistoryPage } from '../features/programs/pages'
@@ -63,9 +62,9 @@ function Tabs() {
         <Redirect exact from="/tabs" to={paths.today} />
       </IonRouterOutlet>
       <IonTabBar slot="bottom">
-        <IonTabButton tab="today" href={paths.today} aria-label="Today"><IonIcon icon={calendarOutline} /><span>Today</span></IonTabButton>
-        <IonTabButton tab="programs" href={paths.programs} aria-label="Programmes"><IonIcon icon={timeOutline} /><span>Programmes</span></IonTabButton>
-        <IonTabButton tab="history" href={paths.history} aria-label="Historique/Progrès"><IonIcon icon={barChartOutline} /><span>Historique/Progrès</span></IonTabButton>
+        <IonTabButton tab="today" href={paths.today} aria-label="Today"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/021-goal.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Today</span></IonTabButton>
+        <IonTabButton tab="programs" href={paths.programs} aria-label="Programmes"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/018-bookmark.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Programmes</span></IonTabButton>
+        <IonTabButton tab="history" href={paths.history} aria-label="Historique/Progrès"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/027-ranking.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Historique/Progrès</span></IonTabButton>
       </IonTabBar>
     </IonTabs>
   )
