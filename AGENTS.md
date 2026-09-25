@@ -18,7 +18,7 @@ Accessible depuis mobile (iOS, Android) et desktop via navigateur.
 
 ## Stack
 - **Backend** : ASP.NET Core (API REST)
-- **Frontend** : Blazor WASM (PWA)
+- **Frontend** : Blazor WASM (PWA) — **gelé**, en cours de remplacement par Ionic + React (TypeScript) dans `SportTracker.Web/` (voir étape 4g)
 - **Base de données** : SQLite via EF Core
 - **Hébergement** : VPS Hostinger (Linux + Docker)
 
@@ -30,7 +30,8 @@ SportTracker/
 ├── SportTracker.Core/   # Modèles + interfaces (aucune dépendance framework)
 ├── SportTracker.Data/   # EF Core + Repository pattern
 ├── SportTracker.Api/    # ASP.NET Core — endpoints REST
-└── SportTracker.App/    # Blazor WASM — UI PWA
+├── SportTracker.App/    # Blazor WASM — UI PWA (gelée, supprimée à la bascule)
+└── SportTracker.Web/    # Ionic + React + TS — nouvelle UI PWA (à créer, étape 4g)
 ```
 
 ## Objectifs d'apprentissage
@@ -104,12 +105,23 @@ SportTracker/
 - Journalisation live avec types de séries, RPE, notes, supersets et reprise hors ligne.
 - Synchronisation des brouillons avec détection et résolution des conflits.
 
+### Étape 4g — Migration frontend Ionic + React ⏳ À faire
+- Décision et arbitrages dans le vault : décision *Réécriture du frontend en Ionic React* + note *Étape 4g*. Choix de préférence assumé (non mesuré), gains attendus : démarrage à froid, geste retour iOS, transitions.
+- **`SportTracker.App` gelé** : aucun commit jusqu'à la bascule. La nouvelle UI vit dans `SportTracker.Web/` (Vite + Ionic React + TS), déployée sur un sous-domaine `beta.` pendant le développement.
+- **Exigences dès le 1er écran** : données via TanStack Query (cache affiché puis rafraîchi, jamais de spinner pleine page) ; tout défilement dans `IonContent` ; `mode: 'ios'` ; composants Ionic pour les comportements de plateforme, composants V5 maison pour l'identité visuelle ; minuteur de repos basé sur l'heure de fin (pas un compteur).
+- **Navigation v1** : 3 onglets (Today · Programmes · Historique/Progrès), Profil via avatar ; détails empilés avec geste retour ; feuilles pour catalogue, création d'exercice, pavé de saisie, minuteur ; séance live plein écran, sortie par « Terminer ».
+- Ordre : prérequis backend (`MapOpenApi` en dev + origine CORS `localhost:5173` et `beta.`) → tests xUnit de la logique C# (1RM, PR, minuteur) → auth/client HTTP → Today → séance live + brouillons offline (+ mêmes tests en Vitest) → Programmes → Historique/Progrès → Profil.
+- Types TS générés depuis OpenAPI (`openapi-typescript`). Mises à jour PWA appliquées au prochain lancement, jamais pendant une séance live.
+- **Bascule** sur `app.fmon-vps-n8n.fr` quand tous les écrans sont portés : service worker publié à `/service-worker.js` (remplace celui de Blazor), reprise du token `st-auth-token`, brouillons `sporttracker-live-v1` synchronisés avant, puis suppression de `SportTracker.App`.
+- Risques acceptés : pas de mesure préalable, pas de test mode avion avant bascule.
+
 ### Étape 5 — Docker + déploiement VPS ✅
 - [x] Déployé sur VPS Hostinger via Docker + Traefik (HTTPS Let's Encrypt)
 - [x] App : `https://app.fmon-vps-n8n.fr` — API : `https://api.fmon-vps-n8n.fr`
-- ⚠️ Point ouvert pour l'auth : persister le trousseau Data Protection dans un volume
+- [x] Trousseau Data Protection persisté dans le volume `dp-keys` (`/keys`) — les tokens survivent aux redéploiements
 
 ### Étape 6 — Intégration LLM ⏳ À faire
+- Reportée après la bascule Ionic (étape 4g) ; seule la conception de l'endpoint backend peut être avancée. Synchro catalogue Hevy (`SportTracker.Tools`) en pause tant que la clé API Pro manque.
 
 ## Diagrammes
 - `Docs/Model/domain-model.puml` — modèles de domaine (Core)
