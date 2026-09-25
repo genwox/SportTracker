@@ -7,7 +7,7 @@ import { Page, Refresh, NavCard, SectionTitle, detailDate, durationLabel } from 
 
 function MetricChart({ title, unit, entries, value }: { title: string; unit: string; entries: HistoryEntry[]; value: (entry: HistoryEntry) => number }) {
   const max = Math.max(0, ...entries.map(value))
-  return <section><SectionTitle>{title}</SectionTitle><V5Card><p className="history-chart-caption">{unit} · {entries.length} séances</p><div className="history-bars" role="img" aria-label={`${title} par séance`}>
+  return <section className="history-chart"><V5Card><div className="history-chart-heading"><SectionTitle>{title}</SectionTitle><p className="history-chart-caption">{unit} · {entries.length} séances</p></div><div className="history-bars" role="img" aria-label={`${title} par séance`}>
     {entries.map((entry, index) => { const point = value(entry); return <div className="history-bar-column" key={`${entry.date}-${index}`} title={`${dayLabel(entry.date)} : ${frNumber(point)} ${unit}`}>
       <div className={`history-bar ${point > 0 && point === max ? 'record' : ''}`} style={{ height: `${point <= 0 || max <= 0 ? 0 : Math.max(6, point / max * 100)}%` }} /><small>{dayLabel(entry.date, { day: 'numeric', month: 'short' })}</small>
     </div> })}</div></V5Card></section>
@@ -19,10 +19,13 @@ export function ExerciseProgressPage() {
   const exercise = useQuery({ queryKey: ['history', 'exercise-name', exerciseId], queryFn: () => apiRequest<Exercise>(`api/exercises/${exerciseId}`) })
   const entries = [...(history.data ?? [])].sort((a, b) => a.date.localeCompare(b.date))
   const record = Math.max(0, ...entries.map(maxOneRm))
+  const bestWeight = Math.max(0, ...entries.flatMap(entry => entry.sets.map(set => numberOf(set.weight))))
+  const totalVolume = entries.reduce((sum, entry) => sum + numberOf(entry.totalVolume), 0)
   return <Page><Refresh onRefresh={() => Promise.all([history.refetch(), exercise.refetch()])} /><V5Header title={exercise.data?.name || 'Exercice'} backHref="/tabs/history" />
     {!history.data && history.isPending ? <V5Loading /> : history.isError && !history.data ? <V5State title="Erreur de chargement" message="Impossible de récupérer l'historique." error onRetry={() => void history.refetch()} />
       : entries.length === 0 ? <V5State title="Aucun historique" message="Les données apparaîtront après ta première séance." /> : <>
-        <V5Card className="history-record"><span>Meilleur 1RM estimé</span><strong>{frNumber(record)} <small>kg</small></strong><p>Estimation d'après tes séries</p></V5Card>
+        <p className="history-intro">{entries.length} séances enregistrées</p>
+        <div className="history-summary"><V5Card><strong>{frNumber(record)} kg</strong><span>1RM estimé</span></V5Card><V5Card><strong>{frNumber(bestWeight)} kg</strong><span>poids max</span></V5Card><V5Card><strong>{frNumber(totalVolume)} kg</strong><span>volume cumulé</span></V5Card></div>
         {entries.length >= 2 && <><MetricChart title="Évolution du 1RM" unit="kg" entries={entries} value={maxOneRm} />
           <MetricChart title="Volume par séance" unit="kg × reps" entries={entries} value={entry => numberOf(entry.totalVolume)} />
           <MetricChart title="Meilleur poids soulevé" unit="kg" entries={entries} value={entry => Math.max(0, ...entry.sets.map(set => numberOf(set.weight)))} />
