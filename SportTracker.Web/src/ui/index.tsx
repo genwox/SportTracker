@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 import { IonButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText } from '@ionic/react'
-import { arrowBackOutline, personCircleOutline } from 'ionicons/icons'
+import { arrowBackOutline } from 'ionicons/icons'
 import './ui.css'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }
@@ -19,7 +19,7 @@ export function V5Header({ title, subtitle, backHref, avatar = true }: {
   return <header className="v5-header">
     {backHref && <IonButton fill="clear" routerLink={backHref} aria-label="Retour" className="v5-header__back"><IonIcon icon={arrowBackOutline} /></IonButton>}
     <div className="v5-header__copy"><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
-    {avatar && <IonButton fill="clear" routerLink="/tabs/profile" aria-label="Profil" className="v5-header__avatar"><IonIcon icon={personCircleOutline} /></IonButton>}
+    {avatar && <IonButton fill="clear" routerLink="/tabs/profile" aria-label="Profil" className="v5-header__avatar"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/047-user.svg)' } as React.CSSProperties} aria-hidden="true" /></IonButton>}
   </header>
 }
 
