@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { closeRestTimerSheet } from './helpers'
 
 test('séance libre : trois séries, record, minuteur et fin', async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('st-auth-token', 'test-token'); localStorage.setItem('st-draft-owner', 'athlete@example.com') })
@@ -27,8 +28,7 @@ test('séance libre : trois séries, record, minuteur et fin', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Développé couché' }).first()).toBeVisible()
   for (let index = 0; index < 3; index++) {
     await page.getByRole('button', { name: `Valider la série ${index + 1}` }).first().click()
-    await expect(page.getByRole('heading', { name: 'Minuteur de repos' })).toBeVisible()
-    await page.getByRole('button', { name: 'Fermer' }).click()
+    await closeRestTimerSheet(page)
   }
   await expect(page.getByText('Nouveau record personnel !')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Supprimer la série 3' })).toBeVisible()
