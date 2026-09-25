@@ -1,4 +1,5 @@
 import { expect, test, type Page, type BrowserContext, type Route } from '@playwright/test'
+import { closeRestTimerSheet } from './helpers'
 
 const corsHeaders = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,PUT,POST,DELETE,OPTIONS', 'access-control-allow-headers': 'authorization,content-type' }
 
@@ -71,8 +72,7 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
     await expect(page.getByRole('heading', { name: 'Développé couché' }).first()).toBeVisible()
     for (let index = 0; index < 3; index++) {
       await page.getByRole('button', { name: `Valider la série ${index + 1}` }).first().click()
-      await expect(page.getByRole('heading', { name: 'Minuteur de repos' })).toBeVisible()
-      await page.getByRole('button', { name: 'Fermer' }).click()
+      await closeRestTimerSheet(page)
     }
     await expect(page.getByText('Nouveau record personnel !')).toBeVisible()
     await page.getByRole('button', { name: 'Retour à la séance' }).click()
@@ -115,7 +115,7 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
     await expect(page.getByText('Enregistré')).toBeVisible()
     expect(putCount).toBe(1)
 
-    await page.getByRole('button', { name: 'Fermer' }).click()
+    await closeRestTimerSheet(page)
     await page.getByRole('button', { name: 'Retour à la séance' }).click()
     await expect(page.locator('.live-summary')).toContainText('1 série')
     await page.getByRole('button', { name: 'Terminer' }).first().click()
