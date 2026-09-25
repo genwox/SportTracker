@@ -7,7 +7,6 @@ import {
   chevronForwardOutline,
   helpCircleOutline,
   lockClosedOutline,
-  logOutOutline,
   notificationsOutline,
   optionsOutline,
   personCircleOutline,
@@ -58,30 +57,29 @@ export function ProfilePage() {
           message="Impossible de récupérer tes séances." error onRetry={() => { void query.refetch() }} />}
 
         {query.data && summary && <>
-          <V5Card>
-            <div className="pf-identity">
-              <div className="pf-avatar" aria-hidden="true"><IonIcon icon={personCircleOutline} /></div>
-              <div className="pf-identity__text">
-                <strong>{query.data.email ?? 'Compte'}</strong>
-                {summary.memberSince && <span>Membre depuis {capitalize(monthYearFr.format(summary.memberSince))}</span>}
-              </div>
+          <div className="pf-identity">
+            <div className="pf-avatar" aria-hidden="true"><IonIcon icon={personCircleOutline} /></div>
+            <div className="pf-identity__text">
+              <strong>{query.data.email?.split('@')[0] || 'Compte'}</strong>
+              <span>{query.data.email ?? (summary.memberSince ? `Membre depuis ${capitalize(monthYearFr.format(summary.memberSince))}` : 'Mon compte')}</span>
             </div>
-          </V5Card>
+          </div>
 
           <div className="pf-stats">
             <V5Card><div className="pf-stat"><span className="pf-stat__val">{summary.totalSessions}</span><span className="pf-stat__label">séances</span></div></V5Card>
-            <V5Card><div className="pf-stat"><span className="pf-stat__val">{summary.streak}</span><span className="pf-stat__label">jour{summary.streak > 1 ? 's' : ''} de suite</span></div></V5Card>
-            <V5Card><div className="pf-stat"><span className="pf-stat__val">{summary.totalMinutes}</span><span className="pf-stat__label">min au total</span></div></V5Card>
+            <V5Card><div className="pf-stat"><span className="pf-stat__val">{summary.streak} j</span><span className="pf-stat__label">série</span></div></V5Card>
+            <V5Card><div className="pf-stat"><span className="pf-stat__val">{summary.weekSessions}/{query.data.goal}</span><span className="pf-stat__label">objectif</span></div></V5Card>
           </div>
+          <p className="pf-total-time">{summary.totalMinutes} min d'entraînement au total</p>
 
           <V5Card>
             <div className="pf-goal">
-              <strong>{summary.weekSessions} / {query.data.goal} séance{query.data.goal > 1 ? 's' : ''} cette semaine</strong>
-              <span>{summary.weekSessions >= query.data.goal ? 'Objectif hebdomadaire atteint' : `Encore ${query.data.goal - summary.weekSessions} pour cette semaine`}</span>
+              <div className="pf-goal__heading"><strong>Objectif hebdomadaire</strong><span>{summary.weekSessions} / {query.data.goal} séances</span></div>
+              <div className="pf-goal__track" role="progressbar" aria-label="Objectif hebdomadaire" aria-valuenow={Math.min(summary.weekSessions, query.data.goal)} aria-valuemin={0} aria-valuemax={query.data.goal}><span style={{ width: `${Math.min(100, summary.weekSessions / query.data.goal * 100)}%` }} /></div>
             </div>
           </V5Card>
 
-          <p className="pf-section-label">Préférences et aide</p>
+          <p className="pf-section-label">Préférences de séance</p>
           <div className="pf-menu">
             <Link to="/tabs/profile/preferences" className="pf-menu__item">
               <span className="pf-menu__icon pf-menu__icon--active"><IonIcon icon={optionsOutline} /></span>
@@ -106,7 +104,6 @@ export function ProfilePage() {
         </>}
 
         {!query.isPending && <button type="button" className="pf-logout" onClick={logout}>
-          <IonIcon icon={logOutOutline} />
           Se déconnecter
         </button>}
       </main>
