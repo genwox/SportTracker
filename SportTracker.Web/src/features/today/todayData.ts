@@ -41,6 +41,13 @@ export function summarizeToday(data: TodayData, now = new Date()) {
   const suggestedWorkout = latest(data.workouts.filter(item => localDay(asDate(item.date)) !== today))
   const weekWorkouts = data.workouts.filter(item => inWeek(item.date))
   const weekCardio = data.cardio.filter(item => inWeek(item.date))
+  const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6)
+  const recentWorkouts = data.workouts.filter(item => asDate(item.date) >= sevenDaysAgo && asDate(item.date) < tomorrow)
+  const activityDays = new Set([...data.workouts, ...data.cardio].filter(item => asDate(item.date) < tomorrow).map(item => localDay(asDate(item.date))))
+  let streak = 0
+  const streakDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  while (activityDays.has(localDay(streakDay))) { streak++; streakDay.setDate(streakDay.getDate() - 1) }
+  const weekSets = weekWorkouts.flatMap(item => item.workoutExercises || []).reduce((sum, item) => sum + (item.exerciseSets?.length || 0), 0)
   const volumeKg = weekWorkouts.flatMap(item => item.workoutExercises || []).flatMap(item => item.exerciseSets || [])
     .reduce((sum, set) => sum + Number(set.weight || 0) * Number(set.repetitions || 0), 0)
   const totalMinutes = Math.trunc(weekWorkouts.reduce((sum, item) => sum + durationMinutes(item.duration), 0))
@@ -52,5 +59,5 @@ export function summarizeToday(data: TodayData, now = new Date()) {
     return { label, count: [...data.workouts, ...data.cardio].filter(item => localDay(asDate(item.date)) === key).length, isToday: key === today }
   })
   return { todayWorkout, todayCardio, suggestedWorkout, weekCount: weekWorkouts.length + weekCardio.length,
-    volume: formatVolume(volumeKg), weekTime: formatDuration(totalMinutes), weekData }
+    volume: formatVolume(volumeKg), weekTime: formatDuration(totalMinutes), weekSets, streak, recentWorkouts, weekData }
 }
