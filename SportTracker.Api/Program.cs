@@ -20,6 +20,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler =
             System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
+builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<SportTrackerDbContext>( 
     options =>  options.UseSqlite(
@@ -62,6 +63,9 @@ builder.Services.AddCors(options => options.AddPolicy("Frontend",
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
+
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
