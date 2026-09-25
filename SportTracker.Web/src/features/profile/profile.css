@@ -1,0 +1,141 @@
+/* ── Profil — V5 ──────────────────────────────────────────── */
+
+.profile-page, .pp-page, .hlp-page {
+    width: min(100%, 430px);
+    margin: 0 auto;
+    padding: 24px 20px calc(env(safe-area-inset-bottom) + 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pf-identity { display: flex; align-items: center; gap: 14px; }
+
+.pf-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--st-neon);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-size: 26px;
+    color: var(--st-dark);
+}
+
+.pf-identity__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pf-identity__text strong { font-size: 15px; font-weight: 700; color: var(--st-dark); overflow-wrap: anywhere; }
+.pf-identity__text span { font-size: 11px; font-weight: 500; color: var(--st-text-muted); }
+
+.pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.pf-stat { display: flex; flex-direction: column; gap: 4px; }
+.pf-stat__val { font-family: var(--st-font-display); font-size: 23px; color: var(--st-dark); line-height: 1.1; }
+.pf-stat__label { font-size: 11px; font-weight: 500; color: var(--st-text-muted); }
+
+.pf-goal { display: grid; gap: 6px; }
+.pf-goal strong { font-family: var(--st-font-display); font-size: 17px; font-weight: 400; color: var(--st-dark); }
+.pf-goal span { font-size: 12px; font-weight: 500; color: var(--st-text-muted); }
+
+.pf-section-label { margin: 4px 0 0; font-size: 12px; font-weight: 700; color: var(--st-text-muted); letter-spacing: 0.02em; }
+
+.pf-menu { display: flex; flex-direction: column; gap: 8px; }
+
+.pf-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px;
+    border-radius: 20px;
+    background: #f8ffffe6;
+    text-decoration: none;
+    color: var(--st-dark);
+}
+
+.pf-menu__item--disabled { color: var(--st-text-muted); cursor: default; }
+
+.pf-menu__icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: var(--st-surface);
+    font-size: 17px;
+}
+
+.pf-menu__icon--active { background: var(--st-neon); }
+
+.pf-menu__label { flex: 1; font-size: 13px; font-weight: 500; }
+
+.pf-menu__chevron { color: var(--st-text-muted); flex-shrink: 0; }
+
+.pf-menu__badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--st-text-muted);
+    background: #ffffff80;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.pf-logout {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 16px;
+    background: #f8ffffe6;
+    color: #b42318;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ── Préférences ──────────────────────────────────────────── */
+
+.pp-goal { display: grid; gap: 10px; }
+.pp-goal__label { font-size: 13px; font-weight: 600; color: var(--st-dark); }
+
+.pp-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.pp-stepper button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--st-surface);
+    color: var(--st-dark);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pp-stepper button:disabled { opacity: .4; cursor: not-allowed; }
+
+.pp-stepper__value { font-family: var(--st-font-display); font-size: 32px; color: var(--st-dark); min-width: 40px; text-align: center; }
+
+.pp-validation { margin: 0; font-size: 12px; color: #b42318; }
+
+.pp-feedback { margin: 0; font-size: 13px; font-weight: 600; color: var(--st-dark); }
+.pp-feedback--error { color: #b42318; }
+
+/* ── Aide ─────────────────────────────────────────────────── */
+
+.hlp-item { display: grid; gap: 6px; }
+.hlp-item strong { font-size: 14px; color: var(--st-dark); }
+.hlp-item p { margin: 0; font-size: 13px; color: var(--st-text-muted); }
+
+@media (max-width: 360px) {
+    .profile-page, .pp-page, .hlp-page { padding-inline: 16px; }
+}
