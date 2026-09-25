@@ -58,6 +58,7 @@ export function createIndexedDbDraftStore(): DraftStore & { migrate(fromOwner: s
     },
     async put(owner, key, draft) {
       await transact('readwrite', store => store.put(draft, scopedPrefix(owner) + key))
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('sporttracker:draft-saved'))
     },
     async remove(owner, key) {
       await transact('readwrite', store => store.delete(scopedPrefix(owner) + key))
