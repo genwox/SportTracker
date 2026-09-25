@@ -1,10 +1,10 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { IonContent, IonModal, IonPage, IonRefresher, IonRefresherContent } from '@ionic/react'
+import { IonContent, IonModal, IonPage } from '@ionic/react'
 import { Link, useHistory, useParams } from 'react-router-dom'
 import type { components } from '../../api/schema'
 import { ApiError, apiRequest } from '../../api/client'
-import { V5Button, V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { V5Button, V5Card, V5Header, V5Loading, V5Refresher, V5State } from '../../ui'
 import './programs.css'
 
 type Program = components['schemas']['WorkoutProgram']
@@ -21,7 +21,7 @@ function Page({ title, subtitle, backHref, children }: { title: string; subtitle
   return <IonPage><IonContent><main className="programs-page"><V5Header title={title} subtitle={subtitle} backHref={backHref} avatar={!backHref} />{children}</main></IonContent></IonPage>
 }
 function QueryState({ error, retry }: { error: unknown; retry: () => void }) { return <V5State title="Impossible de charger les données" message={errorText(error)} error onRetry={retry} /> }
-function Refresh({ refresh }: { refresh: () => Promise<unknown> }) { return <IonRefresher slot="fixed" onIonRefresh={async event => { try { await refresh() } finally { event.detail.complete() } }}><IonRefresherContent /></IonRefresher> }
+function Refresh({ refresh }: { refresh: () => Promise<unknown> }) { return <V5Refresher onRefresh={refresh} /> }
 function useProgram(programId: string) { return useQuery({ queryKey: ['programs', programId], queryFn: () => apiRequest<Program>(`api/programs/${programId}`) }) }
 
 export function ProgramsPage() {

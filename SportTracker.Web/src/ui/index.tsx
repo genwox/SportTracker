@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
-import { IonButton, IonIcon, IonSkeletonText } from '@ionic/react'
+import { IonButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText } from '@ionic/react'
 import { arrowBackOutline, personCircleOutline } from 'ionicons/icons'
 import './ui.css'
 
@@ -30,6 +30,10 @@ export function V5State({ title, message, error = false, onRetry, children }: {
     <strong>{title}</strong>{message && <p>{message}</p>}
     {onRetry && <V5Button onClick={onRetry}>Réessayer</V5Button>}{children}
   </V5Card>
+}
+
+export function V5Refresher({ onRefresh }: { onRefresh: () => Promise<unknown> }) {
+  return <IonRefresher slot="fixed" onIonRefresh={async event => { try { await onRefresh() } finally { event.detail.complete() } }}><IonRefresherContent /></IonRefresher>
 }
 
 export function V5Loading() {

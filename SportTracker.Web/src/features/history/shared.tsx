@@ -1,16 +1,14 @@
 /* eslint-disable react-refresh/only-export-components -- pure date helpers stay beside the history page shell */
 import type { ReactNode } from 'react'
-import { IonContent, IonPage, IonRefresher, IonRefresherContent, IonRouterLink } from '@ionic/react'
-import { V5Card } from '../../ui'
+import { IonContent, IonPage, IonRouterLink } from '@ionic/react'
+import { V5Card, V5Refresher } from '../../ui'
 import { dayLabel, durationMinutes } from './data'
 import './history.css'
 
 export function Page({ children }: { children: ReactNode }) {
   return <IonPage><IonContent fullscreen><main className="history-page">{children}</main></IonContent></IonPage>
 }
-export function Refresh({ onRefresh }: { onRefresh: () => Promise<unknown> }) {
-  return <IonRefresher slot="fixed" onIonRefresh={async event => { try { await onRefresh() } finally { event.detail.complete() } }}><IonRefresherContent /></IonRefresher>
-}
+export const Refresh = V5Refresher
 export function NavCard({ href, children, className = '' }: { href: string; children: ReactNode; className?: string }) {
   return <IonRouterLink routerLink={href} className={`history-link ${className}`}><V5Card>{children}</V5Card></IonRouterLink>
 }

@@ -15,7 +15,7 @@
 .history-action.secondary { background: #ddf6f4; }
 .history-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .history-filters { display: flex; gap: 6px; padding: 5px; border-radius: 17px; background: #f8ffffe6; }
-.history-filters button { flex: 1; min-height: 42px; border: 0; border-radius: 12px; background: transparent; color: #315a70; font: 700 13px var(--st-font-body); }
+.history-filters button { flex: 1; min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: #315a70; font: 700 13px var(--st-font-body); }
 .history-filters button.active { background: #d4f53c; color: #082d45; }
 .history-record { display: grid; gap: 5px; }
 .history-record > span, .history-minutes > span { color: #315a70; font: 700 13px var(--st-font-display); letter-spacing: .07em; text-transform: uppercase; }
