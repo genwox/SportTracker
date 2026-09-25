@@ -18,7 +18,16 @@ describe('Today summary', () => {
     expect(result.weekCount).toBe(3)
     expect(result.volume).toEqual({ value: '1', unit: 't' })
     expect(result.weekTime).toBe('2h35')
+    expect(result.weekSets).toBe(1)
+    expect(result.streak).toBe(1)
     expect(result.weekData.map(day => day.count)).toEqual([1, 0, 0, 0, 2, 0, 0])
+  })
+  it('counts a daily streak once across strength and cardio sessions', () => {
+    const result = summarizeToday({
+      workouts: [{ date: '2026-09-25T08:00:00' }, { date: '2026-09-24T08:00:00' }],
+      cardio: [{ date: '2026-09-25T09:00:00' }, { date: '2026-09-23T08:00:00' }],
+    }, new Date(2026, 8, 25, 12))
+    expect(result.streak).toBe(3)
   })
   it('parses TimeSpan days', () => expect(durationMinutes('1.02:03:00')).toBe(1563))
 })
