@@ -34,6 +34,21 @@ services:
     depends_on:
       - api
 
+  web:
+    build:
+      context: .
+      dockerfile: SportTracker.Web/Dockerfile
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sporttracker-web.rule=Host(`beta.fmon-vps-n8n.fr`)"
+      - "traefik.http.routers.sporttracker-web.entrypoints=websecure"
+      - "traefik.http.routers.sporttracker-web.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.sporttracker-web.loadbalancer.server.port=80"
+    depends_on:
+      - api
+
 networks:
   traefik:
     external: true
