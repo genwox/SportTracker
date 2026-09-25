@@ -7,6 +7,7 @@ import { ProgramsPage, NewProgramPage, ProgramDetailPage, ProgramSessionDetailPa
 import { HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionDetailPage, CardioSessionsPage, CardioSessionDetailPage, NewCardioSessionPage } from '../features/history/pages'
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
+import { AuthGate } from '../api/AuthGate'
 
 // Paths stay here with their Route declarations so feature lots need not edit the router.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -73,7 +74,7 @@ function Tabs() {
 export function AppRoutes() {
   return (
     <IonReactRouter>
-      <IonRouterOutlet ref={(outlet) => { if (outlet) (outlet as HTMLIonRouterOutletElement & { swipeGesture: boolean }).swipeGesture = false }}>
+      <AuthGate><IonRouterOutlet ref={(outlet) => { if (outlet) (outlet as HTMLIonRouterOutletElement & { swipeGesture: boolean }).swipeGesture = false }}>
         <Route exact path={paths.login} component={LoginPage} />
         <Route exact path={paths.register} component={RegisterPage} />
         <Route exact path={paths.liveExercise} component={ExerciseLivePage} />
@@ -82,7 +83,7 @@ export function AppRoutes() {
         <Route exact path={paths.live} component={LiveWorkoutPage} />
         <Route path="/tabs" component={Tabs} />
         <Redirect exact from="/" to={paths.today} />
-      </IonRouterOutlet>
+      </IonRouterOutlet></AuthGate>
     </IonReactRouter>
   )
 }
