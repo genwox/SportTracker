@@ -23,8 +23,7 @@ export function HistoryPage() {
   const loading = !workouts.data && !cardio.data && (workouts.isPending || cardio.isPending)
   const error = (workouts.isError && !workouts.data) || (cardio.isError && !cardio.data)
   return <Page><Refresh onRefresh={() => Promise.all([workouts.refetch(), cardio.refetch()])} />
-    <V5Header title="Historique/Progrès" subtitle="Toutes tes séances, au même endroit" />
-    <SectionTitle>Ton historique</SectionTitle>
+    <V5Header title="Historique/Progrès" subtitle="Toutes tes séances" />
     <IonRouterLink routerLink="/tabs/history/progress" className="history-progress-link">Voir mes progrès <span aria-hidden="true">›</span></IonRouterLink>
     <div className="history-filters" role="tablist" aria-label="Filtrer l'historique">{(['Tous', 'Muscu', 'Cardio'] as const).map(option => <button key={option} type="button" role="tab" aria-selected={filter === option} className={filter === option ? 'active' : ''} onClick={() => setFilter(option)}>{option}</button>)}</div>
     {loading ? <V5Loading /> : error ? <V5State title="Impossible de charger l'historique" message="Impossible de récupérer tes séances." error onRetry={() => { void workouts.refetch(); void cardio.refetch() }} />
@@ -63,7 +62,7 @@ export function ProgressPage() {
   const maxWeek = Math.max(1, ...weeks.map(week => week.count))
   const error = (workouts.isError && !workouts.data) || (cardio.isError && !cardio.data)
   return <Page><Refresh onRefresh={() => Promise.all([workouts.refetch(), cardio.refetch()])} />
-    <V5Header title="Tes progrès" subtitle={`Semaine du ${dayLabel(start.toISOString(), { day: 'numeric', month: 'long' })}`} backHref="/tabs/history" />
+    <V5Header title="Progrès" subtitle={`Semaine du ${dayLabel(start.toISOString(), { day: 'numeric', month: 'long' })}`} backHref="/tabs/history" />
     {!workouts.data && !cardio.data && (workouts.isPending || cardio.isPending) ? <V5Loading /> : error ? <V5State title="Impossible de charger tes progrès" message="Impossible de récupérer tes séances." error onRetry={() => { void workouts.refetch(); void cardio.refetch() }} /> : <>
       <V5Card className="history-minutes"><span>Minutes cette semaine</span><strong>{weeklyMinutes} min</strong>{weeklyMinutes !== previousMinutes && <small>{weeklyMinutes - previousMinutes > 0 ? '+' : ''}{weeklyMinutes - previousMinutes} min par rapport à la semaine dernière</small>}</V5Card>
       <div className="history-summary two"><V5Card><strong>{streak}</strong><span>jour{streak > 1 ? 's' : ''} · série en cours</span></V5Card><V5Card><strong>{currentWorkouts.length + currentCardio.length}</strong><span>séances cette semaine</span>{currentWorkouts.length + currentCardio.length >= goal && <small className="history-badge">Objectif atteint</small>}</V5Card></div>
