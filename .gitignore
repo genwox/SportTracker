@@ -30,3 +30,10 @@ graphify-out/
 SportTracker.Data/Seed/exercises.json
 debug.log
 .gstack/
+
+# Ionic React frontend
+SportTracker.Web/node_modules/
+SportTracker.Web/dist/
+SportTracker.Web/dev-dist/
+SportTracker.Web/test-results/
+SportTracker.Web/playwright-report/
