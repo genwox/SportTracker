@@ -1,27 +1,24 @@
-@import '@fontsource/barlow/500.css';
-@import '@fontsource/barlow/700.css';
-@import '@fontsource/barlow-condensed/700.css';
-@import '@fontsource/barlow-condensed/800.css';
-@import '@fontsource/barlow-condensed/900.css';
+@font-face { font-family: 'Foruner'; src: url('/fonts/Foruner.ttf') format('truetype'); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Plus Jakarta Sans'; src: url('/fonts/jakarta-500.ttf') format('truetype'); font-style: normal; font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Plus Jakarta Sans'; src: url('/fonts/jakarta-600.ttf') format('truetype'); font-style: normal; font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Plus Jakarta Sans'; src: url('/fonts/jakarta-700.ttf') format('truetype'); font-style: normal; font-weight: 700; font-display: swap; }
 
 :root {
-  --st-cyan: #78e8e4;
   --st-neon: #d4f53c;
-  --st-dark: #172713;
+  --st-dark: #082d45;
   --st-surface: #ddf6f4;
-  --st-background: linear-gradient(160deg, #158e80 0%, var(--st-cyan) 55%, var(--st-surface) 100%);
   --st-text-muted: #315a70;
-  --st-font-body: 'Barlow', sans-serif;
-  --st-font-display: 'Barlow Condensed', sans-serif;
+  --st-font-body: 'Plus Jakarta Sans', sans-serif;
+  --st-font-display: 'Foruner', sans-serif;
   --ion-font-family: var(--st-font-body);
   --ion-background-color: #e7f2f1;
   --ion-text-color: var(--st-dark);
-  --ion-color-primary: #172713;
-  --ion-color-primary-rgb: 23, 39, 19;
+  --ion-color-primary: #082d45;
+  --ion-color-primary-rgb: 8, 45, 69;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #142210;
-  --ion-color-primary-tint: #2e3d2b;
+  --ion-color-primary-shade: #07283d;
+  --ion-color-primary-tint: #214257;
 }
 
 html, body, #root {
@@ -33,7 +30,7 @@ html, body, #root {
   -webkit-tap-highlight-color: transparent;
 }
 
-ion-content { --background: var(--st-background); }
+ion-content { --background: #e7f2f1 url('/backgrounds/paragon-v5.webp') center / cover no-repeat; }
 ion-tab-bar {
   --background: #ffffff;
   --color: var(--st-text-muted);
@@ -44,12 +41,11 @@ ion-tab-bar {
 .st-placeholder h1 {
   margin: 0;
   font-family: var(--st-font-display);
-  font-size: 36px;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-size: 34px;
+  font-weight: 400;
   color: var(--st-dark);
 }
-.v5-display { font-family: var(--st-font-display); font-weight: 800; line-height: 1; text-transform: uppercase; }
+.v5-display { font-family: var(--st-font-display); font-weight: 400; line-height: 1.1; }
 .v5-tab-icon { width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--v5-icon) center / contain no-repeat; mask: var(--v5-icon) center / contain no-repeat; }
 ion-tab-button { --color-selected: var(--st-dark); }
 ion-tab-button.tab-selected { --background: var(--st-neon); border-radius: 18px; }
