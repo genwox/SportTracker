@@ -1,9 +1,9 @@
-import { IonContent, IonPage, IonRefresher, IonRefresherContent } from '@ionic/react'
+import { IonContent, IonPage } from '@ionic/react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { apiRequest } from '../../api/client'
 import { getDraftOwner } from '../../api/tokenStore'
-import { V5Button, V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { V5Button, V5Card, V5Header, V5Loading, V5Refresher, V5State } from '../../ui'
 import { durationMinutes, summarizeToday } from './todayData'
 import type { TodayData, Workout, Cardio } from './todayData'
 import './today.css'
@@ -26,13 +26,9 @@ export function TodayPage() {
   const greeting = owner ? `Bonjour ${capitalize(owner.split('@')[0])}` : 'Bonjour'
   const subtitle = summary?.todayWorkout || summary?.todayCardio
     ? capitalize(dateFr.format(new Date())) : 'Une nouvelle journée commence.'
-  const refresh = async (event: CustomEvent) => {
-    try { await query.refetch() } finally { (event.target as HTMLIonRefresherElement).complete() }
-  }
-
   return <IonPage>
     <IonContent>
-      <IonRefresher slot="fixed" onIonRefresh={refresh}><IonRefresherContent /></IonRefresher>
+      <V5Refresher onRefresh={() => query.refetch()} />
       <main className="today-page">
         <V5Header title={greeting} subtitle={subtitle} />
         {!query.data && query.isPending && <V5Loading />}
