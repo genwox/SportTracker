@@ -107,10 +107,10 @@ SportTracker/
 
 ### Étape 4g — Migration frontend Ionic + React ⏳ À faire
 - Décision et arbitrages dans le vault : décision *Réécriture du frontend en Ionic React* + note *Étape 4g*. Choix de préférence assumé (non mesuré), gains attendus : démarrage à froid, geste retour iOS, transitions.
-- **`SportTracker.App` gelé** : aucun commit jusqu'à la bascule. La nouvelle UI vit dans `SportTracker.Web/` (Vite + Ionic React + TS), déployée sur un sous-domaine `beta.` pendant le développement.
+- **`SportTracker.App` gelé** : aucun commit jusqu'à la bascule. La nouvelle UI vit dans `SportTracker.Web/` (Vite + Ionic React + TS), déployée sur `https://beta.fmon-vps-n8n.fr` pendant le développement. **Plan d'implémentation (lots, vagues jev-orchestrator) : `Docs/migration-ionic/plan-4g.md`.**
 - **Exigences dès le 1er écran** : données via TanStack Query (cache affiché puis rafraîchi, jamais de spinner pleine page) ; tout défilement dans `IonContent` ; `mode: 'ios'` ; composants Ionic pour les comportements de plateforme, composants V5 maison pour l'identité visuelle ; minuteur de repos basé sur l'heure de fin (pas un compteur).
 - **Navigation v1** : 3 onglets (Today · Programmes · Historique/Progrès), Profil via avatar ; détails empilés avec geste retour ; feuilles pour catalogue, création d'exercice, pavé de saisie, minuteur ; séance live plein écran, sortie par « Terminer ».
-- Ordre : prérequis backend (`MapOpenApi` en dev + origine CORS `localhost:5173` et `beta.`) → tests xUnit de la logique C# (1RM, PR, minuteur) → auth/client HTTP → Today → séance live + brouillons offline (+ mêmes tests en Vitest) → Programmes → Historique/Progrès → Profil.
+- Ordre : prérequis backend (`MapOpenApi` en dev + origines CORS `localhost:5173` et `https://beta.fmon-vps-n8n.fr`) → tests xUnit de la logique C# (1RM, PR, minuteur) → auth/client HTTP → Today → séance live + brouillons offline (+ mêmes tests en Vitest) → Programmes → Historique/Progrès → Profil.
 - Types TS générés depuis OpenAPI (`openapi-typescript`). Mises à jour PWA appliquées au prochain lancement, jamais pendant une séance live.
 - **Bascule** sur `app.fmon-vps-n8n.fr` quand tous les écrans sont portés : service worker publié à `/service-worker.js` (remplace celui de Blazor), reprise du token `st-auth-token`, brouillons `sporttracker-live-v1` synchronisés avant, puis suppression de `SportTracker.App`.
 - Risques acceptés : pas de mesure préalable, pas de test mode avion avant bascule.
