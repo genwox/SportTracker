@@ -22,11 +22,11 @@ test('protected page redirects to login, then returns after a mocked Identity lo
   await page.getByRole('button', { name: 'Se connecter' }).click()
 
   await expect(page).toHaveURL(/\/tabs\/programs$/)
-  await expect(page.getByRole('heading', { name: 'Programmes' }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Carnets' }).first()).toBeVisible()
   expect(await page.evaluate(() => localStorage.getItem('st-auth-token'))).toBe('mock-token')
   expect(await page.evaluate(() => localStorage.getItem('st-draft-owner'))).toBe('athlete@example.com')
 
   await page.reload()
   await expect(page).toHaveURL(/\/tabs\/programs$/)
-  await expect(page.getByRole('heading', { name: 'Programmes' }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Carnets' }).first()).toBeVisible()
 })
