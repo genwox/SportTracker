@@ -82,8 +82,8 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
 
     await page.getByRole('tab', { name: 'Historique' }).click()
     await expect(page).toHaveURL(/\/tabs\/history$/)
-    await expect(page.getByRole('heading', { name: 'Historique/Progrès' })).toBeVisible()
-    await expect(page.locator('.history-stack').getByText('Séance musculation')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Historique', exact: true })).toBeVisible()
+    await expect(page.locator('.history-list').getByText('Séance musculation', { exact: true })).toBeVisible()
   })
 
   test('même parcours avec coupure réseau réelle pendant la saisie, puis reconnexion', async ({ page, context }) => {
@@ -158,7 +158,7 @@ test.describe('QA mobile — contrôles transverses (WebKit 390×844)', () => {
 
     // Première visite : le cache est vide, un état de chargement est toléré.
     await page.goto('/tabs/history')
-    await expect(page.getByRole('heading', { name: 'Historique/Progrès' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Historique', exact: true })).toBeVisible()
 
     // Revisite : les données sont en cache, pas de spinner plein écran.
     await page.goto('/tabs/today')

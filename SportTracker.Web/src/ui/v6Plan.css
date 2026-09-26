@@ -98,3 +98,10 @@ ion-textarea.v6-textarea { --color: var(--st-v6-ink); --placeholder-color: var(-
 ion-textarea.v6-textarea .label-text-wrapper { flex: 0 0 112px; width: 112px; min-width: 112px; max-width: 112px; }
 ion-textarea.v6-textarea .label-text { color: var(--st-v6-ink); font: 600 15px var(--st-font-body); }
 ion-textarea.v6-textarea .textarea-highlight { display: none; }
+
+/* ── Session row: trailing value, sliding variant (lot 4) ───────────────── */
+.v6-session-row__value { margin-inline-start: 8px; color: var(--st-v6-ink); font: 700 15px var(--st-font-body); white-space: nowrap; font-variant-numeric: tabular-nums; }
+ion-item-sliding.v6-sliding-session { border-radius: 20px; }
+/* Moves under the finger: opaque card, no blur (see .v6-sliding); the shadow would be clipped anyway. */
+.v6-sliding-session ion-item.v6-session-row { --background: var(--st-v6-card-solid); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.v6-sliding-session ion-item-option { border-radius: 20px; }

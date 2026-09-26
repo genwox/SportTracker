@@ -12,7 +12,12 @@ const backLabels: [RegExp, string][] = [
   [/^\/tabs\/today\/?$/, 'Aujourd’hui'],
   [/^\/tabs\/programs\/?$/, 'Carnets'],
   [/^\/tabs\/programs\/[^/]+\/?$/, 'Carnet'],
+  [/^\/tabs\/programs\/[^/]+\/sessions\/[^/]+\/?$/, 'Séance'],
   [/^\/tabs\/history\/cardio\/?$/, 'Cardio'],
+  [/^\/tabs\/history\/cardio\/[^/]+\/?$/, 'Sortie'],
+  [/^\/tabs\/history\/workouts\/?$/, 'Séances'],
+  [/^\/tabs\/history\/workouts\/[^/]+\/?$/, 'Séance'],
+  [/^\/tabs\/history\/progress\/?$/, 'Progrès'],
   [/^\/tabs\/history\/?$/, 'Historique'],
   [/^\/tabs\/profile\/?$/, 'Profil'],
 ]

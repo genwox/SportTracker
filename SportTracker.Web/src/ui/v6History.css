@@ -1,0 +1,36 @@
+/* V6 kit · lot 4: chart cards, bars, stat tiles, record banner (V5 motifs in the V6 glass). */
+
+.v6-chart-card, .v6-stat-tile, .v6-record-banner {
+  border: 1px solid var(--st-v6-line); background: var(--st-v6-card); box-shadow: 0 8px 22px #082d450d;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.v6-chart-card { display: grid; gap: 12px; min-width: 0; padding: 16px; border-radius: 20px; color: var(--st-v6-ink); }
+.v6-chart-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.v6-chart-card__head h2 { margin: 0; font: 400 20px/1.1 var(--st-font-display); overflow-wrap: normal; word-break: normal; hyphens: none; }
+.v6-chart-card__head span { flex: none; padding-top: 3px; color: var(--st-v6-muted); font: 500 12px var(--st-font-body); }
+
+.v6-bars { display: flex; align-items: stretch; gap: 8px; height: 120px; overflow-x: auto; scrollbar-width: none; }
+.v6-bars::-webkit-scrollbar { display: none; }
+.v6-bars--compact { gap: 6px; height: 72px; }
+.v6-bars__column { flex: 1; min-width: 30px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.v6-bars--compact .v6-bars__column { min-width: 22px; gap: 4px; }
+.v6-bars__column strong { color: var(--st-v6-ink); font: 700 11px var(--st-font-body); }
+.v6-bars__track { display: flex; flex: 1; align-items: flex-end; justify-content: center; width: 100%; }
+.v6-bars__track i { display: block; width: min(100%, 24px); border-radius: 7px 7px 4px 4px; background: var(--st-v6-nav); }
+.v6-bars__track i.is-highlight { background: var(--st-v6-action); box-shadow: inset 0 0 0 1px #082d451a; }
+.v6-bars__track i.is-empty { height: 4px; border-radius: 2px; }
+.v6-bars__column small { color: var(--st-v6-muted); font: 500 11px var(--st-font-body); white-space: nowrap; }
+
+.v6-stat-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.v6-stat-tiles--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.v6-stat-tile { display: grid; align-content: space-between; gap: 6px; min-width: 0; min-height: 76px; padding: 12px; border-radius: 20px; color: var(--st-v6-ink); }
+.v6-stat-tile strong { font: 400 clamp(18px, 5.4vw, 22px)/1.05 var(--st-font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v6-stat-tile strong small { font: 700 13px var(--st-font-body); }
+.v6-stat-tile span { color: var(--st-v6-muted); font: 500 12px/1.3 var(--st-font-body); }
+
+.v6-record-banner { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 12px 14px; border-radius: 20px; color: var(--st-v6-ink); }
+.v6-record-banner__icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 14px; background: var(--st-v6-nav); color: var(--st-v6-action); font-size: 22px; }
+.v6-record-banner__text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.v6-record-banner__text strong { font: 700 16px/1.3 var(--st-font-body); }
+.v6-record-banner__text small { color: var(--st-v6-muted); font: 500 13px var(--st-font-body); }
+.v6-record-banner__badge { flex: none; padding: 3px 8px; border-radius: 8px; background: var(--st-v6-action); font: 700 11px var(--st-font-body); }

@@ -3,7 +3,10 @@ import { IonReactRouter } from '@ionic/react-router'
 import { Redirect, Route } from 'react-router-dom'
 import { TodayPage } from '../features/today/pages'
 import { ProgramsPage, NewProgramPage, ProgramDetailPage, ProgramSessionDetailPage, NewProgramSessionPage, NewWorkoutSessionPage, ExerciseHistoryPage } from '../features/programs/pages'
-import { HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionDetailPage, CardioSessionsPage, CardioSessionDetailPage, NewCardioSessionPage } from '../features/history/pages'
+import {
+  HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionsPage, WorkoutSessionDetailPage, CardioSessionsPage, CardioSessionDetailPage,
+  NewCardioSessionPage, EditCardioSessionPage,
+} from '../features/history/pages'
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
 import { LiveMiniBar } from '../features/live/LiveMiniBar'
@@ -26,10 +29,13 @@ export const paths = {
   history: '/tabs/history',
   progress: '/tabs/history/progress',
   exerciseProgress: '/tabs/history/exercises/:exerciseId',
+  workouts: '/tabs/history/workouts',
   workoutDetail: '/tabs/history/workouts/:sessionId',
+  historyWorkoutNew: '/tabs/history/workouts/new',
   cardioSessions: '/tabs/history/cardio',
   cardioNew: '/tabs/history/cardio/new',
   cardioDetail: '/tabs/history/cardio/:sessionId',
+  cardioEdit: '/tabs/history/cardio/:sessionId/edit',
   profile: '/tabs/profile',
   preferences: '/tabs/profile/preferences',
   help: '/tabs/profile/help',
@@ -58,10 +64,13 @@ function Tabs() {
         <Route exact path={paths.history} component={HistoryPage} />
         <Route exact path={paths.progress} component={ProgressPage} />
         <Route exact path={paths.exerciseProgress} component={ExerciseProgressPage} />
+        <Route exact path={paths.workouts} component={WorkoutSessionsPage} />
         <Route exact path={paths.workoutDetail} component={WorkoutSessionDetailPage} />
+        <Route exact path={paths.historyWorkoutNew} component={NewWorkoutSessionPage} />
         <Route exact path={paths.cardioSessions} component={CardioSessionsPage} />
         <Route exact path={paths.cardioDetail} component={CardioSessionDetailPage} />
         <Route exact path={paths.cardioNew} component={NewCardioSessionPage} />
+        <Route exact path={paths.cardioEdit} component={EditCardioSessionPage} />
         <Route exact path={paths.profile} component={ProfilePage} />
         <Route exact path={paths.preferences} component={ProfilePreferencesPage} />
         <Route exact path={paths.help} component={HelpPage} />

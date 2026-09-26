@@ -1,76 +1,113 @@
 import { useState } from 'react'
-import { IonRouterLink } from '@ionic/react'
+import { barbellOutline, pulseOutline, statsChartOutline } from 'ionicons/icons'
 import { getDraftOwner } from '../../api/tokenStore'
-import { V5Card, V6Header, V6Skeleton, V5State } from '../../ui'
-import { cardioName, dayLabel, durationMinutes, frNumber, localDay, muscleCounts, numberOf, useCardio, useWorkouts, weeklySetCounts } from './data'
-import { Page, Refresh, NavCard, SectionTitle, dateKey, durationLabel, monday, today } from './shared'
+import { V5State, V6Badge, V6Bars, V6ChartCard, V6Chip, V6ChipRow, V6Item, V6List, V6Segment, V6Skeleton, V6StatTiles } from '../../ui'
+import { dayLabel, durationMinutes, localDay, muscleCounts, useCardio, useWorkouts, weeklySetCounts, type Cardio, type Workout } from './data'
+import { inPeriod, newestFirst, periodOptions, plural, weeklyTotals } from './historyData'
+import { useSessionRows } from './rows'
+import { Page, QueryError, dateKey, monday, today } from './shared'
+
+/* ── 17 · Historique général ─────────────────────────────────────────────── */
+
+type Kind = 'all' | 'workout' | 'cardio'
+const kinds = [{ value: 'all', label: 'Tout' }, { value: 'workout', label: 'Muscu' }, { value: 'cardio', label: 'Cardio' }] as const
 
 export function HistoryPage() {
   const workouts = useWorkouts(), cardio = useCardio()
-  const [filter, setFilter] = useState<'Tous' | 'Muscu' | 'Cardio'>('Tous')
-  const items = [
-    ...(workouts.data ?? []).map(session => ({ id: `w-${session.id}`, date: session.date ?? '', kind: 'Muscu', name: session.name || 'Séance musculation', meta: `${durationLabel(session.duration)} · ${session.workoutExercises?.length ?? 0} exercice(s)`, href: `/tabs/history/workouts/${session.id}` })),
-    ...(cardio.data ?? []).map(session => ({ id: `c-${session.id}`, date: session.date ?? '', kind: 'Cardio', name: session.name || cardioName(session.type), meta: `${durationLabel(session.duration)}${numberOf(session.distance) > 0 ? ` · ${frNumber(numberOf(session.distance))} km` : ''}`, href: `/tabs/history/cardio/${session.id}` })),
-  ].filter(item => filter === 'Tous' || item.kind === filter).sort((a, b) => b.date.localeCompare(a.date))
-  const thisMonday = dateKey(monday(new Date()))
-  const lastMondayDate = monday(new Date()); lastMondayDate.setDate(lastMondayDate.getDate() - 7)
-  const lastMonday = dateKey(lastMondayDate)
-  const groups = [
-    { label: 'Cette semaine', items: items.filter(item => localDay(item.date) >= thisMonday) },
-    { label: 'Semaine dernière', items: items.filter(item => localDay(item.date) >= lastMonday && localDay(item.date) < thisMonday) },
-    { label: 'Plus tôt', items: items.filter(item => localDay(item.date) < lastMonday) },
+  const [kind, setKind] = useState<Kind>('all')
+  const [period, setPeriod] = useState<string | null>(null)
+  const rows = useSessionRows({ workouts: workouts.data, cardio: cardio.data, variant: 'history' })
+  type Entry = { kind: 'workout'; date?: string; session: Workout } | { kind: 'cardio'; date?: string; session: Cardio }
+  const all: Entry[] = [
+    ...(kind !== 'cardio' ? (workouts.data ?? []).map(session => ({ kind: 'workout' as const, date: session.date, session })) : []),
+    ...(kind !== 'workout' ? (cardio.data ?? []).map(session => ({ kind: 'cardio' as const, date: session.date, session })) : []),
   ]
+  const periods = periodOptions(all.map(entry => entry.date ?? ''))
+  const selected = periods.some(option => option.value === period) ? period : null
+  const entries = newestFirst(all).filter(entry => inPeriod(entry.date, selected, periods))
+  const weeks = weeklyTotals(all, () => 1, 6)
   const loading = !workouts.data && !cardio.data && (workouts.isPending || cardio.isPending)
-  const error = (workouts.isError && !workouts.data) || (cardio.isError && !cardio.data)
-  return <Page><Refresh onRefresh={() => Promise.all([workouts.refetch(), cardio.refetch()])} />
-    <V6Header title="Historique/Progrès" subtitle="Toutes tes séances" />
-    <IonRouterLink routerLink="/tabs/history/progress" className="history-progress-link">Voir mes progrès <span aria-hidden="true">›</span></IonRouterLink>
-    <div className="history-filters" role="tablist" aria-label="Filtrer l'historique">{(['Tous', 'Muscu', 'Cardio'] as const).map(option => <button key={option} type="button" role="tab" aria-selected={filter === option} className={filter === option ? 'active' : ''} onClick={() => setFilter(option)}>{option}</button>)}</div>
-    {loading ? <V6Skeleton /> : error ? <V5State title="Impossible de charger l'historique" message="Impossible de récupérer tes séances." error onRetry={() => { void workouts.refetch(); void cardio.refetch() }} />
-      : items.length === 0 ? <V5State title="Aucune séance enregistrée" message="Tes séances apparaîtront ici une fois enregistrées." />
-        : groups.filter(group => group.items.length).map(group => <section key={group.label}><SectionTitle>{group.label}</SectionTitle><div className="history-stack">{group.items.map(item => <NavCard href={item.href} key={item.id}><div className="history-row">
-          <span className={`history-row-icon ${item.kind === 'Muscu' ? 'strength' : ''}`} aria-hidden="true">{item.kind === 'Muscu' ? '◆' : '↗'}</span>
-          <span className="history-row-copy"><strong>{item.name}</strong><small>{dayLabel(item.date, { day: 'numeric', month: 'short' })} · {item.meta}</small></span><span aria-hidden="true">›</span>
-        </div></NavCard>)}</div></section>)}
-    <div className="history-actions"><IonRouterLink routerLink="/tabs/history/cardio/new" className="history-action">+ Cardio</IonRouterLink><IonRouterLink routerLink="/tabs/history/cardio" className="history-action secondary">Toutes les sorties</IonRouterLink></div>
+  const failed = workouts.isError && !workouts.data ? workouts : cardio.isError && !cardio.data ? cardio : null
+  const retry = () => { void workouts.refetch(); void cardio.refetch() }
+  return <Page title="Historique" subtitle="Toutes tes séances" refresh={() => Promise.all([workouts.refetch(), cardio.refetch()])}>
+    <V6List>
+      <V6Item icon={statsChartOutline} title="Voir mes progrès" detail="Répartition, séries, temps actif" routerLink="/tabs/history/progress" />
+      <V6Item icon={barbellOutline} title="Séances musculation" detail={workouts.data ? plural(workouts.data.length, 'séance') : undefined} routerLink="/tabs/history/workouts" />
+      <V6Item icon={pulseOutline} title="Sorties cardio" detail={cardio.data ? plural(cardio.data.length, 'sortie') : undefined} routerLink="/tabs/history/cardio" />
+    </V6List>
+    <V6Segment label="Filtrer l’historique" value={kind} options={kinds} onChange={setKind} />
+    {periods.length > 0 && <V6ChipRow label="Période">{periods.map(option =>
+      <V6Chip key={option.value} selected={selected === option.value} onClick={() => setPeriod(selected === option.value ? null : option.value)}>{option.label}</V6Chip>)}</V6ChipRow>}
+    {loading ? <V6Skeleton count={3} /> : failed ? <QueryError title="Impossible de charger l’historique" error={failed.error} retry={retry} /> : <>
+      {all.length > 0 && <V6ChartCard title="Séances par semaine" caption="6 sem.">
+        <V6Bars label="Séances par semaine sur six semaines" showValues bars={weeks.map(week => ({ key: week.start, label: week.label, value: week.value, highlight: week.current, title: `Semaine du ${dayLabel(week.start)} : ${plural(week.value, 'séance')}` }))} />
+      </V6ChartCard>}
+      {entries.length === 0 ? <V5State title="Aucune séance enregistrée" message={all.length ? 'Aucune séance sur cette période.' : 'Tes séances apparaîtront ici une fois enregistrées.'} />
+        : <section className="history-list" aria-label="Séances">{entries.map(entry => entry.kind === 'workout' ? rows.workoutRow(entry.session) : rows.cardioRow(entry.session))}</section>}
+    </>}
+    {rows.contextMenu}
   </Page>
 }
+
+/* ── 18 · Progrès ────────────────────────────────────────────────────────── */
 
 export function ProgressPage() {
   const workouts = useWorkouts(), cardio = useCardio()
   const allWorkouts = workouts.data ?? [], allCardio = cardio.data ?? []
+  const everything = [...allWorkouts, ...allCardio]
   const start = monday(new Date()), startKey = dateKey(start)
   const previous = new Date(start); previous.setDate(previous.getDate() - 7)
   const previousKey = dateKey(previous)
+  const thisWeek = everything.filter(item => localDay(item.date ?? '') >= startKey)
   const currentWorkouts = allWorkouts.filter(item => localDay(item.date ?? '') >= startKey)
-  const currentCardio = allCardio.filter(item => localDay(item.date ?? '') >= startKey)
-  const weeklyMinutes = Math.floor([...currentWorkouts, ...currentCardio].reduce((sum, item) => sum + durationMinutes(item.duration), 0))
-  const previousMinutes = Math.floor([...allWorkouts, ...allCardio].filter(item => localDay(item.date ?? '') >= previousKey && localDay(item.date ?? '') < startKey).reduce((sum, item) => sum + durationMinutes(item.duration), 0))
-  const allDates = new Set([...allWorkouts, ...allCardio].map(item => localDay(item.date ?? '')))
+  const weeklyMinutes = Math.floor(thisWeek.reduce((sum, item) => sum + durationMinutes(item.duration), 0))
+  const previousMinutes = Math.floor(everything.filter(item => localDay(item.date ?? '') >= previousKey && localDay(item.date ?? '') < startKey).reduce((sum, item) => sum + durationMinutes(item.duration), 0))
+  const allDates = new Set(everything.map(item => localDay(item.date ?? '')))
   let streak = 0; const cursor = new Date(); while (allDates.has(dateKey(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1) }
   const thirtyDays = new Date(); thirtyDays.setDate(thirtyDays.getDate() - 29)
   const distribution = muscleCounts(allWorkouts.filter(item => localDay(item.date ?? '') >= dateKey(thirtyDays)))
   const weeklyMuscles = muscleCounts(currentWorkouts)
   const totalSets = distribution.reduce((sum, item) => sum + item.count, 0)
-  const maxSets = Math.max(1, ...weeklyMuscles.map(item => item.count))
   const owner = getDraftOwner()?.toLowerCase()
   const storedGoal = owner ? Number(localStorage.getItem(`st-weekly-goal:v1:${owner}`)) : 0
   const goal = Number.isInteger(storedGoal) && storedGoal > 0 ? storedGoal : 4
-  const days = Array.from({ length: 7 }, (_, index) => { const date = new Date(start); date.setDate(date.getDate() + index); return { label: ['L', 'M', 'M', 'J', 'V', 'S', 'D'][index], key: dateKey(date), count: [...allWorkouts, ...allCardio].filter(item => localDay(item.date ?? '') === dateKey(date)).length } })
-  const maxDay = Math.max(1, ...days.map(day => day.count))
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(start); date.setDate(date.getDate() + index)
+    const key = dateKey(date)
+    return { key, label: ['L', 'M', 'M', 'J', 'V', 'S', 'D'][index], minutes: Math.round(everything.filter(item => localDay(item.date ?? '') === key).reduce((sum, item) => sum + durationMinutes(item.duration), 0)) }
+  })
   const weeks = weeklySetCounts(allWorkouts, start)
-  const maxWeek = Math.max(1, ...weeks.map(week => week.count))
-  const error = (workouts.isError && !workouts.data) || (cardio.isError && !cardio.data)
-  return <Page><Refresh onRefresh={() => Promise.all([workouts.refetch(), cardio.refetch()])} />
-    <V6Header title="Progrès" subtitle={`Semaine du ${dayLabel(start.toISOString(), { day: 'numeric', month: 'long' })}`} backHref="/tabs/history" />
-    {!workouts.data && !cardio.data && (workouts.isPending || cardio.isPending) ? <V6Skeleton /> : error ? <V5State title="Impossible de charger tes progrès" message="Impossible de récupérer tes séances." error onRetry={() => { void workouts.refetch(); void cardio.refetch() }} /> : <>
-      <V5Card className="history-minutes"><span>Minutes cette semaine</span><strong>{weeklyMinutes} min</strong>{weeklyMinutes !== previousMinutes && <small>{weeklyMinutes - previousMinutes > 0 ? '+' : ''}{weeklyMinutes - previousMinutes} min par rapport à la semaine dernière</small>}</V5Card>
-      <div className="history-summary two"><V5Card><strong>{streak}</strong><span>jour{streak > 1 ? 's' : ''} · série en cours</span></V5Card><V5Card><strong>{currentWorkouts.length + currentCardio.length}</strong><span>séances cette semaine</span>{currentWorkouts.length + currentCardio.length >= goal && <small className="history-badge">Objectif atteint</small>}</V5Card></div>
-      <section><SectionTitle>Répartition musculaire · 30 jours</SectionTitle><V5Card>{distribution.length ? <><div className="history-muscle-strip" role="img" aria-label="Répartition des séries par groupe musculaire">{distribution.map(item => <span key={item.id} style={{ width: `${item.count / totalSets * 100}%`, background: item.color }} title={`${item.label} : ${item.count} séries`} />)}</div><div className="history-legend">{distribution.map(item => <span key={item.id}><i style={{ background: item.color }} />{item.label} · {item.count}</span>)}</div></> : <p>Aucune série musculaire sur les 30 derniers jours.</p>}</V5Card></section>
-      <section><SectionTitle>Séries par groupe · cette semaine</SectionTitle><V5Card>{weeklyMuscles.length ? <div className="history-muscle-bars" role="img" aria-label="Séries par groupe cette semaine">{weeklyMuscles.map(item => <div key={item.id} title={`${item.label} : ${item.count} séries`}><strong>{item.count}</strong><span className="history-muscle-track"><i style={{ height: `${item.count / maxSets * 100}%`, background: item.color }} /></span><small>{item.label}</small></div>)}</div> : <p>Aucune série enregistrée cette semaine.</p>}</V5Card></section>
-      <section><SectionTitle>Séries par semaine</SectionTitle><V5Card><div className="history-week-bars" role="img" aria-label="Séries par semaine sur six semaines">{weeks.map(week => <div key={week.start} title={`Semaine du ${dayLabel(week.start)} : ${week.count} séries`}><strong>{week.count}</strong><span className="history-week-track"><i className={week.start === startKey ? 'active' : ''} style={{ height: `${week.count === 0 ? 0 : Math.max(8, week.count / maxWeek * 100)}%` }} /></span><small>{dayLabel(week.start, { day: 'numeric', month: 'short' })}</small></div>)}</div></V5Card></section>
-      <section><SectionTitle>Séances par jour</SectionTitle><V5Card><div className="history-week-bars" role="img" aria-label="Séances par jour cette semaine">{days.map(day => <div key={day.key} title={`${day.key} : ${day.count} séance(s)`}><span className="history-week-track"><i className={day.key === today() ? 'active' : ''} style={{ height: `${day.count === 0 ? 0 : Math.max(10, day.count / maxDay * 100)}%` }} /></span><small>{day.label}</small></div>)}</div></V5Card></section>
-      <V5Card><strong>Continue sur ta lancée</strong><p>Tes séances alimentent ce bilan.</p></V5Card>
-    </>}
+  const diff = weeklyMinutes - previousMinutes
+  const failed = workouts.isError && !workouts.data ? workouts : cardio.isError && !cardio.data ? cardio : null
+  return <Page title="Progrès" subtitle={`Semaine du ${dayLabel(start.toISOString(), { day: 'numeric', month: 'long' })}`} backHref="/tabs/history"
+    refresh={() => Promise.all([workouts.refetch(), cardio.refetch()])}>
+    {!workouts.data && !cardio.data && (workouts.isPending || cardio.isPending) ? <V6Skeleton count={3} />
+      : failed ? <QueryError title="Impossible de charger tes progrès" error={failed.error} retry={() => { void workouts.refetch(); void cardio.refetch() }} /> : <>
+        {streak > 1 && <p className="history-streak">{streak} j d’affilée</p>}
+        <V6StatTiles tiles={[
+          { value: `${thisWeek.length}/${goal}`, label: 'séances cette semaine' },
+          { value: weeklyMinutes, unit: 'min', label: 'cette semaine' },
+          { value: streak, unit: 'j', label: 'série en cours' },
+        ]} />
+        {(thisWeek.length >= goal || diff !== 0) && <div className="history-progress-notes">
+          {thisWeek.length >= goal && <V6Badge tone="action">Objectif atteint</V6Badge>}
+          {diff !== 0 && <V6Badge tone="surface">{diff > 0 ? '+' : ''}{diff} min par rapport à la semaine dernière</V6Badge>}
+        </div>}
+        <V6ChartCard title="Répartition musculaire" caption="30 j">
+          {distribution.length ? <><div className="history-muscle-strip" role="img" aria-label="Répartition des séries par groupe musculaire">{distribution.map(item => <span key={item.id} style={{ width: `${item.count / totalSets * 100}%`, background: item.color }} title={`${item.label} : ${item.count} séries`} />)}</div>
+            <div className="history-legend">{distribution.map(item => <span key={item.id}><i style={{ background: item.color }} />{item.label} · {item.count}</span>)}</div></>
+            : <p className="history-empty">Aucune série musculaire sur les 30 derniers jours.</p>}
+        </V6ChartCard>
+        <V6ChartCard title="Séries par groupe" caption="cette semaine">
+          {weeklyMuscles.length ? <V6Bars label="Séries par groupe cette semaine" showValues bars={weeklyMuscles.map(item => ({ key: String(item.id), label: item.label, value: item.count, color: item.color, title: `${item.label} : ${item.count} séries` }))} />
+            : <p className="history-empty">Aucune série enregistrée cette semaine.</p>}
+        </V6ChartCard>
+        <V6ChartCard title="Séries par semaine" caption="6 sem.">
+          <V6Bars label="Séries par semaine sur six semaines" showValues bars={weeks.map(week => ({ key: week.start, label: dayLabel(week.start, { day: 'numeric', month: 'short' }).replace('.', ''), value: week.count, highlight: week.start === startKey, title: `Semaine du ${dayLabel(week.start)} : ${week.count} séries` }))} />
+        </V6ChartCard>
+        <V6ChartCard title="Temps actif" caption="7 j">
+          <V6Bars label="Minutes d’entraînement par jour cette semaine" bars={days.map(day => ({ key: day.key, label: day.label, value: day.minutes, highlight: day.key === today() && day.minutes > 0, title: `${day.key} : ${day.minutes} min` }))} />
+        </V6ChartCard>
+      </>}
   </Page>
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, type ComponentProps, type ReactNode } from 'react'
 import {
   createAnimation, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonList, IonModal, IonReorder, IonReorderGroup, IonTextarea,
 } from '@ionic/react'
-import { addOutline, chevronForwardOutline, removeOutline, reorderThreeOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, chevronForwardOutline, copyOutline, removeOutline, reorderThreeOutline, trashOutline } from 'ionicons/icons'
 import { usePressRepeat, useV6LongPress } from './v6Hooks'
 import './v6Plan.css'
 
@@ -12,9 +12,10 @@ import './v6Plan.css'
  * Glass card row of a list of sessions or programmes: icon tile, title, detail, V5 badges, chevron.
  * Tap opens it (push); a long press opens its context menu.
  */
-export function V6SessionRow({ tile, tileColor, title, detail, badges, onClick, onLongPress, ariaLabel }: {
+export function V6SessionRow({ tile, tileColor, title, detail, badges, value, onClick, onLongPress, ariaLabel }: {
   tile: ReactNode; tileColor?: string; title: ReactNode; detail?: ReactNode; badges?: ReactNode
-  onClick?: () => void; onLongPress?: () => void; ariaLabel?: string
+  /** Short trailing value before the chevron (« PR », « 8,2 km », « 18 »). */
+  value?: ReactNode; onClick?: () => void; onLongPress?: () => void; ariaLabel?: string
 }) {
   const { handlers, guard } = useV6LongPress(onLongPress)
   return <IonItem className="v6-session-row" button={Boolean(onClick)} detail={false} lines="none" onClick={guard(onClick)} aria-label={ariaLabel} {...handlers}>
@@ -24,8 +25,30 @@ export function V6SessionRow({ tile, tileColor, title, detail, badges, onClick, 
       {detail && <small>{detail}</small>}
       {badges && <span className="v6-session-row__badges">{badges}</span>}
     </div>
+    {value != null && <span slot="end" className="v6-session-row__value">{value}</span>}
     {onClick && <IonIcon slot="end" icon={chevronForwardOutline} className="v6-session-row__chevron" aria-hidden="true" />}
   </IonItem>
+}
+
+/**
+ * Session row that slides (IonItemSliding): swipe left for Supprimer (system red, a full swipe triggers it),
+ * swipe right for Dupliquer. The callbacks ask for confirmation (useV6ActionSheet).
+ */
+export function V6SlidingSessionRow({ onDelete, onDuplicate, deleteAriaLabel, duplicateAriaLabel, ...row }: ComponentProps<typeof V6SessionRow> & {
+  onDelete?: () => void; onDuplicate?: () => void; deleteAriaLabel?: string; duplicateAriaLabel?: string
+}) {
+  const ref = useRef<HTMLIonItemSlidingElement>(null)
+  const run = (action?: () => void) => { void ref.current?.close(); action?.() }
+  const label = (text: string, aria?: string) => aria ? <><span aria-hidden="true">{text}</span><span className="v6-visually-hidden">{aria}</span></> : text
+  return <IonItemSliding ref={ref} className="v6-sliding v6-sliding-session">
+    {onDuplicate && <IonItemOptions side="start">
+      <IonItemOption className="v6-sliding__duplicate" onClick={() => run(onDuplicate)}><IonIcon slot="top" icon={copyOutline} />{label('Dupliquer', duplicateAriaLabel)}</IonItemOption>
+    </IonItemOptions>}
+    <V6SessionRow {...row} />
+    {onDelete && <IonItemOptions side="end" onIonSwipe={() => run(onDelete)}>
+      <IonItemOption color="danger" expandable className="v6-sliding__delete" onClick={() => run(onDelete)}><IonIcon slot="top" icon={trashOutline} />{label('Supprimer', deleteAriaLabel)}</IonItemOption>
+    </IonItemOptions>}
+  </IonItemSliding>
 }
 
 /* ── Badge ───────────────────────────────────────────────────────────────── */

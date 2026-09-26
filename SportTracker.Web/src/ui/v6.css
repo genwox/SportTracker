@@ -40,6 +40,9 @@
 .v6-back { --color: var(--st-v6-ink); --padding-start: 2px; --padding-end: 10px; height: 44px; margin: 0; font: 600 15px var(--st-font-body); letter-spacing: 0; text-transform: none; }
 .v6-back ion-icon { font-size: 26px; margin-inline-end: 2px; }
 .v6-back span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* A long back label (« Historique ») shrinks with an ellipsis inside its column instead of running under the small title. */
+.v6-header-bar__start .v6-back { max-width: 100%; min-width: 0; }
+.v6-header-bar__start .v6-back span { min-width: 0; }
 
 .v6-avatar { --padding-start: 0; --padding-end: 0; width: 44px; height: 44px; margin: 0; }
 .v6-avatar__disc { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 17px; background: var(--st-v6-nav); color: var(--st-v6-action); font: 700 14px var(--st-font-body); }

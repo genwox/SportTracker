@@ -9,10 +9,15 @@ describe('backLabelFor', () => {
     expect(backLabelFor('/tabs/history')).toBe('Historique')
     expect(backLabelFor('/tabs/history/cardio')).toBe('Cardio')
     expect(backLabelFor('/tabs/profile')).toBe('Profil')
+    expect(backLabelFor('/tabs/programs/12/sessions/4')).toBe('Séance')
+    expect(backLabelFor('/tabs/history/workouts')).toBe('Séances')
+    expect(backLabelFor('/tabs/history/workouts/51')).toBe('Séance')
+    expect(backLabelFor('/tabs/history/cardio/8')).toBe('Sortie')
+    expect(backLabelFor('/tabs/history/progress')).toBe('Progrès')
   })
 
   it('falls back to « Retour » for any other page', () => {
-    expect(backLabelFor('/tabs/programs/12/sessions/4')).toBe('Retour')
+    expect(backLabelFor('/tabs/history/exercises/7')).toBe('Retour')
     expect(backLabelFor('/tabs/profile/help')).toBe('Retour')
   })
 })

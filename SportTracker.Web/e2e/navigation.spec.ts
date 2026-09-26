@@ -9,7 +9,7 @@ test('the three main tabs are available', async ({ page }) => {
   await page.getByRole('tab', { name: 'Programmes' }).click()
   await expect(page.getByRole('heading', { name: 'Carnets' })).toBeVisible()
   await page.getByRole('tab', { name: 'Historique' }).click()
-  await expect(page.getByRole('heading', { name: 'Historique/Progrès' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Historique', exact: true })).toBeVisible()
 })
 
 // IonRouterOutlet keeps the LAST matching route: a static path declared before its :param twin was swallowed by it.

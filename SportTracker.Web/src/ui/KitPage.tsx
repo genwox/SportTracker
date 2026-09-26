@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { IonContent, IonPage } from '@ionic/react'
 import { IonIcon } from '@ionic/react'
-import { addOutline, copyOutline, layersOutline, openOutline, readerOutline, refreshOutline, scaleOutline, speedometerOutline, syncOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, barbellOutline, copyOutline, layersOutline, openOutline, readerOutline, refreshOutline, scaleOutline, speedometerOutline, syncOutline, trashOutline } from 'ionicons/icons'
 import {
   V6Button, V6Chip, V6ChipRow, V6Header, V6InputItem, V6Item, V6List, V6Segment, V6Sheet, V6Skeleton, V6SlidingRow,
   V6StickyAction, V6Toggle,
 } from './v6'
 import { useV6ActionSheet, useV6Toast } from './v6Feedback'
 import { V6Keypad, V6LiveMiniBar, V6Searchbar, V6SetRow, V6Stepper, V6WheelPicker } from './v6Live'
-import { V6Badge, V6ContextMenu, V6ReorderList, V6ReorderRow, V6SessionRow, V6StepperItem } from './v6Plan'
+import { V6Badge, V6ContextMenu, V6ReorderList, V6ReorderRow, V6SessionRow, V6SlidingSessionRow, V6StepperItem } from './v6Plan'
+import { V6Bars, V6ChartCard, V6RecordBanner, V6StatTiles } from './v6History'
 import './kit.css'
 
 const periods = [{ value: 'week', label: 'Semaine' }, { value: 'month', label: 'Mois' }, { value: 'year', label: 'Année' }] as const
@@ -139,6 +140,20 @@ export function KitPage() {
           </V6ReorderList>
           <V6List header="Paramètres"><V6StepperItem label="Séries" value={targetSets} min={1} max={10} onChange={setTargetSets} /></V6List>
           <div className="kit-inline"><V6Badge tone="action">Fait</V6Badge><V6Badge>À faire</V6Badge><V6Badge tone="warmup">Éch.</V6Badge><V6Badge tone="dropset">Drop</V6Badge><V6Badge tone="failure">Échec</V6Badge><V6Badge tone="ink">Superset A</V6Badge></div>
+        </section>
+
+        <section className="kit-section" aria-label="Historique">
+          <h2>Historique (lot 4)</h2>
+          <p className="kit-hint">Glisse la séance vers la gauche pour «&nbsp;Supprimer&nbsp;» (rouge, une feuille demande confirmation ; un glissement complet la déclenche), vers la droite pour «&nbsp;Dupliquer&nbsp;». Appui long : le même menu que les carnets.</p>
+          <V6SlidingSessionRow tile={<IonIcon icon={barbellOutline} />} title="Haut du corps" detail="16 sept · 5 exercices · 18 séries" value="PR"
+            badges={<><V6Badge tone="warmup">Éch. ×2</V6Badge><V6Badge tone="ink">Normal ×14</V6Badge><V6Badge tone="dropset">Drop ×2</V6Badge></>}
+            onClick={() => { void toast.success('La séance s’ouvre') }} onLongPress={() => setMenu(true)}
+            onDelete={() => { void actions.confirm({ title: 'Supprimer « Haut du corps » ?', confirmText: 'Supprimer la séance' }) }} onDuplicate={() => { void toast.success('Séance dupliquée') }} />
+          <V6StatTiles tiles={[{ value: '8,4', unit: 'T', label: 'volume' }, { value: 18, label: 'séries' }, { value: 2, label: 'records' }]} />
+          <V6ChartCard title="Séances par semaine" caption="6 sem.">
+            <V6Bars label="Séances par semaine" showValues bars={[2, 3, 0, 4, 3, 3].map((value, index) => ({ key: String(index), label: `S${34 + index}`, value, highlight: index === 5 }))} />
+          </V6ChartCard>
+          <V6RecordBanner title="Record : plus longue sortie" detail="Course · 8,2 km · battu de 1,1 km" />
         </section>
 
         <section className="kit-section" aria-label="Chargement">

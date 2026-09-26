@@ -1,102 +1,63 @@
-.history-page { width: min(100%, 430px); min-height: 100%; margin: 0 auto; padding: 0 20px calc(30px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; color: var(--st-dark); }
+/* Historique · V6 lot 4 (screens 04, 06 to 09, 16 to 18). V5 data kept: set-type badges, supersets, RPE, notes, records, charts. */
+.history-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 28px; display: grid; align-content: start; gap: 16px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
 .history-page { --v6-gap: 16px; --v6-gutter: 20px; }
-.history-section-title { margin: 8px 0 10px 2px; color: var(--st-text-muted); font: 400 22px/1.12 var(--st-font-display); }
-.history-stack { display: grid; gap: 10px; }
-.history-link { display: block; color: inherit; text-decoration: none; }
-.history-link .v5-card { padding: 13px; }
-.history-link:active .v5-card { transform: scale(.985); }
-.history-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 46px; color: var(--st-text-muted); }
-.history-row-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--st-surface); color: var(--st-dark); font-size: 21px; }
-.history-row-icon.strength { background: var(--st-neon); }
-.history-row-copy { display: grid; gap: 3px; min-width: 0; }
-.history-row-copy strong { overflow: hidden; color: var(--st-dark); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
-.history-row-copy small { color: var(--st-text-muted); font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
-.history-progress-link, .history-action { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 12px 16px; border-radius: 15px; background: var(--st-neon); color: var(--st-dark); font-weight: 700; text-decoration: none; }
-.history-action.secondary { background: var(--st-surface); }
-.history-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.history-filters { display: flex; gap: 6px; padding: 5px; border-radius: 17px; background: #f8ffffe6; }
-.history-filters button { flex: 1; min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--st-text-muted); font: 700 13px var(--st-font-body); }
-.history-filters button.active { background: var(--st-neon); color: var(--st-dark); }
-.history-record { display: grid; gap: 5px; }
-.history-record > span, .history-minutes > span { color: var(--st-text-muted); font: 600 12px var(--st-font-body); }
-.history-record strong { font: 400 44px/1 var(--st-font-display); }
-.history-record strong small { font-size: 18px; }
-.history-record p, .history-minutes small, .history-page .v5-card p { margin: 0; color: var(--st-text-muted); font-size: 12px; }
-.history-chart-caption { margin: 0 0 8px !important; text-align: right; }
-.history-bars { display: flex; align-items: flex-end; gap: 12px; height: 126px; overflow-x: auto; }
-.history-bar-column { flex: 1; min-width: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 7px; height: 100%; }
-.history-bar { width: min(100%, 32px); border-radius: 7px 7px 3px 3px; background: var(--st-dark); }
-.history-bar.record { background: var(--st-neon); }
-.history-bar-column small { color: var(--st-text-muted); font-size: 10px; white-space: nowrap; }
-.history-entry { display: grid; gap: 8px; }
-.history-entry strong { font: 700 16px var(--st-font-body); }
-.history-entry em { color: var(--st-text-muted); font-style: normal; }
-.history-entry span { color: var(--st-text-muted); font-size: 13px; overflow-wrap: anywhere; }
-.history-summary, .history-cardio-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.history-summary.two, .history-cardio-stats { grid-template-columns: repeat(2, 1fr); }
-.history-summary .v5-card, .history-cardio-stats .v5-card { display: grid; gap: 4px; padding: 12px; min-width: 0; }
-.history-summary strong, .history-cardio-stats strong { font: 400 23px/1 var(--st-font-display); overflow-wrap: anywhere; }
-.history-summary span, .history-cardio-stats span { color: var(--st-text-muted); font-size: 11px; }
-.history-superset .v5-card { border-left: 5px solid #d4f53c; }
-.history-badge { display: inline-block; width: fit-content; padding: 4px 8px; border-radius: 99px; background: var(--st-neon); color: var(--st-dark); font-size: 10px; font-weight: 800; }
-.history-distance { display: grid; color: var(--st-dark); font: 400 21px/1 var(--st-font-display); text-align: right; }
-.history-distance small { color: var(--st-text-muted); font: 400 11px var(--st-font-body); }
-.history-cardio-hero { display: grid; gap: 3px; }
-.history-cardio-hero span { color: var(--st-text-muted); font-size: 12px; font-weight: 700; }
-.history-cardio-hero strong { font: 400 72px/.95 var(--st-font-display); }
-.history-cardio-hero small { color: var(--st-text-muted); }
-.history-form { display: grid; gap: 14px; }
-.history-form .v5-card { display: grid; gap: 14px; }
-.history-form label { display: grid; gap: 6px; min-width: 0; color: var(--st-text-muted); font-size: 12px; font-weight: 600; }
-.history-form input, .history-form ion-select { width: 100%; min-width: 0; min-height: 44px; padding: 9px 12px; border: 1px solid #c9e6e4; border-radius: 13px; background: #fff; color: var(--st-dark); font: 14px var(--st-font-body); }
-.history-form ion-select { padding: 0 12px; }
-.history-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.history-form > a { justify-self: center; color: var(--st-text-muted); font-size: 12px; text-decoration: none; }
-.history-minutes { display: grid; gap: 6px; }
-.history-minutes strong { font: 400 39px/1 var(--st-font-display); }
-.history-muscle-strip { display: flex; overflow: hidden; height: 16px; border-radius: 99px; background: var(--st-surface); }
-.history-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 12px; color: var(--st-text-muted); font-size: 11px; }
+.history-page p { margin: 0; }
+.history-page .v6-list-group ion-list.v6-list { margin: 0; }
+.history-section-title { margin: 4px 0 -4px; color: var(--st-v6-ink); font: 400 22px/1.1 var(--st-font-display); }
+.history-list, .history-blocks, .history-entries, .history-form { display: grid; gap: 10px; }
+.history-form { gap: 16px; }
+.history-hint { padding: 0 4px; color: var(--st-v6-card-solid); font: 600 12px/1.4 var(--st-font-body); }
+.history-empty { color: var(--st-v6-muted); font: 500 13px/1.4 var(--st-font-body); }
+
+/* Progrès (18) */
+.history-streak { margin: -6px 0 -4px !important; padding: 0 4px; color: var(--st-v6-ink); font: 700 13px var(--st-font-body); }
+.history-progress-notes { display: flex; flex-wrap: wrap; gap: 6px; }
+.history-muscle-strip { display: flex; overflow: hidden; height: 14px; border-radius: 7px; background: var(--st-v6-surface); }
+.history-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--st-v6-muted); font: 600 11px var(--st-font-body); }
 .history-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .history-legend i { width: 9px; height: 9px; border-radius: 50%; }
-.history-muscle-bars, .history-week-bars { display: flex; gap: 8px; height: 132px; overflow-x: auto; }
-.history-muscle-bars > div, .history-week-bars > div { flex: 1; min-width: 42px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--st-text-muted); font-size: 10px; text-align: center; }
-.history-muscle-bars strong { color: var(--st-dark); }
-.history-muscle-track, .history-week-track { display: flex; flex: 1; align-items: flex-end; justify-content: center; width: 100%; }
-.history-muscle-track i, .history-week-track i { width: min(100%, 28px); border-radius: 6px 6px 3px 3px; }
-.history-week-track i { background: var(--st-dark); }
-.history-week-track i.active { background: var(--st-neon); }
-@media (max-width: 360px) { .history-page { padding-inline: 16px; --v6-gutter: 16px; } .history-summary { gap: 5px; } .history-summary .v5-card { padding: 9px; } .history-summary strong { font-size: 20px; } .history-form-grid { grid-template-columns: 1fr; } }
 
-/* V5 history surfaces and chart hierarchy */
-.history-page { color: var(--st-dark); font-family: var(--st-font-body); }
-.history-page section > .v5-card { padding: 18px; }
-.history-section-title { margin: 4px 0 10px; color: var(--st-dark); }
-.history-link .v5-card { border-radius: 22px; padding: 15px; }
-.history-row { grid-template-columns: 48px minmax(0, 1fr) auto; min-height: 52px; }
-/* cardio rows carry a distance before the chevron */
-.history-row:has(> .history-distance) { grid-template-columns: 48px minmax(0, 1fr) auto auto; }
-.history-row > .v5-thumb { border-radius: 50%; }
-.history-row-icon { width: 48px; height: 48px; border-radius: 50%; background: #f8ffff; }
-.history-row-icon.strength { background: #f8ffff; }
-.history-row-copy strong { font-size: 16px; font-weight: 700; }
-.history-row-copy small { font-size: 12px; }
-.history-filters { background: #ddf6f4aa; border: 1px solid #ffffff80; }
-.history-filters button.active { background: var(--st-dark); color: #fff; }
-.history-record { padding: 18px; }
-.history-record > span { color: var(--st-text-muted); }
-.history-chart-caption { color: var(--st-text-muted); }
-.history-bars { gap: 8px; }
-.history-bar { border-radius: 7px 7px 3px 3px; }
-.history-legend { font-weight: 600; }
-.history-muscle-strip { height: 18px; }
-.history-page .history-summary .v5-card { border-radius: 20px; }
-.history-page .history-summary strong { color: var(--st-dark); }
-.history-page .history-summary span { color: var(--st-text-muted); }
-.history-page .history-week-bars, .history-page .history-muscle-bars { margin-top: 8px; }
+/* Détail séance muscu (06): exercise cards, superset block with the citron connector, V5 set rows */
+.history-exercise { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card-solid); box-shadow: 0 8px 22px #082d450d; }
+.history-exercise__head { display: flex; align-items: center; gap: 12px; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.history-thumb { position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 14px; background: none; }
+.history-thumb .v5-thumb { border-radius: 14px; }
+.history-thumb > span[aria-hidden] { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--st-v6-action); color: var(--st-v6-ink); font-size: 7px; box-shadow: 0 2px 6px #082d4533; }
+.history-exercise__title {
+  display: grid; gap: 2px; flex: 1; min-width: 0; min-height: 44px; align-content: center; padding: 0; border: 0; background: transparent;
+  color: inherit; text-align: left; -webkit-tap-highlight-color: transparent; transition: transform 150ms ease-out;
+}
+.history-exercise__title:active { transform: scale(.97); transition-duration: 100ms; }
+.history-exercise__title strong { overflow: hidden; font: 700 17px/1.25 var(--st-font-body); text-overflow: ellipsis; white-space: nowrap; }
+.history-exercise__title small { color: var(--st-v6-muted); font: 500 13px var(--st-font-body); }
+.history-sets { display: grid; margin: 0; padding: 0; list-style: none; }
+.history-sets li { display: grid; grid-template-columns: 28px auto minmax(0, 1fr) auto 20px; align-items: center; gap: 8px; min-height: 36px; border-top: 1px solid var(--st-v6-line); }
+.history-sets li:first-child { border-top: 0; }
+.history-sets__number { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: var(--st-v6-surface); font: 700 12px var(--st-font-body); }
+.history-sets__value { display: flex; gap: 10px; font-variant-numeric: tabular-nums; }
+.history-sets__value strong { font: 700 15px var(--st-font-body); white-space: nowrap; }
+.history-sets__rpe { color: var(--st-v6-muted); font: 700 11px var(--st-font-body); }
+.history-sets__star { color: var(--st-v6-ink); font-size: 16px; }
+.history-sets li.is-record .history-sets__number { background: var(--st-v6-action); }
+.history-note { padding: 8px 10px; border-radius: 12px; background: var(--st-v6-surface); color: var(--st-v6-muted); font: 500 13px/1.4 var(--st-font-body); }
+.history-superset { position: relative; display: grid; gap: 10px; padding: 12px 12px 12px 20px; border: 1px solid var(--st-v6-line); border-radius: 22px; background: var(--st-v6-veil); }
+.history-superset::before { content: ''; position: absolute; left: 8px; top: 14px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--st-v6-action); }
+.history-superset__label { display: flex; align-items: center; gap: 8px; color: var(--st-v6-ink); font: 600 12px var(--st-font-body); }
+.history-menu-preview { display: grid; gap: 2px; padding: 14px 16px; border-radius: 20px; background: var(--st-v6-card-solid); color: var(--st-v6-ink); }
+.history-menu-preview strong { font: 700 17px var(--st-font-body); }
+.history-menu-preview small { color: var(--st-v6-muted); font: 500 13px var(--st-font-body); }
 
-.history-chart-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.history-chart-heading .history-section-title { margin: 0; }
-.history-chart-caption { flex: 0 0 auto; align-self: center; margin: 0 !important; }
-.history-intro { margin: -6px 0 0; color: var(--st-neon); font-size: 13px; font-weight: 600; }
-.history-summary strong { font-size: clamp(17px, 5vw, 23px); }
-.history-cancel { align-self: center; display: grid; place-items: center; min-height: 44px; padding: 0 16px; color: var(--st-dark); font-size: 14px; font-weight: 600; text-decoration: none; }
+/* Historique exercice (16): sessions, newest first */
+.history-entry { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.history-entry header { display: flex; align-items: center; gap: 8px; }
+.history-entry header strong { font: 700 16px var(--st-font-body); }
+.history-entry header small { margin-left: auto; color: var(--st-v6-muted); font: 600 12px var(--st-font-body); }
+.history-entry__sets { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Nouvelle séance cardio (08) */
+.history-form__group { display: grid; gap: 8px; }
+.history-form__label { margin: 0; padding: 0 16px; color: var(--st-v6-card-solid); font: 600 12px/1.3 var(--st-font-body); letter-spacing: .4px; text-transform: uppercase; }
+ion-button.v6-button.history-delete { --color: var(--st-v6-danger); justify-self: center; min-height: 44px; }
+.history-duration-sheet .v6-sheet__body { gap: 16px; }
+
+@media (max-width: 360px) { .history-page { padding-inline: 16px; --v6-gutter: 16px; } .history-sets__value { gap: 6px; } }

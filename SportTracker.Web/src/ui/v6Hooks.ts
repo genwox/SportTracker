@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useIonRouter } from '@ionic/react'
 import type { MouseEvent, PointerEvent } from 'react'
 import { createLongPress } from '../domain/longPress'
 import { createPressRepeat } from '../domain/pressRepeat'
@@ -48,4 +49,17 @@ export function useV6LongPress(onLongPress?: () => void) {
   } : {}
   const guard = (action?: () => void) => () => { if (!pressRef.current?.consumeClick()) action?.() }
   return { handlers, guard }
+}
+
+/**
+ * Where the back button of a detail page goes: the page that pushed it (Historique, Séances, Aujourd’hui…),
+ * read once when the page mounts; `fallback` after a reload or a deep link.
+ */
+export function useV6BackHref(fallback: string) {
+  const { routeInfo } = useIonRouter()
+  const [href] = useState(() => {
+    const from = routeInfo?.pushedByRoute
+    return from && from !== routeInfo.pathname && from.startsWith('/tabs/') ? from : fallback
+  })
+  return href
 }

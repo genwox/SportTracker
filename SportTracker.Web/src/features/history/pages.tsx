@@ -1,3 +1,3 @@
 export { HistoryPage, ProgressPage } from './sessionPages'
-export { ExerciseProgressPage, WorkoutSessionDetailPage } from './strengthPages'
-export { CardioSessionsPage, CardioSessionDetailPage, NewCardioSessionPage } from './cardioPages'
+export { ExerciseProgressPage, WorkoutSessionDetailPage, WorkoutSessionsPage } from './strengthPages'
+export { CardioSessionsPage, CardioSessionDetailPage, EditCardioSessionPage, NewCardioSessionPage } from './cardioPages'
