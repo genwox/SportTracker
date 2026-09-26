@@ -23,6 +23,8 @@ Phase 1 : crée le kit de composants V6 « app native » de SportTracker.
 Ne crée aucun écran dans cette phase.
 ```
 
+**Vérifier avant de passer à la suite** : le frame `V6 Kit · Composants` existe à gauche de la rangée V5 ; les couleurs sont celles de V5 ; il y a un tableau `V6 Kit · Correspondance`. Puis `git add design.pen && git commit -m "design: kit V6"`.
+
 ---
 
 ## Phase 2 : les 27 écrans (5 agents, mode Split Work)
@@ -51,6 +53,8 @@ Pour chaque écran :
 Lot C en priorité absolue : c'est l'écran utilisé entre deux séries, souvent d'une seule main et essoufflé. Gros steppers, valider une série en un tap, minuteur en feuille à crans, mini-barre quand on sort de la séance.
 ```
 
+**Vérifier** : 27 frames `ST1 V6 · …` sous la rangée V5, chacun avec sa note Ionic ; les écrans V5 sont intacts. Puis `git commit -am "design: écrans V6"`.
+
 ---
 
 ## Phase 3 : explorer les écrans clés (Side by Side ou Let it cook)
@@ -65,6 +69,8 @@ Place ta variante à y = 30200 (agent 1 : x = -2951, agent 2 : x = -1951, agent 
 Même identité, mêmes composants du kit ; varie la hiérarchie, la position du bouton principal, le geste de validation de série et la place du minuteur.
 Sous chaque variante : 3 lignes sur le compromis choisi (une main, lisibilité en effort, nombre de taps pour valider une série).
 ```
+
+**Vérifier** : 3 variantes à y = 30200. Si une idée te plaît, demande dans un nouveau chat (1 agent) : « /sporttracker-native Reporte dans ST1 V6 · 15 l'idée X de la variante Y. » Puis commit.
 
 ---
 
