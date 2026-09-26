@@ -42,3 +42,7 @@
 .v5-demo header button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px; background: #ffffff; color: var(--st-dark); font-size: 22px; }
 .v5-demo img { width: 100%; aspect-ratio: 1; border-radius: 20px; object-fit: contain; background: #ffffff; }
 .v5-demo p { margin: 0; color: var(--st-text-muted); font-size: 15px; line-height: 1.5; }
+.v5-install-hint { position: fixed; z-index: 30; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 72px); display: flex; align-items: start; gap: 10px; padding: 14px 12px 14px 16px; border: 1px solid #123d3226; border-radius: 20px; background: #f8fffff0; color: var(--st-dark); font-family: var(--st-font-body); box-shadow: 0 12px 30px #082d4533; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.v5-install-hint strong { font-size: 15px; }
+.v5-install-hint p { margin: 4px 0 0; color: var(--st-text-muted); font-size: 13px; line-height: 1.4; }
+.v5-install-hint button { flex: none; width: 44px; height: 44px; margin: -6px -2px 0 0; border: 0; border-radius: 12px; background: transparent; color: var(--st-dark); font-size: 22px; }

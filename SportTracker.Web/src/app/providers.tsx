@@ -2,6 +2,7 @@ import { IonApp, setupIonicReact } from '@ionic/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { AuthProvider } from '../api/auth'
+import { InstallHint } from '../ui/InstallHint'
 
 setupIonicReact({ mode: 'ios' })
 
@@ -10,5 +11,5 @@ const queryClient = new QueryClient({
 })
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  return <QueryClientProvider client={queryClient}><AuthProvider><IonApp>{children}</IonApp></AuthProvider></QueryClientProvider>
+  return <QueryClientProvider client={queryClient}><AuthProvider><IonApp>{children}<InstallHint /></IonApp></AuthProvider></QueryClientProvider>
 }
