@@ -11,3 +11,4 @@
 .kit-grid .v6-button { font-size: 14px; }
 .kit-sheet-text { margin: 0; color: var(--st-v6-muted); font: 500 13px/1.45 var(--st-font-body); }
 @media (max-width: 360px) { .kit-page { padding-inline: 16px; --v6-gutter: 16px; } }
+.kit-hint { margin: 0; padding: 0 4px; color: var(--st-v6-card-solid); font: 500 13px/1.45 var(--st-font-body); }

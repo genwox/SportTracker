@@ -214,13 +214,13 @@ export function V6StickyAction({ children }: { children: ReactNode }) {
 
 /* ── Sheet ───────────────────────────────────────────────────────────────── */
 
-/** Sheet with detents (25 / 50 / 100 %), handle, 40 % nav-ink backdrop and a « Fermer » text button. */
+/** Sheet with detents (25 / 50 / 100 %): drag the sheet or tap its handle to change detent (iOS grabber), 40 % nav-ink backdrop, « Fermer » text button. */
 export function V6Sheet({ isOpen, onDismiss, title, breakpoints = [0, 0.5, 1], initialBreakpoint = 0.5, closeLabel = 'Fermer', children }: {
   isOpen: boolean; onDismiss: () => void; title: string; breakpoints?: number[]; initialBreakpoint?: number; closeLabel?: string; children: ReactNode
 }) {
   const modal = useRef<HTMLIonModalElement>(null)
   return <IonModal ref={modal} isOpen={isOpen} onDidDismiss={onDismiss} breakpoints={breakpoints} initialBreakpoint={initialBreakpoint}
-    backdropBreakpoint={Math.min(...breakpoints.filter(b => b > 0))} handle className="v6-sheet">
+    backdropBreakpoint={Math.min(...breakpoints.filter(b => b > 0))} handle handleBehavior="cycle" className="v6-sheet">
     <IonContent className="v6-sheet__content">
       <header className="v6-sheet__header"><h2>{title}</h2><V6Button variant="text" onClick={() => { void modal.current?.dismiss() }}>{closeLabel}</V6Button></header>
       <div className="v6-sheet__body">{children}</div>

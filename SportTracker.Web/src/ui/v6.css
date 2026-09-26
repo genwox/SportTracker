@@ -128,7 +128,8 @@ ion-input.v6-input .error-text::before { content: '⚠︎ '; }
 
 /* ── Sliding row ────────────────────────────────────────────────────────── */
 ion-item-sliding.v6-sliding { overflow: hidden; border-radius: 16px; }
-.v6-sliding__row { --background: var(--st-v6-card); --padding-start: 0; --inner-padding-end: 0; --min-height: 72px; --border-radius: 16px; border: 1px solid var(--st-v6-line); border-radius: 16px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-sliding__row { --background: var(--st-v6-card); --padding-start: 0; --inner-padding-end: 0; --min-height: 72px; --border-radius: 16px; border: 1px solid var(--st-v6-line); border-radius: 16px; }
+/* No backdrop blur on elements that move under the finger: Safari re-renders it every frame and can lag or freeze the drag. */
 .v6-sliding ion-item-options { border: 0; }
 .v6-sliding ion-item-options[side='end'] { padding-left: 8px; }
 .v6-sliding ion-item-options[side='start'] { gap: 8px; padding-right: 8px; }
@@ -165,7 +166,7 @@ ion-footer.v6-sticky { -webkit-backdrop-filter: blur(12px) saturate(1.4); backdr
 ion-modal.v6-sheet { --background: var(--st-v6-sheet); --border-radius: 20px; --backdrop-opacity: .4; }
 ion-modal.v6-sheet::part(backdrop) { background: var(--st-v6-nav); }
 ion-modal.v6-sheet::part(handle) { width: 36px; height: 5px; background: var(--st-v6-muted); opacity: .5; }
-ion-modal.v6-sheet::part(content) { border-top: 1px solid var(--st-v6-line); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+ion-modal.v6-sheet::part(content) { border-top: 1px solid var(--st-v6-line); }
 /* The global Paragon backdrop targets every .ion-page, including the modal's wrapper: the sheet keeps its glass. */
 ion-modal.v6-sheet .ion-page { background: transparent; }
 .v6-sheet__content { --background: transparent; color: var(--st-v6-ink); font-family: var(--st-font-body); }

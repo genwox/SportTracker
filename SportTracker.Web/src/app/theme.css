@@ -50,8 +50,9 @@ html, body, #root {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Pan only: no pinch-zoom and no double-tap zoom, like a native app. */
-  touch-action: pan-x pan-y;
+  /* No double-tap zoom, like a native app (pinch is refused through gesturestart in main.tsx).
+     Ionic's own value: 'pan-x pan-y' here broke Ionic's JS gestures on iPhone (sliding rows, sheet detents). */
+  touch-action: manipulation;
 }
 /* iOS zooms into any field under 16px when it gets focus, and stays zoomed. */
 input, select, textarea { font-size: 16px !important; }

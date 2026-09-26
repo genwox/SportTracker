@@ -59,8 +59,8 @@ export function KitPage() {
         <V6List header="Préférences de séance" note="Dernière synchronisation · 12:12">
           <V6Item icon={scaleOutline} title="Unité de poids" detail="Kilogrammes (kg)" value="kg" onClick={() => { void toast.success('Ligne touchée') }} />
           <V6Item icon={layersOutline} title="Type de série par défaut" detail="Normal" value="Normal" onClick={() => { void toast.success('Ligne touchée') }} />
-          <V6Item icon={speedometerOutline} title="Afficher le RPE" detail="Activé sur chaque série" end={<V6Toggle label="Afficher le RPE" checked={rpe} onChange={setRpe} />} />
-          <V6Item icon={syncOutline} title="Synchronisation" detail="Automatique dès le retour en ligne" end={<V6Toggle label="Synchronisation" checked={sync} onChange={setSync} />} />
+          <V6Item icon={speedometerOutline} title="Afficher le RPE" detail="Activé sur chaque série" end={<V6Toggle label="Afficher le RPE" checked={rpe} onChange={value => { setRpe(value); void toast.success(value ? 'RPE affiché' : 'RPE masqué') }} />} />
+          <V6Item icon={syncOutline} title="Synchronisation" detail="Automatique dès le retour en ligne" end={<V6Toggle label="Synchronisation" checked={sync} onChange={value => { setSync(value); void toast.success(value ? 'Synchronisation activée' : 'Synchronisation en pause') }} />} />
         </V6List>
 
         <V6List header="Formulaire">
@@ -70,6 +70,7 @@ export function KitPage() {
 
         <section className="kit-section" aria-label="Lignes glissables">
           <h2>Glisser pour gérer une séance</h2>
+          <p className="kit-hint">Pose le doigt sur une séance et glisse vers la gauche : «&nbsp;Supprimer&nbsp;» apparaît (glisse jusqu’au bout pour supprimer directement, une feuille demande confirmation). Vers la droite : «&nbsp;Dupliquer&nbsp;» et «&nbsp;Terminer&nbsp;».</p>
           {rows.map(row => <V6SlidingRow key={row.id} onDelete={() => { void remove(row) }}
             onDuplicate={() => { void toast.success('Séance dupliquée') }} onFinish={() => { void toast.success('Séance terminée') }}>
             <div className="kit-row"><span className="kit-row__text"><strong>{row.name}</strong><small>{row.meta}</small></span><b>{row.badge}</b></div>
@@ -87,13 +88,14 @@ export function KitPage() {
 
         <section className="kit-section" aria-label="Feuilles, actions et toasts">
           <h2>Feuilles, actions, toasts</h2>
+          <p className="kit-hint">Une feuille monte du bas : glisse-la vers le haut ou le bas pour changer de cran, ou touche la petite barre grise en haut pour passer au cran suivant. Un toast est le bandeau sombre qui apparaît quelques secondes en haut de l’écran : touche «&nbsp;Bandeau succès&nbsp;» ou «&nbsp;Bandeau erreur&nbsp;» (il s’affiche aussi quand tu changes un interrupteur ou que tu glisses une séance).</p>
           <div className="kit-grid">
             <V6Button variant="secondary" onClick={() => setSheet(0.25)}>Feuille 25 %</V6Button>
             <V6Button variant="secondary" onClick={() => setSheet(0.5)}>Feuille 50 %</V6Button>
             <V6Button variant="secondary" onClick={() => setSheet(1)}>Feuille 100 %</V6Button>
             <V6Button variant="secondary" onClick={() => { void actions.confirm({ title: 'Se déconnecter ?', message: 'Tes brouillons restent sur cet appareil.', confirmText: 'Se déconnecter', destructive: true }) }}>Feuille d’actions</V6Button>
-            <V6Button variant="secondary" onClick={() => { void toast.success('Séance enregistrée', 'Synchronisée à 12:12') }}>Toast succès</V6Button>
-            <V6Button variant="secondary" onClick={() => { void toast.error('Enregistrement impossible', 'Brouillon gardé sur l’appareil', () => { void toast.success('Nouvel essai lancé') }) }}>Toast erreur</V6Button>
+            <V6Button variant="secondary" onClick={() => { void toast.success('Séance enregistrée', 'Synchronisée à 12:12') }}>Bandeau succès</V6Button>
+            <V6Button variant="secondary" onClick={() => { void toast.error('Enregistrement impossible', 'Brouillon gardé sur l’appareil', () => { void toast.success('Nouvel essai lancé') }) }}>Bandeau erreur</V6Button>
           </div>
         </section>
 
@@ -106,7 +108,7 @@ export function KitPage() {
     <V6StickyAction><V6Button variant="secondary" onClick={() => { void toast.success('Gardé en local') }}>Garder en local</V6Button><V6Button onClick={save} loading={saving}>Réessayer</V6Button></V6StickyAction>
     <V6Sheet isOpen={sheet != null} onDismiss={() => setSheet(null)} title="Minuteur de repos"
       breakpoints={[0, 0.25, 0.5, 1]} initialBreakpoint={sheet ?? 0.5}>
-      <p className="kit-sheet-text">Glisse la poignée pour passer d’un cran à l’autre (25, 50, 100 %), ou vers le bas pour fermer.</p>
+      <p className="kit-sheet-text">Glisse la feuille vers le haut ou le bas pour passer d’un cran à l’autre (25, 50, 100 %), ou touche la barre grise du haut. Tout en bas : elle se ferme.</p>
       <V6Segment label="Durée" value={period} options={periods} onChange={setPeriod} />
       <V6Button onClick={() => setSheet(null)}>Passer le repos</V6Button>
     </V6Sheet>
