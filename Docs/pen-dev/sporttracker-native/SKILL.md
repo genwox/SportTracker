@@ -32,6 +32,16 @@ Utilise les variables existantes (`$st1-v4-*`) et n'ajoute **aucune couleur ni p
 - **Rayons** : 28 téléphone · 20 cartes · 16 blocs · 14 boutons · 12 puces · 8 badges.
 - Les motifs V5 restent tels quels : badges de type de série, badge RPE, bandeau PR, connecteur superset, indicateur de synchro, note par exercice, puces de filtre.
 
+## Déjà en place dans l'app (à reprendre tel quel, pas à réinventer)
+Validé sur iPhone le 26/09/2026 (voir `SportTracker.Web`) :
+- **Plein écran** : l'app installée s'affiche bord à bord. L'heure et la batterie sont **en blanc, posées directement sur le fond turquoise** (barre d'état translucide). Rien de clair ne doit donc se trouver sous la barre d'état ; le haut de chaque écran reste sur le fond Paragon (`#1A7964` en haut).
+- **En-tête au repos** : grand titre Foruner encre, sous-titre en `$st1-v4-action`, bouton retour et avatar dans des carrés de verre de 44 pt.
+- **En-tête au défilement** : il reste collé en haut, devient une barre floutée `#315E5E` à 80 %, et le titre passe en blanc et à 22 pt. Dessine cet état pour chaque écran qui défile.
+- **Barre d'onglets** : verre clair flouté (`#F8FFFF` à 80 %, flou 20), onglet actif = pastille `$st1-v4-action` aux coins arrondis de 18.
+- **Aperçus GIF** : miniature carrée de 48 à 56 pt, rayon 14, pastille ▶ citron si une démonstration existe ; un tap ouvre la **démonstration en feuille** (cran 85 %, GIF carré, consignes dessous).
+- **Écran de lancement et icône** : haltère néon sur le fond Paragon, « SPORTTRACKER » en Foruner.
+- **Aucun zoom** : champs de saisie à 16 pt minimum.
+
 ## Ce que tu as le droit (et le devoir) de changer
 Les boutons, les champs, les toggles, les listes, la navigation, les feuilles, les états d'interaction et les transitions entre pages.
 
