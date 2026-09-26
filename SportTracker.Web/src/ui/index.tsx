@@ -52,3 +52,7 @@ export function ExerciseDemoSheet({ exercise, onClose }: { exercise: DemoExercis
 }
 
 export { V6Keypad, V6LiveMiniBar, V6Searchbar, V6SetRow, V6Stepper, V6WheelPicker, type V6KeypadField, type V6WheelColumn } from './v6Live'
+export {
+  V6Badge, V6ContextMenu, V6ReorderList, V6ReorderRow, V6SessionRow, V6StepperItem, V6TextareaItem,
+  type V6BadgeTone, type V6ContextAction,
+} from './v6Plan'

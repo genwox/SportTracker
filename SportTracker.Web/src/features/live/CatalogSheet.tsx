@@ -13,8 +13,10 @@ const count = new Intl.NumberFormat('fr-FR')
  * Exercise library (V6 · 27): full-height sheet, iOS search bar, muscle and equipment chips (kept between
  * openings), several exercises picked then added at once. Custom exercises are created from the same sheet.
  */
-export function CatalogSheet({ open, onClose, onAdd, exclude = [], actionLabel = 'Ajouter à la séance' }: {
+export function CatalogSheet({ open, onClose, onAdd, exclude = [], actionLabel = 'Ajouter à la séance', startCreating = false, createLabel = 'Créer et ajouter' }: {
   open: boolean; onClose: () => void; onAdd: (exercises: Exercise[]) => void; exclude?: number[]; actionLabel?: string
+  /** Opens straight on the custom exercise form (Aujourd’hui · « Créer un exercice personnalisé »). */
+  startCreating?: boolean; createLabel?: string
 }) {
   const queryClient = useQueryClient()
   const { data = [], isPending, error, refetch } = useQuery({ queryKey: ['live', 'catalog'], queryFn: () => apiRequest<Exercise[]>('api/exercises'), staleTime: 60_000 })
@@ -30,6 +32,8 @@ export function CatalogSheet({ open, onClose, onAdd, exclude = [], actionLabel =
   const [instructions, setInstructions] = useState('')
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) { setWasOpen(open); if (open && startCreating) setCreating(true) }
   const equipmentOptions = useMemo(() => [...new Set(data.map(item => item.equipment).filter((item): item is string => Boolean(item)))].sort(), [data])
   const matches = data.filter(item => !exclude.includes(item.id) && item.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
     (muscle === null || item.muscleGroups?.includes(muscle)) && (equipment === null || item.equipment === equipment))
@@ -64,7 +68,7 @@ export function CatalogSheet({ open, onClose, onAdd, exclude = [], actionLabel =
       <V6ChipRow label="Groupes musculaires">{groups.map((group, index) => <V6Chip key={group} selected={newGroups.includes(index)} onClick={() => setNewGroups(current => current.includes(index) ? current.filter(value => value !== index) : [...current, index])}>{group}</V6Chip>)}</V6ChipRow>
       <label className="live-notes live-notes--card"><span>Instructions (facultatif)</span><textarea rows={3} value={instructions} onChange={event => setInstructions(event.target.value)} placeholder="Placement, amplitude, respiration…" /></label>
       {formError && <p className="live-catalog__error" role="alert">⚠︎ {formError}</p>}
-      <V6Button onClick={() => void createExercise()} loading={saving}>{saving ? 'Création…' : 'Créer et ajouter'}</V6Button>
+      <V6Button onClick={() => void createExercise()} loading={saving}>{saving ? 'Création…' : createLabel}</V6Button>
       <V6Button variant="text" onClick={() => setCreating(false)}>Retour à la bibliothèque</V6Button>
     </div> : <div className="live-catalog">
       <div className="live-catalog__search"><V6Searchbar value={search} onChange={setSearch} placeholder="Rechercher un exercice" /></div>

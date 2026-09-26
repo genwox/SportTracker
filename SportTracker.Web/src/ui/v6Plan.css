@@ -1,0 +1,100 @@
+/* V6 kit · lot 3 (Aujourd’hui, Carnets): session rows, badges, reorder rows, context menu, form rows. */
+
+/* A long press opens a menu: no iOS callout, no text selection on rows that can be held. */
+.v6-session-row, .v6-reorder-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* ── Session row ────────────────────────────────────────────────────────── */
+ion-item.v6-session-row {
+  --background: var(--st-v6-card); --background-activated: var(--st-v6-line); --background-activated-opacity: 1; --background-hover: transparent;
+  --min-height: 76px; --padding-start: 14px; --inner-padding-end: 14px; --color: var(--st-v6-ink); --border-radius: 20px;
+  border: 1px solid var(--st-v6-line); border-radius: 20px; box-shadow: 0 8px 22px #082d450d; font-family: var(--st-font-body);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: transform 150ms ease-out;
+}
+ion-item.v6-session-row.ion-activated { transform: scale(.97); transition-duration: 100ms; }
+.v6-session-row__tile {
+  display: grid; place-items: center; width: 44px; height: 44px; margin: 0 14px 0 0; border-radius: 14px;
+  position: relative; background: var(--st-v6-surface); color: var(--st-v6-ink); font: 400 20px var(--st-font-display);
+}
+/* Colour of a carnet (WorkoutProgram.ColorHex): a dot on the tile, like an iOS calendar. */
+.v6-session-row__tile[style]::after { content: ''; position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px; border: 2px solid var(--st-v6-card-solid); border-radius: 50%; background: var(--v6-tile); }
+.v6-session-row__tile ion-icon { font-size: 22px; }
+.v6-session-row__text { display: grid; gap: 3px; min-width: 0; padding: 12px 0; }
+.v6-session-row__text strong { overflow: hidden; color: var(--st-v6-ink); font: 700 17px/1.25 var(--st-font-body); text-overflow: ellipsis; }
+.v6-session-row__text small { color: var(--st-v6-muted); font: 500 13px/1.35 var(--st-font-body); }
+.v6-session-row__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px; }
+.v6-session-row__chevron { margin-inline-start: 8px; color: var(--st-v6-muted); font-size: 20px; }
+
+/* ── Badge (V5 motif) ───────────────────────────────────────────────────── */
+.v6-badge { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 3px 8px; border-radius: 8px; background: var(--st-v6-card-solid); color: var(--st-v6-ink); font: 700 11px/1.3 var(--st-font-body); white-space: nowrap; }
+.v6-badge--action { background: var(--st-v6-action); }
+.v6-badge--surface { background: var(--st-v6-surface); }
+.v6-badge--warmup { background: #ddf6f4; }
+.v6-badge--dropset { background: #c3e9e6; }
+.v6-badge--failure { background: var(--st-v6-action); box-shadow: inset 0 0 0 1px #082d4533; }
+.v6-badge--ink { background: var(--st-v6-nav); color: var(--st-v6-action); }
+
+/* ── Reorder list ───────────────────────────────────────────────────────── */
+ion-list.v6-reorder-list { display: grid; gap: 10px; margin: 0; padding: 0; background: transparent; }
+.v6-reorder-list ion-reorder-group { display: grid; gap: 10px; }
+ion-item-sliding.v6-reorder-row { overflow: hidden; border-radius: 16px; }
+ion-item.v6-reorder-row__item {
+  --background: var(--st-v6-card); --padding-start: 12px; --inner-padding-end: 4px; --min-height: 68px; --color: var(--st-v6-ink);
+  border: 1px solid var(--st-v6-line); border-radius: 16px; font-family: var(--st-font-body);
+}
+.v6-reorder-row.is-selected ion-item.v6-reorder-row__item { --background: var(--st-v6-card-solid); border-color: var(--st-v6-nav); box-shadow: inset 0 0 0 1px var(--st-v6-nav); }
+.v6-reorder-row__leading { display: grid; place-items: center; margin: 0 12px 0 0; }
+.v6-reorder-row__number { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--st-v6-surface); color: var(--st-v6-ink); font: 700 14px var(--st-font-body); }
+.v6-reorder-row__text { display: grid; gap: 6px; flex: 1; min-width: 0; padding: 8px 0; }
+.v6-reorder-row__main {
+  display: grid; gap: 3px; min-height: 44px; align-content: center; width: 100%; padding: 0; border: 0; background: transparent;
+  color: inherit; font: inherit; text-align: left; -webkit-tap-highlight-color: transparent; transition: transform 150ms ease-out;
+}
+button.v6-reorder-row__main:active { transform: scale(.97); transition-duration: 100ms; }
+.v6-reorder-row__title { overflow: hidden; color: var(--st-v6-ink); font: 700 16px/1.25 var(--st-font-body); text-overflow: ellipsis; }
+.v6-reorder-row__main small { color: var(--st-v6-muted); font: 500 13px/1.35 var(--st-font-body); }
+ion-reorder.v6-reorder-row__handle { display: grid; place-items: center; width: 44px; height: 44px; margin: 0; color: var(--st-v6-ink); font-size: 26px; }
+/* The row being dragged lifts: shadow and scale 1.03 (Ionic adds .reorder-selected to the moved child). */
+ion-item-sliding.v6-reorder-row.reorder-selected { overflow: visible; transform-origin: center; box-shadow: 0 14px 30px #082d4540; border-radius: 16px; scale: 1.03; }
+
+/* ── Context menu ───────────────────────────────────────────────────────── */
+ion-modal.v6-context-menu { --width: 100%; --height: 100%; --background: transparent; --box-shadow: none; --border-radius: 0; --backdrop-opacity: .4; }
+ion-modal.v6-context-menu::part(backdrop) { background: var(--st-v6-nav); }
+ion-modal.v6-context-menu .ion-page { background: transparent; }
+.v6-context-menu__stage {
+  display: flex; flex-direction: column; justify-content: center; gap: 12px; height: 100%;
+  padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 24px); overflow: auto;
+  /* The blur sits on the (opaque) stage: on the fading backdrop it would only show at 40 %. */
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.v6-context-menu__preview { width: min(100%, 390px); margin: 0 auto; pointer-events: none; }
+.v6-context-menu__preview > * { transform: scale(1.02); }
+.v6-context-menu__list {
+  display: grid; width: min(260px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid var(--st-v6-line); border-radius: 14px;
+  background: var(--st-v6-sheet); box-shadow: 0 16px 40px #10273740;
+}
+.v6-context-menu__action {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; border: 0;
+  border-top: 1px solid var(--st-v6-line); background: transparent; color: var(--st-v6-ink); font: 600 16px var(--st-font-body); text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.v6-context-menu__action:first-child { border-top: 0; }
+.v6-context-menu__action:active { background: var(--st-v6-line); }
+.v6-context-menu__action:disabled { opacity: .45; }
+.v6-context-menu__action ion-icon { flex: none; font-size: 20px; }
+.v6-context-menu__action.is-destructive { color: var(--st-v6-danger); }
+
+/* ── Form rows ──────────────────────────────────────────────────────────── */
+.v6-stepper-item__label { flex: 1; min-width: 0; color: var(--st-v6-ink); font: 600 15px var(--st-font-body); }
+.v6-stepper-item__control { display: flex; align-items: center; gap: 4px; margin-inline-start: 8px; }
+.v6-stepper-item__key {
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px;
+  background: var(--st-v6-surface); color: var(--st-v6-ink); font-size: 20px; -webkit-tap-highlight-color: transparent;
+  transition: transform 150ms ease-out, filter 150ms ease-out;
+}
+.v6-stepper-item__key:active { transform: scale(.97); filter: brightness(.94); transition-duration: 100ms; }
+.v6-stepper-item__key[aria-disabled='true'] { opacity: .4; }
+.v6-stepper-item__value { min-width: 40px; color: var(--st-v6-ink); font: 700 17px var(--st-font-body); text-align: center; font-variant-numeric: tabular-nums; }
+ion-textarea.v6-textarea { --color: var(--st-v6-ink); --placeholder-color: var(--st-v6-muted); --placeholder-opacity: 1; min-height: 52px; font: 500 16px/1.4 var(--st-font-body); }
+ion-textarea.v6-textarea .label-text-wrapper { flex: 0 0 112px; width: 112px; min-width: 112px; max-width: 112px; }
+ion-textarea.v6-textarea .label-text { color: var(--st-v6-ink); font: 600 15px var(--st-font-body); }
+ion-textarea.v6-textarea .textarea-highlight { display: none; }

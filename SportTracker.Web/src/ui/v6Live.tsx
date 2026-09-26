@@ -1,35 +1,12 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { IonIcon, IonSearchbar } from '@ionic/react'
 import { addOutline, backspaceOutline, barbellOutline, checkmarkOutline, playSkipForwardOutline, removeOutline, timerOutline } from 'ionicons/icons'
 import { keypadNumber, keypadText, pressKey, type KeypadKey } from '../domain/keypad'
-import { createPressRepeat } from '../domain/pressRepeat'
+import { usePressRepeat } from './v6Hooks'
 import { V6SlidingRow } from './v6'
 import './v6Live.css'
 
 /* ── Stepper ─────────────────────────────────────────────────────────────── */
-
-/** Pointer handlers of a − / + button: tap = one step on release, hold = step after 400 ms then every 80 ms. */
-function usePressRepeat(step: () => void) {
-  const stepRef = useRef(step)
-  useEffect(() => { stepRef.current = step })
-  const repeatRef = useRef<ReturnType<typeof createPressRepeat> | null>(null)
-  useEffect(() => () => repeatRef.current?.cancel(), [])
-  return {
-    onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
-      if (event.button !== 0) return
-      const repeat = repeatRef.current ??= createPressRepeat(() => stepRef.current())
-      repeat.start()
-      // Lifting the finger anywhere (even off the button) ends the hold.
-      const end = () => { window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', cancel); repeat.release() }
-      const cancel = () => { window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', cancel); repeat.cancel() }
-      window.addEventListener('pointerup', end)
-      window.addEventListener('pointercancel', cancel)
-    },
-    // Keyboard (Entrée / Espace) has no pointer: its click is the step.
-    onClick: (event: React.MouseEvent) => { if (event.detail === 0) stepRef.current() },
-    onContextMenu: (event: React.MouseEvent) => event.preventDefault(),
-  }
-}
 
 /** Big − / + stepper (52 pt keys, + in citron). Touching the value opens the keypad sheet. */
 export function V6Stepper({ label, value, unit, onStep, onOpenPad, decreaseLabel, increaseLabel, valueLabel, atMin = false }: {

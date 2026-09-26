@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { IonContent, IonPage } from '@ionic/react'
-import { addOutline, layersOutline, refreshOutline, scaleOutline, speedometerOutline, syncOutline } from 'ionicons/icons'
+import { IonIcon } from '@ionic/react'
+import { addOutline, copyOutline, layersOutline, openOutline, readerOutline, refreshOutline, scaleOutline, speedometerOutline, syncOutline, trashOutline } from 'ionicons/icons'
 import {
   V6Button, V6Chip, V6ChipRow, V6Header, V6InputItem, V6Item, V6List, V6Segment, V6Sheet, V6Skeleton, V6SlidingRow,
   V6StickyAction, V6Toggle,
 } from './v6'
 import { useV6ActionSheet, useV6Toast } from './v6Feedback'
 import { V6Keypad, V6LiveMiniBar, V6Searchbar, V6SetRow, V6Stepper, V6WheelPicker } from './v6Live'
+import { V6Badge, V6ContextMenu, V6ReorderList, V6ReorderRow, V6SessionRow, V6StepperItem } from './v6Plan'
 import './kit.css'
 
 const periods = [{ value: 'week', label: 'Semaine' }, { value: 'month', label: 'Mois' }, { value: 'year', label: 'Année' }] as const
@@ -36,6 +38,9 @@ export function KitPage() {
   const [rest, setRest] = useState(90)
   const [done, setDone] = useState(1)
   const [query, setQuery] = useState('')
+  const [menu, setMenu] = useState(false)
+  const [order, setOrder] = useState(['Développé couché', 'Tirage vertical', 'Élévations latérales'])
+  const [targetSets, setTargetSets] = useState(3)
   const actions = useV6ActionSheet()
   const toast = useV6Toast()
 
@@ -49,7 +54,7 @@ export function KitPage() {
   return <IonPage>
     <IonContent fullscreen>
       <main className="kit-page">
-        <V6Header title="Kit V6" subtitle="Composants natifs · lots 1 et 2" backHref="/tabs/profile/help" backLabel="Aide"
+        <V6Header title="Kit V6" subtitle="Composants natifs · lots 1 à 3" backHref="/tabs/profile/help" backLabel="Aide"
           action={<V6Button variant="icon" icon={addOutline} aria-label="Ajouter" onClick={() => { void toast.success('Bouton icône') }} />} />
 
         <section className="kit-section" aria-label="Contrôles segmentés">
@@ -122,6 +127,20 @@ export function KitPage() {
           <V6LiveMiniBar title="Développé couché" detail={`Série ${done + 1}/4 · séance 32:15`} rest="1:12" progress={.4} onOpen={() => { void toast.success('La mini-barre rouvre la séance') }} onSkip={() => { void toast.success('Repos passé') }} />
         </section>
 
+        <section className="kit-section" aria-label="Carnets">
+          <h2>Carnets (lot 3)</h2>
+          <p className="kit-hint">Garde le doigt appuyé une demi-seconde sur le carnet : un menu s’ouvre sur un fond flouté (touche à côté pour le fermer). Dans la liste d’exercices, pose le doigt sur ≡ et fais glisser pour changer l’ordre ; glisse une ligne vers la gauche pour «&nbsp;Retirer&nbsp;» (une feuille demande confirmation).</p>
+          <V6SessionRow tile={<IonIcon icon={readerOutline} />} tileColor="#4A90D9" title="Push Pull Legs" detail="3 séances · 11 exercices"
+            badges={<><V6Badge tone="action">Actif</V6Badge><V6Badge>Superset</V6Badge><V6Badge>75 % de la semaine</V6Badge></>}
+            onClick={() => { void toast.success('Le carnet s’ouvre') }} onLongPress={() => setMenu(true)} />
+          <V6ReorderList label="Exercices" onReorder={(from, to) => setOrder(current => { const next = [...current]; const [moved] = next.splice(from, 1); next.splice(to, 0, moved); return next })}>
+            {order.map((name, index) => <V6ReorderRow key={name} number={index + 1} title={name} detail="3 × 8–12 reps · repos 90 s" reorderLabel={`Déplacer ${name}`}
+              onRemove={async () => { if (await actions.confirm({ title: `Retirer « ${name} » ?`, confirmText: 'Retirer l’exercice' })) setOrder(current => current.filter(item => item !== name)) }} />)}
+          </V6ReorderList>
+          <V6List header="Paramètres"><V6StepperItem label="Séries" value={targetSets} min={1} max={10} onChange={setTargetSets} /></V6List>
+          <div className="kit-inline"><V6Badge tone="action">Fait</V6Badge><V6Badge>À faire</V6Badge><V6Badge tone="warmup">Éch.</V6Badge><V6Badge tone="dropset">Drop</V6Badge><V6Badge tone="failure">Échec</V6Badge><V6Badge tone="ink">Superset A</V6Badge></div>
+        </section>
+
         <section className="kit-section" aria-label="Chargement">
           <h2>Squelettes</h2>
           <V6Skeleton />
@@ -129,6 +148,9 @@ export function KitPage() {
       </main>
     </IonContent>
     <V6StickyAction><V6Button variant="secondary" onClick={() => { void toast.success('Gardé en local') }}>Garder en local</V6Button><V6Button onClick={save} loading={saving}>Réessayer</V6Button></V6StickyAction>
+    <V6ContextMenu isOpen={menu} onDismiss={() => setMenu(false)} label="Push Pull Legs" preview={<V6SessionRow tile={<IonIcon icon={readerOutline} />} tileColor="#4A90D9" title="Push Pull Legs" detail="3 séances · 11 exercices" />}
+      actions={[{ label: 'Ouvrir le carnet', icon: openOutline, onSelect: () => { void toast.success('Ouvrir') } }, { label: 'Dupliquer', icon: copyOutline, onSelect: () => { void toast.success('Carnet dupliqué') } },
+        { label: 'Supprimer le carnet', icon: trashOutline, destructive: true, onSelect: () => { void actions.confirm({ title: 'Supprimer « Push Pull Legs » ?', confirmText: 'Supprimer le carnet' }) } }]} />
     <V6Sheet isOpen={pad != null} onDismiss={() => setPad(null)} title="Saisie précise" className="live-pad-sheet">
       <V6Keypad active={pad ?? 'weight'} onActiveChange={setPad} submitLabel="Valider" onSubmit={() => setPad(null)}
         fields={[{ id: 'weight', label: 'Poids (kg)', value: weight, decimals: 2 }, { id: 'reps', label: 'Répétitions', value: reps, decimals: 0 }]}

@@ -26,9 +26,11 @@
   white-space: nowrap; text-overflow: ellipsis; opacity: 0; transform: translateY(4px); transition: opacity .2s ease, transform .2s ease;
 }
 .v6-header-bar.is-condensed .v6-header-bar__title { opacity: 1; transform: none; }
+/* With a back label the small title leaves room for it; with a text action on the right too (« Terminer »), even more. */
+.v6-header-bar:has(.v6-back) .v6-header-bar__title { max-width: calc(100vw - 190px); }
 /* Back label + text action on the right (« Terminer »): the small title is truncated rather than overlapping them. */
 .v6-header-bar:has(.v6-back):has(.v6-header-bar__end .v6-button--text) .v6-header-bar__title { max-width: calc(100vw - 210px); }
-.v6-header-bar.is-condensed .v6-back { --color: #ffffff; }
+.v6-header-bar.is-condensed .v6-back, .v6-header-bar.is-condensed .v6-button--text { --color: #ffffff; }
 .v6-header-large { margin-top: calc(-1 * var(--v6-gap, 0px)); padding: 2px 0 14px; }
 /* Break between words only: a Foruner title cut mid-word reads as a bug. Long titles get a smaller size instead. */
 .v6-header-large h1 { margin: 0; font: 400 clamp(27px, 8.7vw, 34px)/1.1 var(--st-font-display); color: var(--st-v6-ink); overflow-wrap: normal; word-break: normal; hyphens: none; }
