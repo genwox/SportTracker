@@ -1,5 +1,5 @@
 /* Carnets · V6 (screens 10 to 14). V5 data kept: colour, statuses Fait / À faire, « Actif », supersets, set-type badges. */
-.programs-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 28px; display: grid; align-content: start; gap: 16px; color: var(--st-v6-ink); }
+.programs-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 28px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 16px; color: var(--st-v6-ink); }
 .programs-page { --v6-gap: 16px; --v6-gutter: 20px; }
 .programs-page p { margin: 0; }
 .program-list, .program-form { display: grid; gap: 10px; }

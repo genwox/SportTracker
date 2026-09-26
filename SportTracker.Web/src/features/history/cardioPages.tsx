@@ -1,20 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useIonRouter } from '@ionic/react'
 import { useLocation, useParams } from 'react-router-dom'
-import { addOutline, speedometerOutline, timerOutline } from 'ionicons/icons'
+import { addOutline, checkmarkCircleOutline, speedometerOutline, timerOutline } from 'ionicons/icons'
 import { apiRequest } from '../../api/client'
 import {
-  V5State, V6Bars, V6Button, V6ChartCard, V6InputItem, V6Item, V6List, V6RecordBanner, V6Segment, V6Sheet, V6Skeleton, V6StatTiles, V6WheelPicker,
+  V5State, V6Bars, V6Button, V6ChartCard, V6InputItem, V6Item, V6List, V6RecordBanner, V6Segment, V6Skeleton, V6StatTiles, V6StatusPill,
 } from '../../ui'
 import { useV6Toast } from '../../ui/v6Feedback'
-import { useV6BackHref } from '../../ui/v6Hooks'
+import { useOnline, useV6BackHref } from '../../ui/v6Hooks'
+import { draftTime } from '../../domain/formDraft'
 import { cardioName, durationMinutes, frNumber, numberOf, useCardio, type Cardio } from './data'
 import {
   cardioRecords, cardioTitle, cardioTotals, cardioTypes, durationParts, minutesLabel, newestFirst, paceLabel, parseDecimal, toTimeSpan, weeklyTotals,
 } from './historyData'
 import { cardioPath, useSessionRows } from './rows'
-import { Overlay, Page, QueryError, durationLabel, longDate, shortDate, today, useInvalidateSessions, useSessionActions } from './shared'
+import {
+  DurationSheet, Overlay, Page, QueryError, SaveFailureState, durationLabel, longDate, saveFailureOf, shortDate, today, useInvalidateSessions, useRetryWhenOnline,
+  useSessionActions, type SaveFailure,
+} from './shared'
+import { useFormDraft } from './useFormDraft'
 
 const activityOptions = cardioTypes.map(type => ({ value: String(type), label: cardioName(type) }))
 const filterOptions = [{ value: 'all', label: 'Tout' }, ...activityOptions]
@@ -107,47 +112,55 @@ export function EditCardioSessionPage() {
   return <CardioForm key={sessionId} initial={session.data} />
 }
 
-const hourOptions = Array.from({ length: 10 }, (_, value) => ({ value, text: String(value) }))
-const minuteOptions = Array.from({ length: 60 }, (_, value) => ({ value, text: String(value).padStart(2, '0') }))
-
-function DurationSheet({ isOpen, value, onClose, onSave }: { isOpen: boolean; value: { hours: number; minutes: number }; onClose: () => void; onSave: (value: { hours: number; minutes: number }) => void }) {
-  const [draft, setDraft] = useState(value)
-  const [opened, setOpened] = useState(false)
-  if (isOpen !== opened) { setOpened(isOpen); if (isOpen) setDraft(value) }
-  return <V6Sheet isOpen={isOpen} onDismiss={onClose} title="Durée" subtitle={minutesLabel(draft.hours * 60 + draft.minutes)} breakpoints={[0, 0.5]} initialBreakpoint={0.5} backdropBreakpoint={0} className="history-duration-sheet">
-    <V6WheelPicker label="Durée de la sortie" onChange={(column, next) => setDraft(current => ({ ...current, [column]: next }))}
-      columns={[{ id: 'hours', label: 'Heures', unit: 'h', value: draft.hours, options: hourOptions }, { id: 'minutes', label: 'Minutes', unit: 'min', value: draft.minutes, options: minuteOptions }]} />
-    <V6Button onClick={() => onSave(draft)}>Valider</V6Button>
-  </V6Sheet>
-}
-
 type Errors = Partial<Record<'name' | 'date' | 'duration' | 'distance' | 'elevation', string>>
 
+type CardioValues = { type: string; name: string; date: string; hours: number; minutes: number; distance: string; elevation: string }
+const isCardioValues = (value: unknown): value is CardioValues => {
+  const form = value as CardioValues | null
+  return !!form && ['type', 'name', 'date', 'distance', 'elevation'].every(key => typeof form[key as keyof CardioValues] === 'string')
+    && typeof form.hours === 'number' && typeof form.minutes === 'number'
+}
+
 function CardioForm({ initial }: { initial: Cardio }) {
-  const router = useIonRouter(), toast = useV6Toast(), invalidate = useInvalidateSessions()
+  const router = useIonRouter(), toast = useV6Toast(), invalidate = useInvalidateSessions(), online = useOnline()
   const editing = initial.id != null
   const detail = editing ? cardioPath(initial.id) : null
   const backHref = useV6BackHref(detail ?? '/tabs/history/cardio')
   const actions = useSessionActions('cardio')
-  const [type, setType] = useState(String(numberOf(initial.type)))
-  const [name, setName] = useState(initial.name ?? '')
-  const [date, setDate] = useState((initial.date ?? today()).slice(0, 10))
-  const [duration, setDuration] = useState(editing ? durationParts(initial.duration) : { hours: 0, minutes: 30 })
-  const [distance, setDistance] = useState(editing ? String(numberOf(initial.distance)).replace('.', ',') : '')
-  const [elevation, setElevation] = useState(editing ? String(numberOf(initial.elevationGain)) : '')
+  // What is typed is kept on this device until the server has it (V6 · 25).
+  const draft = useFormDraft('cardio', editing ? String(initial.id) : null, isCardioValues)
+  const [values, setValues] = useState<CardioValues>(() => draft.restored?.value ?? {
+    type: String(numberOf(initial.type)), name: initial.name ?? '', date: (initial.date ?? today()).slice(0, 10),
+    ...(editing ? durationParts(initial.duration) : { hours: 0, minutes: 30 }),
+    distance: editing ? String(numberOf(initial.distance)).replace('.', ',') : '', elevation: editing ? String(numberOf(initial.elevationGain)) : '',
+  })
+  const [touched, setTouched] = useState(false)
+  const { save: saveDraft } = draft
+  useEffect(() => { if (touched) saveDraft(values) }, [values, touched, saveDraft])
+  const set = <K extends keyof CardioValues>(key: K) => (value: CardioValues[K]) => { setTouched(true); setValues(current => ({ ...current, [key]: value })) }
+  const { type, name, date, distance, elevation } = values
   const [wheel, setWheel] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
-  const km = parseDecimal(distance), minutes = duration.hours * 60 + duration.minutes
+  const [failure, setFailure] = useState<SaveFailure | null>(null)
+  const km = parseDecimal(distance), minutes = values.hours * 60 + values.minutes
+  const leave = () => { if (router.canGoBack()) router.goBack(); else router.push(backHref, 'back', 'replace') }
   const save = useMutation({
     mutationFn: (body: Cardio) => editing
       ? apiRequest<void>(`api/cardiosessions/${initial.id}`, { method: 'PUT', body: { ...body, id: initial.id } }).then(() => null)
       : apiRequest<Cardio>('api/cardiosessions', { method: 'POST', body }),
     onSuccess: async created => {
+      draft.clear()
+      setFailure(null)
       await invalidate()
       void toast.success(editing ? 'Sortie modifiée' : 'Sortie enregistrée')
       if (editing) { if (router.canGoBack()) router.goBack(); else router.push(detail!, 'back', 'replace') } else router.push(created?.id ? cardioPath(created.id) : '/tabs/history/cardio', 'forward', 'replace')
     },
-    onError: () => void toast.error('Enregistrement impossible', 'Vérifie ta connexion, puis réessaie : ta saisie est conservée.', submit),
+    onError: error => {
+      draft.flush(values)
+      const kind = saveFailureOf(error)
+      setFailure(kind)
+      void toast.error('Enregistrement impossible', 'Ta sortie reste enregistrée sur cet appareil.', kind === 'missing' ? undefined : submit)
+    },
   })
   function submit() {
     const climb = parseDecimal(elevation)
@@ -159,31 +172,39 @@ function CardioForm({ initial }: { initial: Cardio }) {
     if (!Number.isFinite(climb)) next.elevation = 'Dénivelé en mètres, par ex. 120.'
     setErrors(next)
     if (Object.keys(next).length) return
-    const time = editing ? (initial.date ?? '').slice(10) || 'T00:00:00' : 'T00:00:00'
-    save.mutate({ name: name.trim(), type: Number(type), date: `${date}${time}`, duration: toTimeSpan(duration.hours, duration.minutes), distance: km, elevationGain: climb })
+    const time = editing && (initial.date ?? '').slice(0, 10) === date ? (initial.date ?? '').slice(10) || 'T00:00:00' : 'T00:00:00'
+    save.mutate({ name: name.trim(), type: Number(type), date: `${date}${time}`, duration: toTimeSpan(values.hours, values.minutes), distance: km, elevationGain: climb })
   }
+  useRetryWhenOnline(failure, submit)
+  const keepLocal = () => { draft.flush(values); void toast.success('Brouillon gardé sur cet appareil', editing ? 'Rouvre « Modifier la sortie » pour le reprendre.' : 'Il t’attend dans « Nouvelle séance cardio ».'); leave() }
   const remove = async () => { if (await actions.confirmDelete(initial)) router.push('/tabs/history/cardio', 'back', 'replace') }
-  const footer = <V6Button loading={save.isPending} onClick={submit}>{editing ? 'Enregistrer' : 'Enregistrer la sortie'}</V6Button>
+  const footer = failure
+    ? <><V6Button variant="secondary" onClick={keepLocal}>Garder en local</V6Button><V6Button loading={save.isPending} disabled={failure === 'missing'} onClick={submit}>Réessayer</V6Button></>
+    : <V6Button loading={save.isPending} onClick={submit}>{editing ? 'Enregistrer' : 'Enregistrer la sortie'}</V6Button>
   return <Page title={editing ? 'Modifier la sortie' : 'Nouvelle sortie'} subtitle={`Cardio · ${date ? longDate(date) : 'sans date'}`} backHref={backHref} footer={footer}>
+    {failure && <SaveFailureState failure={failure} online={online} noun="sortie"
+      pending={[{ title: 'Sortie', detail: [name.trim() || cardioName(Number(type)), Number.isFinite(km) && km > 0 ? `${frNumber(km)} km` : null, minutesLabel(minutes)].filter(Boolean).join(' · ') }]} />}
+    {!failure && draft.savedAt && touched && <V6StatusPill icon={checkmarkCircleOutline}>Brouillon enregistré · {draftTime(draft.savedAt)}</V6StatusPill>}
+    {!failure && draft.restored && !touched && <V6StatusPill icon={checkmarkCircleOutline}>Brouillon repris · {draftTime(draft.restored.savedAt)}</V6StatusPill>}
     <form className="history-form" onSubmit={event => { event.preventDefault(); submit() }} noValidate>
       <section className="history-form__group" aria-label="Type d’activité">
         <h2 className="history-form__label">Type d’activité</h2>
-        <V6Segment label="Type d’activité" value={type} options={activityOptions} onChange={setType} />
+        <V6Segment label="Type d’activité" value={type} options={activityOptions} onChange={set('type')} />
       </section>
       <V6List header="Mesures" note={errors.duration}>
         <V6Item icon={timerOutline} title="Durée" value={minutesLabel(minutes)} onClick={() => setWheel(true)} error={!!errors.duration} />
-        <V6InputItem label="Distance (km)" value={distance} onChange={setDistance} inputmode="decimal" placeholder="0" error={errors.distance} />
-        <V6InputItem label="Dénivelé (m)" value={elevation} onChange={setElevation} inputmode="numeric" placeholder="0" error={errors.elevation} />
+        <V6InputItem label="Distance (km)" value={distance} onChange={set('distance')} inputmode="decimal" placeholder="0" error={errors.distance} />
+        <V6InputItem label="Dénivelé (m)" value={elevation} onChange={set('elevation')} inputmode="numeric" placeholder="0" error={errors.elevation} />
         <V6Item icon={speedometerOutline} title="Allure" value={Number.isFinite(km) && paceLabel(minutes, km) ? `${paceLabel(minutes, km)} /km` : '–'} detail="calculée" />
       </V6List>
       <V6List header="Sortie">
-        <V6InputItem label="Nom" value={name} onChange={setName} placeholder="Ex. Sortie longue" error={errors.name} autocapitalize="sentences" />
-        <V6InputItem label="Date" type="date" value={date} onChange={setDate} error={errors.date} />
+        <V6InputItem label="Nom" value={name} onChange={set('name')} placeholder="Ex. Sortie longue" error={errors.name} autocapitalize="sentences" />
+        <V6InputItem label="Date" type="date" value={date} onChange={set('date')} error={errors.date} />
       </V6List>
       {editing && <V6Button variant="text" className="history-delete" onClick={() => void remove()}>Supprimer la sortie</V6Button>}
       <button type="submit" hidden aria-hidden="true" tabIndex={-1} />
     </form>
-    <Overlay><DurationSheet isOpen={wheel} value={duration} onClose={() => setWheel(false)} onSave={value => { setDuration(value); setWheel(false); setErrors(current => ({ ...current, duration: undefined })) }} /></Overlay>
+    <Overlay><DurationSheet isOpen={wheel} value={{ hours: values.hours, minutes: values.minutes }} onClose={() => setWheel(false)} onSave={value => { setTouched(true); setValues(current => ({ ...current, ...value })); setWheel(false); setErrors(current => ({ ...current, duration: undefined })) }} /></Overlay>
   </Page>
 }
 

@@ -158,12 +158,12 @@ export function V6Item({ icon, title, detail, value, end, routerLink, onClick, e
 type InputProps = Omit<ComponentProps<typeof IonInput>, 'label' | 'onIonInput' | 'onChange' | 'value' | 'errorText'>
 
 /** Form row: fixed label on the left, 16 px field (no iOS zoom), clear button, error in ink under the field. */
-export function V6InputItem({ label, value, onChange, error, helper, ...props }: InputProps & {
+export function V6InputItem({ label, value, onChange, error, helper, clearInput = true, ...props }: InputProps & {
   label: string; value: string; onChange: (value: string) => void; error?: string | null; helper?: string
 }) {
   return <IonItem className="v6-item v6-input-item">
     <IonInput {...props} className={`v6-input ${error ? 'ion-invalid ion-touched' : ''}`} label={label} labelPlacement="fixed"
-      clearInput value={value} errorText={error ?? undefined} helperText={helper}
+      clearInput={clearInput} value={value} errorText={error ?? undefined} helperText={helper}
       onIonInput={event => onChange(String(event.detail.value ?? ''))} />
   </IonItem>
 }
@@ -235,13 +235,14 @@ export function V6Sheet({ isOpen, onDismiss, title, subtitle, breakpoints = [0, 
 /* ── Skeleton ────────────────────────────────────────────────────────────── */
 
 /** Card skeletons shown only while the cache is empty (never a full-page spinner). */
-export function V6Skeleton({ count = 2 }: { count?: number }) {
-  return <div className="v6-skeleton" role="status" aria-label="Chargement en cours">
-    <span className="v6-visually-hidden">Chargement en cours…</span>
+export function V6Skeleton({ count = 2, caption }: { count?: number; caption?: string }) {
+  return <div className="v6-skeleton" role="status" aria-label={caption ?? 'Chargement en cours'}>
+    {!caption && <span className="v6-visually-hidden">Chargement en cours…</span>}
     {Array.from({ length: count }, (_, index) => <div className="v6-skeleton__card" key={index} aria-hidden="true">
       <IonSkeletonText animated className="v6-skeleton__bar v6-skeleton__bar--title" />
       <IonSkeletonText animated className="v6-skeleton__bar" />
       <IonSkeletonText animated className="v6-skeleton__bar v6-skeleton__bar--short" />
     </div>)}
+    {caption && <p className="v6-skeleton__caption">{caption}</p>}
   </div>
 }

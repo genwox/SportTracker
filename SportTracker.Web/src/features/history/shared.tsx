@@ -1,13 +1,14 @@
 /* eslint-disable react-refresh/only-export-components -- date helpers and the mutations stay beside the history page shell */
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { IonContent, IonPage } from '@ionic/react'
 import { ApiError, apiRequest } from '../../api/client'
-import { V5Refresher, V5State, V6Header, V6StickyAction } from '../../ui'
+import { cloudOfflineOutline, syncOutline } from 'ionicons/icons'
+import { V5Refresher, V5State, V6Badge, V6Button, V6Header, V6Item, V6List, V6Notice, V6Sheet, V6StickyAction, V6WheelPicker } from '../../ui'
 import { useV6ActionSheet, useV6Toast } from '../../ui/v6Feedback'
 import { cardioKey, dayLabel, durationMinutes, workoutsKey, type Cardio, type Workout } from './data'
-import { cardioTitle, duplicateCardio, duplicateWorkout } from './historyData'
+import { cardioTitle, duplicateCardio, duplicateWorkout, minutesLabel } from './historyData'
 import './history.css'
 
 /* ── Layout ──────────────────────────────────────────────────────────────── */
@@ -44,6 +45,62 @@ export function QueryError({ title, error, what, retry }: { title: string; error
 
 /** Section header: Foruner title, like « Mes programmes » on the Carnets. */
 export function SectionTitle({ children }: { children: ReactNode }) { return <h2 className="history-section-title">{children}</h2> }
+
+/* ── Duration wheel ──────────────────────────────────────────────────────── */
+
+const hourOptions = Array.from({ length: 10 }, (_, value) => ({ value, text: String(value) }))
+const minuteOptions = Array.from({ length: 60 }, (_, value) => ({ value, text: String(value).padStart(2, '0') }))
+
+/** Duration at the wheel (h / min) in a 50 % sheet: cardio outing (08) and dated workout (05, 21). */
+export function DurationSheet({ isOpen, value, onClose, onSave, label = 'Durée de la sortie' }: { isOpen: boolean; value: { hours: number; minutes: number }; onClose: () => void; onSave: (value: { hours: number; minutes: number }) => void; label?: string }) {
+  const [draft, setDraft] = useState(value)
+  const [opened, setOpened] = useState(false)
+  if (isOpen !== opened) { setOpened(isOpen); if (isOpen) setDraft(value) }
+  return <V6Sheet isOpen={isOpen} onDismiss={onClose} title="Durée" subtitle={minutesLabel(draft.hours * 60 + draft.minutes)} breakpoints={[0, 0.5]} initialBreakpoint={0.5} backdropBreakpoint={0} className="history-duration-sheet">
+    <V6WheelPicker label={label} onChange={(column, next) => setDraft(current => ({ ...current, [column]: next }))}
+      columns={[{ id: 'hours', label: 'Heures', unit: 'h', value: draft.hours, options: hourOptions }, { id: 'minutes', label: 'Minutes', unit: 'min', value: draft.minutes, options: minuteOptions }]} />
+    <V6Button onClick={() => onSave(draft)}>Valider</V6Button>
+  </V6Sheet>
+}
+
+/* ── Save failure (25 · Erreur d’enregistrement) ────────────────────────── */
+
+export type SaveFailure = 'offline' | 'server' | 'missing'
+export const saveFailureOf = (error: unknown): SaveFailure => error instanceof ApiError ? error.status === 404 ? 'missing' : 'server' : 'offline'
+
+/** Calls `retry` when the network comes back after an offline failure (« la synchronisation reprendra automatiquement »). */
+export function useRetryWhenOnline(failure: SaveFailure | null, retry: () => void) {
+  const latest = useRef(retry)
+  useEffect(() => { latest.current = retry })
+  useEffect(() => {
+    if (failure !== 'offline') return
+    const onOnline = () => latest.current()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [failure])
+}
+
+/**
+ * In-page state of a failed save (V6 · 25): the server did not answer, the entry stays on this device, what waits
+ * for the sync. Never red: nav-ink contour and icons. The page footer offers « Garder en local » / « Réessayer ».
+ */
+export function SaveFailureState({ failure, online, noun, pending }: {
+  failure: SaveFailure; online: boolean; noun: 'séance' | 'sortie'; pending: { title: string; detail: string }[]
+}) {
+  const missing = failure === 'missing'
+  return <>
+    <V6Notice tone="alert" icon={failure === 'offline' ? cloudOfflineOutline : undefined}
+      title={missing ? `${noun === 'séance' ? 'Séance introuvable' : 'Sortie introuvable'} sur le serveur` : 'Le serveur n’a pas répondu'}
+      message={missing ? `Elle a peut-être été supprimée depuis un autre appareil. Ta saisie reste enregistrée sur cet appareil.` : `Ta ${noun} reste enregistrée sur cet appareil.`}
+      meta={missing ? 'Gardée en local' : !online ? 'Hors ligne · sync en attente' : 'Sync en attente · tu peux réessayer maintenant'} />
+    <V6List header="En attente de synchronisation" note={failure === 'offline'
+      ? 'Aucune donnée n’est perdue : la synchronisation reprendra automatiquement au retour du réseau.'
+      : 'Aucune donnée n’est perdue : ta saisie reste sur cet appareil.'}>
+      {pending.map((item, index) => <V6Item key={`${item.title}-${index}`} icon={syncOutline} title={item.title} detail={item.detail}
+        value={index === 0 ? <V6Badge tone="action">{pending.length}</V6Badge> : undefined} />)}
+    </V6List>
+  </>
+}
 
 /* ── Dates ───────────────────────────────────────────────────────────────── */
 

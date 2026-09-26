@@ -73,6 +73,19 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
         // The controller may have loaded the same graph for its scoped existence check.
         _context.ChangeTracker.Clear();
         _context.WorkoutSessions.Update(entity);
+        // A sent exercise list is the whole session: exercises and sets left out of it are deleted
+        // (« Modifier la séance »). No list at all leaves the children untouched.
+        if (entity.WorkoutExercises != null)
+        {
+            var keptExerciseIds = entity.WorkoutExercises.Where(e => e.Id != 0).Select(e => e.Id).ToHashSet();
+            var keptSetIds = entity.WorkoutExercises.SelectMany(e => e.ExerciseSets ?? []).Where(s => s.Id != 0).Select(s => s.Id).ToHashSet();
+            foreach (var exercise in ownedExercises)
+            {
+                foreach (var set in exercise.ExerciseSets ?? [])
+                    if (!keptSetIds.Contains(set.Id)) _context.ExerciseSets.Remove(new ExerciseSet { Id = set.Id });
+                if (!keptExerciseIds.Contains(exercise.Id)) _context.WorkoutExercises.Remove(new WorkoutExercise { Id = exercise.Id });
+            }
+        }
         await _context.SaveChangesAsync();
     }
 

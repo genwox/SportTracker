@@ -1,5 +1,5 @@
 /* Historique · V6 lot 4 (screens 04, 06 to 09, 16 to 18). V5 data kept: set-type badges, supersets, RPE, notes, records, charts. */
-.history-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 28px; display: grid; align-content: start; gap: 16px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
+.history-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 28px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 16px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
 .history-page { --v6-gap: 16px; --v6-gutter: 20px; }
 .history-page p { margin: 0; }
 .history-page .v6-list-group ion-list.v6-list { margin: 0; }
@@ -61,3 +61,30 @@ ion-button.v6-button.history-delete { --color: var(--st-v6-danger); justify-self
 .history-duration-sheet .v6-sheet__body { gap: 16px; }
 
 @media (max-width: 360px) { .history-page { padding-inline: 16px; --v6-gutter: 16px; } .history-sets__value { gap: 6px; } }
+
+/* Nouvelle séance (05) · Modifier la séance (21): exercise cards with ≡, sliding sets, note, « Ajouter une série » */
+.wf-exercise { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card-solid); box-shadow: 0 8px 22px #082d450d; }
+.wf-exercise.is-superset { box-shadow: inset 4px 0 0 var(--st-v6-action), 0 8px 22px #082d450d; }
+.v6-reorder-list .wf-exercise.reorder-selected { scale: 1.03; box-shadow: 0 14px 30px #082d4540; }
+.wf-exercise__head { display: flex; align-items: center; gap: 12px; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+ion-reorder.wf-exercise__handle { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin: 0 -8px 0 0; color: var(--st-v6-ink); font-size: 26px; }
+.wf-sets { display: grid; gap: 6px; }
+ion-item-sliding.wf-set-row { border-radius: 14px; }
+.wf-set-row .v6-sliding__row { --min-height: 48px; --background: var(--st-v6-surface); border: 0; border-radius: 14px; }
+.wf-set {
+  display: grid; grid-template-columns: 28px auto minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 0 12px 0 8px;
+  border: 0; background: transparent; color: var(--st-v6-ink); text-align: left; -webkit-tap-highlight-color: transparent; transition: transform 150ms ease-out;
+}
+.wf-set:active { transform: scale(.97); transition-duration: 100ms; }
+.wf-set .history-sets__number { background: var(--st-v6-card-solid); }
+.wf-set__load { font: 700 16px var(--st-font-body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wf-set__load span { color: var(--st-v6-muted); font-weight: 600; }
+.wf-set__rpe { padding: 3px 7px; border-radius: 8px; background: var(--st-v6-card-solid); font: 700 11px var(--st-font-body); }
+.wf-note { display: grid; gap: 2px; padding: 8px 12px; border-radius: 14px; background: var(--st-v6-surface); }
+.wf-note > span { color: var(--st-v6-muted); font: 700 11px/1.3 var(--st-font-body); letter-spacing: .4px; text-transform: uppercase; }
+ion-textarea.wf-note__field { --padding-top: 2px; --padding-bottom: 2px; --padding-start: 0; --color: var(--st-v6-ink); --placeholder-color: var(--st-v6-muted); --placeholder-opacity: 1; min-height: 28px; font: 500 16px/1.35 var(--st-font-body); }
+ion-button.v6-button.wf-add-set { justify-self: start; }
+ion-button.v6-button.wf-discard { height: 32px; margin: 0 -4px 0 0; font-size: 13px; }
+.wf-error { margin: -8px 0 0 !important; padding: 0 16px; color: var(--st-v6-ink); font: 600 12px/1.35 var(--st-font-body); }
+.wf-set-sheet .v6-sheet__header { margin-top: 14px; }
+.wf-set-sheet .v6-sheet__body { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }

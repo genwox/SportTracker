@@ -1,0 +1,26 @@
+/* V6 kit · lot 5: states. Errors never use red: nav-ink icon and contour (SKILL V6). */
+
+.v6-notice { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card); color: var(--st-v6-ink); font-family: var(--st-font-body); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-notice--alert { border: 1.5px solid var(--st-v6-nav); }
+.v6-notice__head { display: flex; align-items: center; gap: 10px; }
+.v6-notice__head ion-icon { flex: none; color: var(--st-v6-nav); font-size: 24px; }
+.v6-notice__head strong { font: 700 16px/1.3 var(--st-font-body); }
+.v6-notice__message { margin: 0; color: var(--st-v6-muted); font: 500 14px/1.45 var(--st-font-body); }
+.v6-notice__meta { margin: 0; color: var(--st-v6-ink); font: 600 12px/1.35 var(--st-font-body); }
+.v6-notice > .v6-button { margin-top: 6px; }
+
+.v6-status-pill { display: flex; align-items: center; gap: 8px; min-height: 36px; margin: 0; padding: 0 8px 0 12px; border-radius: 14px; background: var(--st-v6-segment); color: var(--st-v6-muted); font: 600 12px/1.3 var(--st-font-body); }
+.v6-status-pill ion-icon { flex: none; color: var(--st-v6-ink); font-size: 17px; }
+.v6-status-pill__label { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.v6-state-page { display: grid; justify-items: start; gap: 14px; padding-top: 48px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
+.v6-state-page__tile { display: grid; place-items: center; width: 64px; height: 64px; border: 1px solid var(--st-v6-line); border-radius: 16px; background: var(--st-v6-card-solid); color: var(--st-v6-ink); font-size: 34px; }
+.v6-state-page h1 { margin: 4px 0 0; font: 400 clamp(30px, 9.4vw, 38px)/1.05 var(--st-font-display); overflow-wrap: normal; word-break: normal; hyphens: none; }
+.v6-state-page__message { margin: 0; color: var(--st-v6-ink); font: 500 15px/1.45 var(--st-font-body); }
+.v6-state-page__actions { display: grid; gap: 12px; width: 100%; }
+
+.v6-skeleton-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.v6-skeleton-tiles__tile { display: grid; gap: 8px; padding: 14px 12px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-skeleton-tiles .v6-skeleton__bar { width: 70%; }
+.v6-skeleton-tiles .v6-skeleton__bar--title { width: 85%; }
+.v6-skeleton-tiles .v6-skeleton__bar--short { width: 45%; }

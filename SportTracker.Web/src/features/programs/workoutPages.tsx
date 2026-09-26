@@ -1,43 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { IonContent, IonModal, IonPage } from '@ionic/react'
-import { Link, useHistory, useLocation } from 'react-router-dom'
-import type { components } from '../../api/schema'
-import { ApiError, apiRequest } from '../../api/client'
-import { ExerciseThumb, V5Button, V5Card, V6Header, V6Skeleton, V5State } from '../../ui'
-import { useV6BackHref } from '../../ui/v6Hooks'
-import './programs.css'
-
-/* Screen 05 (Nouvelle séance muscu): unchanged V5 form, not part of V6 lots 1 to 4. Reached from Séances (04) and from the Carnets. */
-
-type Exercise = components['schemas']['Exercise']
-const muscleNames = ['Pecs', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Jambes', 'Fessiers', 'Abdos', 'Corps entier']
-const muscles = (exercise?: Exercise) => [...(exercise?.muscleGroups ?? []).map(group => muscleNames[Number(group)]).filter(Boolean), exercise?.equipment].filter(Boolean).join(' · ')
-const id = (value: number | string | undefined) => Number(value ?? 0)
-const errorText = (error: unknown) => error instanceof ApiError && error.status === 404 ? 'Introuvable ou inaccessible.' : 'Vérifie ta connexion, puis réessaie.'
-function Page({ title, subtitle, backHref, children }: { title: string; subtitle?: string; backHref?: string; children: ReactNode }) {
-  return <IonPage><IonContent><main className="programs-page"><V6Header title={title} subtitle={subtitle} backHref={backHref} avatar={!backHref} />{children}</main></IonContent></IonPage>
-}
-function QueryState({ error, retry }: { error: unknown; retry: () => void }) { return <V5State title="Impossible de charger les données" message={errorText(error)} error onRetry={retry} /> }
-
-function ExercisePicker({ open, close, select, excluded }: { open: boolean; close: () => void; select: (exercise: Exercise) => void; excluded: number[] }) {
-  const query = useQuery({ queryKey: ['exercises'], queryFn: () => apiRequest<Exercise[]>('api/exercises'), enabled: open })
-  const [search, setSearch] = useState('')
-  return <IonModal isOpen={open} onDidDismiss={close} breakpoints={[0, .5, .9]} initialBreakpoint={.9}><IonContent><div className="program-picker-inner"><h2>Ajouter un exercice</h2><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un exercice" aria-label="Rechercher un exercice" />{query.isPending ? <V6Skeleton /> : query.isError ? <QueryState error={query.error} retry={query.refetch} /> : query.data?.filter(ex => !excluded.includes(id(ex.id)) && ex.name?.toLocaleLowerCase().includes(search.toLocaleLowerCase())).map(ex => <button key={id(ex.id)} onClick={() => { select(ex); setSearch(''); close() }}><ExerciseThumb exercise={ex} size={48} /><span><strong>{ex.name}</strong>{muscles(ex) && <small>{muscles(ex)}</small>}</span><span className="program-chevron" aria-hidden="true">＋</span></button>)}</div></IonContent></IonModal>
-}
-
-type WorkoutExercise = components['schemas']['WorkoutExercise']
-type ExerciseSet = components['schemas']['ExerciseSet']
-type WorkoutFormExercise = { exercise: Exercise; sets: ExerciseSet[]; notes: string; supersetGroupId: number | null }
-export function NewWorkoutSessionPage() {
-  const history = useHistory(), { pathname } = useLocation(), cache = useQueryClient()
-  const fromHistory = pathname.startsWith('/tabs/history'), backHref = useV6BackHref(fromHistory ? '/tabs/history/workouts' : '/tabs/programs')
-  const [name, setName] = useState(''), [date, setDate] = useState(new Date().toISOString().slice(0, 10)), [minutes, setMinutes] = useState(60)
-  const [items, setItems] = useState<WorkoutFormExercise[]>([]), [picker, setPicker] = useState(false), [error, setError] = useState('')
-  const save = useMutation({ mutationFn: (workout: components['schemas']['WorkoutSession']) => apiRequest<void>('api/workoutsessions', { method: 'POST', body: workout }), onSuccess: async () => { await Promise.all([cache.invalidateQueries({ queryKey: ['history'] }), cache.invalidateQueries({ queryKey: ['today'] })]); history.push(fromHistory ? '/tabs/history/workouts' : '/tabs/history') } })
-  function submit(event: FormEvent) { event.preventDefault(); if (!name.trim() || minutes < 1 || items.some(item => !item.sets.length || item.sets.some(set => Number(set.repetitions) < 1 || Number(set.weight) < 0))) { setError('Vérifie le nom, la durée et les séries.'); return } const workoutExercises: WorkoutExercise[] = items.map(item => ({ exerciseId: item.exercise.id, exerciseSets: item.sets, notes: item.notes, supersetGroupId: item.supersetGroupId })); setError(''); save.mutate({ name: name.trim(), date: `${date}T00:00:00`, duration: `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}:00`, workoutExercises }, { onError: () => setError('Vérifie ta connexion, puis réessaie : tes valeurs sont conservées.') }) }
-  function update(index: number, item: WorkoutFormExercise) { setItems(items.map((current, i) => i === index ? item : current)) }
-  return <Page title="Nouvelle séance" backHref={backHref}><Link className="v5-button v5-button--secondary" to="/live">Démarrer une séance à vide en direct →</Link><form className="program-form" onSubmit={submit}><V5Card><label>Nom de la séance<input value={name} onChange={e => setName(e.target.value)} placeholder="Ex. Haut du corps" required /></label><div className="program-fields"><label>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} required /></label><label>Durée (min)<input type="number" min="1" value={minutes} onChange={e => setMinutes(Number(e.target.value))} /></label></div></V5Card>{items.map((item, index) => <V5Card key={`${item.exercise.id}-${index}`}><div className="program-inline"><h3>{item.exercise.name}</h3><button type="button" aria-label="Retirer l’exercice" onClick={() => setItems(items.filter((_, i) => i !== index))}>×</button></div><label>Groupe superset<select value={item.supersetGroupId ?? ''} onChange={e => update(index, { ...item, supersetGroupId: e.target.value ? Number(e.target.value) : null })}><option value="">Aucun</option><option value="1">A</option><option value="2">B</option><option value="3">C</option></select></label>{item.sets.map((set, setIndex) => <div key={setIndex} className="program-set"><span>{setIndex + 1}</span><label>Poids (kg)<input type="number" min="0" step="0.5" value={set.weight ?? 0} onChange={e => update(index, { ...item, sets: item.sets.map((s, i) => i === setIndex ? { ...s, weight: Number(e.target.value) } : s) })} /></label><label>Reps<input type="number" min="1" value={set.repetitions ?? 1} onChange={e => update(index, { ...item, sets: item.sets.map((s, i) => i === setIndex ? { ...s, repetitions: Number(e.target.value) } : s) })} /></label><button type="button" aria-label={`Supprimer la série ${setIndex + 1}`} onClick={() => update(index, { ...item, sets: item.sets.filter((_, i) => i !== setIndex) })}>×</button><label>Type<select value={set.setType ?? 1} onChange={e => update(index, { ...item, sets: item.sets.map((s, i) => i === setIndex ? { ...s, setType: Number(e.target.value) } : s) })}><option value="0">Échauffement</option><option value="1">Normal</option><option value="2">Drop set</option><option value="3">Échec</option></select></label><label>RPE<input type="number" min="1" max="10" value={set.rpe ?? ''} onChange={e => update(index, { ...item, sets: item.sets.map((s, i) => i === setIndex ? { ...s, rpe: e.target.value ? Number(e.target.value) : null } : s) })} /></label></div>)}<V5Button type="button" secondary onClick={() => update(index, { ...item, sets: [...item.sets, { weight: 0, repetitions: 1, setType: 1 }] })}>+ Ajouter une série</V5Button><label>Notes de l’exercice<textarea value={item.notes} onChange={e => update(index, { ...item, notes: e.target.value })} placeholder="Repères, ressenti…" /></label></V5Card>)}<V5Button type="button" secondary onClick={() => setPicker(true)}>+ Ajouter un exercice</V5Button><ExercisePicker open={picker} close={() => setPicker(false)} excluded={items.map(i => id(i.exercise.id))} select={exercise => setItems([...items, { exercise, sets: [{ weight: 0, repetitions: 1, setType: 1 }], notes: '', supersetGroupId: null }])} />{error && <V5State title="Enregistrement impossible" message={error} error />}<V5Button type="submit" disabled={save.isPending}>{save.isPending ? 'Enregistrement…' : 'Enregistrer la séance'}</V5Button></form></Page>
-}
+/* Screen 05 (Nouvelle séance muscu) lives with the history editor (V6 lot 5); the Carnets tab keeps its own route to it. */
+export { NewWorkoutSessionPage } from '../history/workoutForm'
 /** Exercise history opened from a carnet session: the same page as in the Historique (16). */
 export { ExerciseProgressPage as ExerciseHistoryPage } from '../history/strengthPages'

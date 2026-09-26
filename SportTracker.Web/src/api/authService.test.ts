@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getUserInfo, login, register } from './authService'
 import { apiRequest } from './client'
-import { getDraftOwner, getToken } from './tokenStore'
+import { getDraftOwner, getToken, isTokenRemembered, setTokenRemembered } from './tokenStore'
 
 const items = new Map<string, string>()
 
@@ -35,6 +35,22 @@ describe('Identity client', () => {
     expect(new Headers(fetchMock.mock.calls[0][1].headers).has('Authorization')).toBe(false)
     expect(getToken()).toBe('new-token')
     expect(getDraftOwner()).toBe('athlete@example.com')
+  })
+
+  it('keeps the token for this session only when « Rester connecté » is off, and can move it back', async () => {
+    const session = new Map<string, string>()
+    vi.stubGlobal('sessionStorage', { getItem: (key: string) => session.get(key) ?? null, setItem: (key: string, value: string) => session.set(key, value), removeItem: (key: string) => session.delete(key) })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ accessToken: 'short-token' }), { status: 200, headers: { 'content-type': 'application/json' } })))
+
+    expect(await login('a@b.fr', 'secret', false)).toBeNull()
+    expect(items.has('st-auth-token')).toBe(false)
+    expect(session.get('st-auth-token')).toBe('short-token')
+    expect(getToken()).toBe('short-token')
+    expect(isTokenRemembered()).toBe(false)
+    setTokenRemembered(true)
+    expect(items.get('st-auth-token')).toBe('short-token')
+    expect(session.has('st-auth-token')).toBe(false)
+    expect(isTokenRemembered()).toBe(true)
   })
 
   it('registers with an empty 200 response, then logs in', async () => {

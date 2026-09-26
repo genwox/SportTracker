@@ -18,6 +18,7 @@ import { CatalogSheet } from './CatalogSheet'
 import { createDraft, freeKey, liveQueue, owner, persistDraft, routineKey, sessionPrefix, setTypeName, type Exercise, type HistoryEntry, type Program, type Workout } from './liveApi'
 import { closeLiveSession, openLiveSession, readLiveSession, updateLiveTimer, useLiveSession, useNow } from './liveSession'
 import { SyncStatus } from './SyncStatus'
+import { useShowRpe } from '../profile/preferences'
 import medalIcon from './assets/031-medal.svg'
 import './live.css'
 
@@ -122,6 +123,7 @@ export function ExerciseLivePage() {
   const queryClient = useQueryClient()
   const params = useParams<{ draftId?: string; programId?: string; sessionId?: string; exerciseId: string }>()
   const exerciseId = Number(params.exerciseId)
+  const [showRpe] = useShowRpe()
   const free = Boolean(params.draftId)
   const sessionId = Number(params.sessionId)
   const key = free ? freeKey(params.draftId!, exerciseId) : routineKey(sessionId, exerciseId)
@@ -278,7 +280,7 @@ export function ExerciseLivePage() {
             decreaseLabel="Retirer une répétition" increaseLabel="Ajouter une répétition" valueLabel={`${draft.repsCurrent} répétitions, saisie précise`} />
           <p className="live-onerm">1RM estimé : <strong>{oneRm > 0 ? `${kg(oneRm)} kg` : '—'}</strong></p>
           <V6Segment label="Type de série" value={draft.setType} options={typeOptions} onChange={value => void save({ setType: value })} />
-          <div className="live-rpe" role="group" aria-label="RPE"><span>RPE</span>{[6, 7, 8, 9, 10].map(value => <button type="button" key={value} className={draft.rpe === value ? 'active' : ''} aria-pressed={draft.rpe === value} onClick={() => void save({ rpe: draft.rpe === value ? null : value })}>{value}</button>)}</div>
+          {showRpe && <div className="live-rpe" role="group" aria-label="RPE"><span>RPE</span>{[6, 7, 8, 9, 10].map(value => <button type="button" key={value} className={draft.rpe === value ? 'active' : ''} aria-pressed={draft.rpe === value} onClick={() => void save({ rpe: draft.rpe === value ? null : value })}>{value}</button>)}</div>}
         </section>
         <section className="live-sets" aria-label="Séries">
           <h2>Séries validées · glisser pour supprimer</h2>

@@ -10,7 +10,7 @@ import { CatalogSheet } from '../live/CatalogSheet'
 import { usePrograms, useProgramDetails, useProgramsSettled } from '../programs/programQueries'
 import { activeProgramId, doneThisWeek, lastWorkoutFor, nextSession, num, sessionTotals, sortedExercises, supersetNames } from '../programs/programData'
 import { useV6Toast } from '../../ui/v6Feedback'
-import { V5Card, V5Refresher, V5State, V6Badge, V6Button, V6Header, V6SessionRow, V6Skeleton } from '../../ui'
+import { V5Card, V5Refresher, V5State, V6Badge, V6Button, V6Header, V6SessionRow, V6Skeleton, V6SkeletonTiles } from '../../ui'
 import { durationMinutes, summarizeToday } from './todayData'
 import type { TodayData, Workout, Cardio } from './todayData'
 import './today.css'
@@ -91,7 +91,8 @@ export function TodayPage() {
           <span className="t-sync__label">{syncLabel}</span>
           {summary && summary.streak === 0 && <span className="t-sync__streak" aria-label="Série de 0 jour">0 j</span>}
         </p>
-        {!query.data && query.isPending && <div className="t-loading" aria-busy="true"><V6Skeleton count={1} /><div className="t-loading__stats">{[0, 1, 2].map(item => <div key={item} className="t-loading__stat" />)}</div><div className="t-loading__chart" /></div>}
+        {/* 26 · Chargement: skeletons of the real layout (hero, three tiles, two cards), never a full-page spinner; the tabs stay usable. */}
+        {!query.data && query.isPending && <div className="t-loading" aria-busy="true"><V6Skeleton count={1} /><V6SkeletonTiles /><V6Skeleton count={2} caption="Chargement de tes séances…" /></div>}
         {!query.data && query.isError && <V5State title="Impossible de charger ta journée"
           message="Impossible de récupérer tes séances. Vérifie ta connexion, puis réessaie."
           error onRetry={() => { void query.refetch() }} />}

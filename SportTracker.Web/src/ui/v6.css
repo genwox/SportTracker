@@ -26,6 +26,8 @@
   white-space: nowrap; text-overflow: ellipsis; opacity: 0; transform: translateY(4px); transition: opacity .2s ease, transform .2s ease;
 }
 .v6-header-bar.is-condensed .v6-header-bar__title { opacity: 1; transform: none; }
+/* At rest the small title is hidden: it takes no width, so the back label (« Carnets », « Historique ») is not truncated. */
+.v6-header-bar:not(.is-condensed) .v6-header-bar__title { max-width: 0 !important; }
 /* With a back label the small title leaves room for it; with a text action on the right too (« Terminer »), even more. */
 .v6-header-bar:has(.v6-back) .v6-header-bar__title { max-width: calc(100vw - 190px); }
 /* Back label + text action on the right (« Terminer »): the small title is truncated rather than overlapping them. */
@@ -132,6 +134,8 @@ ion-input.v6-input .error-text, ion-input.v6-input .helper-text { color: var(--s
 ion-input.v6-input .helper-text { color: var(--st-v6-muted); font-weight: 500; }
 ion-input.v6-input .error-text::before { content: '⚠︎ '; }
 .v6-input-item { --inner-padding-end: 8px; }
+/* Like iOS, the clear button shows only while the field is being edited. */
+ion-input.v6-input:not(.has-focus) .input-clear-icon { display: none; }
 
 /* ── Sliding row ────────────────────────────────────────────────────────── */
 ion-item-sliding.v6-sliding { overflow: hidden; border-radius: 16px; }
@@ -220,3 +224,4 @@ ion-toast.v6-toast::part(button) { min-height: 44px; font: 700 13px var(--st-fon
 .v6-skeleton__bar { --background: var(--st-v6-line); --background-rgb: 18, 61, 50; width: 80%; height: 10px; margin: 0; border-radius: 5px; }
 .v6-skeleton__bar--title { width: 52%; height: 14px; border-radius: 7px; }
 .v6-skeleton__bar--short { width: 35%; }
+.v6-skeleton__caption { margin: 2px 0 0; color: var(--st-v6-ink); font: 500 13px/1.4 var(--st-font-body); text-align: center; }

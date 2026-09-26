@@ -13,13 +13,14 @@ function identityErrors(error: ApiError): string | null {
   return messages.length ? messages.join(' ') : null
 }
 
-export async function login(email: string, password: string): Promise<string | null> {
+/** `remember` false keeps the token for this session only (« Rester connecté » off). */
+export async function login(email: string, password: string, remember = true): Promise<string | null> {
   try {
     const response = await apiRequest<AccessTokenResponse>('/login', {
       method: 'POST', auth: false, body: { email, password } satisfies Credentials,
     })
     if (!response?.accessToken) return 'Réponse du serveur invalide.'
-    setToken(response.accessToken, email)
+    setToken(response.accessToken, email, remember)
     return null
   } catch (error) {
     if (error instanceof ApiError) return 'Email ou mot de passe incorrect.'

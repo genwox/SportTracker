@@ -1,5 +1,6 @@
 import { useState, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
-import { IonContent, IonModal, IonRefresher, IonRefresherContent } from '@ionic/react'
+import { IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent } from '@ionic/react'
+import { alertCircleOutline } from 'ionicons/icons'
 import './ui.css'
 
 export {
@@ -21,7 +22,7 @@ export function V5State({ title, message, error = false, onRetry, children }: {
   title: string; message?: string; error?: boolean; onRetry?: () => void; children?: ReactNode
 }) {
   return <V5Card className={`v5-state ${error ? 'v5-state--error' : ''}`} role={error ? 'alert' : 'status'}>
-    <strong>{title}</strong>{message && <p>{message}</p>}
+    <strong>{error && <IonIcon icon={alertCircleOutline} aria-hidden="true" />}{title}</strong>{message && <p>{message}</p>}
     {onRetry && <V5Button onClick={onRetry}>Réessayer</V5Button>}{children}
   </V5Card>
 }
@@ -57,3 +58,4 @@ export {
   type V6BadgeTone, type V6ContextAction,
 } from './v6Plan'
 export { V6Bars, V6ChartCard, V6RecordBanner, V6StatTiles, type V6Bar } from './v6History'
+export { V6Notice, V6SkeletonTiles, V6StatePage, V6StatusPill } from './v6States'

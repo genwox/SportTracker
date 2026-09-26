@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { IonIcon, useIonRouter } from '@ionic/react'
 import { useLocation, useParams } from 'react-router-dom'
-import { addOutline, playCircleOutline, star, statsChartOutline } from 'ionicons/icons'
+import { addOutline, createOutline, playCircleOutline, star, statsChartOutline } from 'ionicons/icons'
 import { apiRequest } from '../../api/client'
 import {
   ExerciseDemoSheet, ExerciseThumb, V5State, V6Badge, V6Bars, V6Button, V6ChartCard, V6Chip, V6ChipRow, V6ContextMenu, V6RecordBanner,
@@ -93,7 +93,8 @@ export function WorkoutSessionDetailPage() {
     ...(item.exercise?.gifUrl ? [{ label: 'Voir le mouvement', icon: playCircleOutline, onSelect: () => setDemo(item.exercise ?? null) }] : []),
   ]
   const subtitle = workout ? `${longDate(workout.date)} · ${durationLabel(workout.duration)}` : undefined
-  return <Page title={workout?.name || 'Séance'} subtitle={subtitle} backHref={backHref} refresh={() => Promise.all([session.refetch(), list.refetch()])}>
+  const footer = workout && <V6Button icon={createOutline} onClick={() => router.push(`/tabs/history/workouts/${sessionId}/edit`)}>Modifier la séance</V6Button>
+  return <Page title={workout?.name || 'Séance'} subtitle={subtitle} backHref={backHref} refresh={() => Promise.all([session.refetch(), list.refetch()])} footer={footer}>
     {!workout ? session.isError ? <QueryError title="Impossible de charger la séance" error={session.error} retry={() => void session.refetch()} /> : <V6Skeleton count={3} /> : <>
       <V6StatTiles tiles={[
         { ...tonnageParts(workoutVolume(workout)), label: 'volume' },

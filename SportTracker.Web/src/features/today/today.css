@@ -36,8 +36,6 @@
 .t-direct__head strong { font:700 16px/1.3 var(--st-font-body) }
 .t-direct__steps { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none }
 .t-direct__steps li { padding:5px 10px; border-radius:12px; background:var(--st-v6-card-solid); font:600 12px var(--st-font-body) }
-.t-loading__stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px }
-.t-loading__stat,.t-loading__chart { border-radius:20px; background:#f8ffffb8 }
-.t-loading__stat { height:70px }
-.t-loading__chart { height:115px; margin-top:12px }
+.t-loading { display:grid; gap:12px }
+.t-loading > .v6-skeleton:first-child .v6-skeleton__card { min-height:150px; align-content:start }
 @media(max-width:360px) { .today-page { padding-inline:16px; --v6-gutter:16px } }

@@ -5,7 +5,7 @@ import { TodayPage } from '../features/today/pages'
 import { ProgramsPage, NewProgramPage, ProgramDetailPage, ProgramSessionDetailPage, NewProgramSessionPage, NewWorkoutSessionPage, ExerciseHistoryPage } from '../features/programs/pages'
 import {
   HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionsPage, WorkoutSessionDetailPage, CardioSessionsPage, CardioSessionDetailPage,
-  NewCardioSessionPage, EditCardioSessionPage,
+  NewCardioSessionPage, EditCardioSessionPage, EditWorkoutSessionPage,
 } from '../features/history/pages'
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
@@ -13,7 +13,6 @@ import { LiveMiniBar } from '../features/live/LiveMiniBar'
 import { AuthGate } from '../api/AuthGate'
 import { NotFoundPage } from '../ui/AuthPages'
 import { V6TabBar } from '../ui'
-import { KitPage } from '../ui/KitPage'
 
 // Paths stay here with their Route declarations so feature lots need not edit the router.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -32,6 +31,7 @@ export const paths = {
   workouts: '/tabs/history/workouts',
   workoutDetail: '/tabs/history/workouts/:sessionId',
   historyWorkoutNew: '/tabs/history/workouts/new',
+  workoutEdit: '/tabs/history/workouts/:sessionId/edit',
   cardioSessions: '/tabs/history/cardio',
   cardioNew: '/tabs/history/cardio/new',
   cardioDetail: '/tabs/history/cardio/:sessionId',
@@ -39,7 +39,6 @@ export const paths = {
   profile: '/tabs/profile',
   preferences: '/tabs/profile/preferences',
   help: '/tabs/profile/help',
-  kit: '/tabs/profile/kit',
   login: '/login',
   register: '/register',
   live: '/live',
@@ -67,6 +66,7 @@ function Tabs() {
         <Route exact path={paths.workouts} component={WorkoutSessionsPage} />
         <Route exact path={paths.workoutDetail} component={WorkoutSessionDetailPage} />
         <Route exact path={paths.historyWorkoutNew} component={NewWorkoutSessionPage} />
+        <Route exact path={paths.workoutEdit} component={EditWorkoutSessionPage} />
         <Route exact path={paths.cardioSessions} component={CardioSessionsPage} />
         <Route exact path={paths.cardioDetail} component={CardioSessionDetailPage} />
         <Route exact path={paths.cardioNew} component={NewCardioSessionPage} />
@@ -74,8 +74,9 @@ function Tabs() {
         <Route exact path={paths.profile} component={ProfilePage} />
         <Route exact path={paths.preferences} component={ProfilePreferencesPage} />
         <Route exact path={paths.help} component={HelpPage} />
-        <Route exact path={paths.kit} component={KitPage} />
         <Redirect exact from="/tabs" to={paths.today} />
+        {/* No path: Ionic uses it only when nothing else matches (20 · Page introuvable, tab bar kept). */}
+        <Route component={NotFoundPage} />
       </IonRouterOutlet>
       {/* Bottom slot of IonTabs, above the tab bar, while a live workout is open. */}
       <LiveMiniBar />
@@ -96,7 +97,8 @@ export function AppRoutes() {
         <Route exact path={paths.live} component={LiveWorkoutPage} />
         <Route path="/tabs" component={Tabs} />
         <Redirect exact from="/" to={paths.today} />
-        <Route component={NotFoundPage} />
+        {/* Unknown address outside /tabs: the tabs render it, so the not-found page keeps the tab bar too. */}
+        <Route component={Tabs} />
       </IonRouterOutlet></AuthGate>
     </IonReactRouter>
   )
