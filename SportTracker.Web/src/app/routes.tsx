@@ -43,11 +43,12 @@ function Tabs() {
     <IonTabs>
       <IonRouterOutlet>
         <Route exact path={paths.today} component={TodayPage} />
+        {/* IonRouterOutlet keeps the LAST matching route, so each static path comes after the :param path it overlaps. */}
         <Route exact path={paths.programs} component={ProgramsPage} />
-        <Route exact path={paths.programNew} component={NewProgramPage} />
         <Route exact path={paths.programDetail} component={ProgramDetailPage} />
-        <Route exact path={paths.programSessionNew} component={NewProgramSessionPage} />
+        <Route exact path={paths.programNew} component={NewProgramPage} />
         <Route exact path={paths.programSessionDetail} component={ProgramSessionDetailPage} />
+        <Route exact path={paths.programSessionNew} component={NewProgramSessionPage} />
         <Route exact path={paths.workoutNew} component={NewWorkoutSessionPage} />
         <Route exact path={paths.exerciseHistory} component={ExerciseHistoryPage} />
         <Route exact path={paths.history} component={HistoryPage} />
@@ -55,8 +56,8 @@ function Tabs() {
         <Route exact path={paths.exerciseProgress} component={ExerciseProgressPage} />
         <Route exact path={paths.workoutDetail} component={WorkoutSessionDetailPage} />
         <Route exact path={paths.cardioSessions} component={CardioSessionsPage} />
-        <Route exact path={paths.cardioNew} component={NewCardioSessionPage} />
         <Route exact path={paths.cardioDetail} component={CardioSessionDetailPage} />
+        <Route exact path={paths.cardioNew} component={NewCardioSessionPage} />
         <Route exact path={paths.profile} component={ProfilePage} />
         <Route exact path={paths.preferences} component={ProfilePreferencesPage} />
         <Route exact path={paths.help} component={HelpPage} />

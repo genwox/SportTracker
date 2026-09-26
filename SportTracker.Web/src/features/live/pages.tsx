@@ -7,7 +7,7 @@ import { detectPersonalRecord, estimateOneRm } from '../../domain/strengthMath'
 import { createRestTimer, pauseRestTimer, refreshRestTimer, remainingRestMs, restartRestTimer, resumeRestTimer, startRestTimer } from '../../domain/restTimer'
 import type { RestTimer } from '../../domain/restTimer'
 import type { LiveExerciseDraft, LiveSetDraft } from '../../domain/liveDraft'
-import { V5Button, V5Card, V5Loading, V5State } from '../../ui'
+import { ExerciseDemoSheet, ExerciseThumb, V5Button, V5Card, V5Loading, V5State } from '../../ui'
 import { draftStore } from './drafts'
 import { CatalogSheet } from './CatalogSheet'
 import { createDraft, freeKey, liveQueue, owner, persistDraft, routineKey, sessionPrefix, setTypeName, type Exercise, type HistoryEntry, type Program, type Workout } from './liveApi'
@@ -48,7 +48,7 @@ export function LiveWorkoutPage() {
     <p className="live-summary">{drafts.length} exercice{drafts.length > 1 ? 's' : ''} · {drafts.reduce((sum, item) => sum + item.sets.length, 0)} séries</p>
     {drafts.length ? <section aria-label="Exercices de la séance" className="live-list">{drafts.map((draft, index) => <V5Card key={draft.storageKey} className={`live-exercise-card ${draft.supersetGroupId ? 'is-superset' : ''} ${draft.supersetGroupId && drafts[index + 1]?.supersetGroupId === draft.supersetGroupId ? 'superset-continues' : ''}`}>
       {draft.supersetGroupId && drafts[index - 1]?.supersetGroupId !== draft.supersetGroupId && <div className="live-group"><strong>Superset {String.fromCharCode(64 + draft.supersetGroupId)}</strong><span>enchaîne sans repos</span></div>}
-      <button className="live-card-link" onClick={() => history.push(`/live/${draftId}/exercises/${draft.exerciseId}`)}><strong>{draft.exerciseName}</strong><span>{draft.sets.length} séries · {draft.syncConflict ? 'Sync bloquée' : draft.pendingSync ? 'Sync en attente' : 'Enregistré'}</span></button>
+      <button className="live-card-link" onClick={() => history.push(`/live/${draftId}/exercises/${draft.exerciseId}`)}><ExerciseThumb exercise={{ gifUrl: draft.gifUrl }} size={48} /><strong>{draft.exerciseName}</strong><span>{draft.sets.length} séries · {draft.syncConflict ? 'Sync bloquée' : draft.pendingSync ? 'Sync en attente' : 'Enregistré'}</span></button>
       <label>Superset <select value={draft.supersetGroupId ?? ''} onChange={event => void changeGroup(draft, event.target.value)} aria-label={`Groupe superset de ${draft.exerciseName}`}><option value="">Aucun</option><option value="1">A</option><option value="2">B</option><option value="3">C</option></select></label>
     </V5Card>)}</section> : <V5State title="À toi de jouer" message="Choisis ton premier exercice pour commencer la séance en direct." />}
     {error && <div role="alert"><V5State title="Enregistrement interrompu" message={error} error /></div>}
@@ -76,6 +76,7 @@ export function ExerciseLivePage() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [padOpen, setPadOpen] = useState(false)
+  const [demoOpen, setDemoOpen] = useState(false)
   const [timerOpen, setTimerOpen] = useState(false)
   const [timer, setTimer] = useState<RestTimer>(createRestTimer)
   const [now, setNow] = useState(() => Date.now())
@@ -171,7 +172,7 @@ export function ExerciseLivePage() {
       <SyncStatus draft={draft} />
       {draft.syncConflict && <V5State title="Séance introuvable sur le serveur" message={conflictMessage(draft.sets.length)} error><V5Button onClick={() => void resolve(true)}>Recréer la séance</V5Button><V5Button secondary onClick={() => void resolve(false)}>Abandonner le brouillon</V5Button></V5State>}
       <ol className="live-indicators" aria-label="Séries">{Array.from({ length: Math.max(draft.targetSets, draft.sets.length + 1) }, (_, index) => <li key={index} className={index < draft.sets.length ? 'done' : index === draft.sets.length ? 'active' : ''} aria-current={index === draft.sets.length ? 'step' : undefined}>{index < draft.sets.length ? '✓ ' : ''}{index + 1}</li>)}</ol>
-      {draft.gifUrl && <a className="live-tile" href={draft.gifUrl} target="_blank" rel="noreferrer">Voir le mouvement <span>→</span></a>}
+      {draft.gifUrl && <button type="button" className="live-tile live-tile--demo" onClick={() => setDemoOpen(true)}><ExerciseThumb exercise={{ gifUrl: draft.gifUrl }} size={52} /><span className="live-tile__text"><strong>Voir le mouvement</strong><small>Ouvrir la démonstration</small></span><span aria-hidden="true">→</span></button>}
       <V5Card className="live-entry" aria-label="Saisie de série">
         <div className="live-entry__measurements"><div className="live-entry__measure"><label>Poids (kg)</label><div className="live-stepper"><button aria-label="Diminuer le poids de 2,5 kg" onClick={() => void save({ weightCurrent: Math.max(0, draft.weightCurrent - 2.5) })}>−</button><button className="live-stepper__value" aria-label={`Poids ${draft.weightCurrent} kg, saisie précise`} onClick={() => setPadOpen(true)}>{kg(draft.weightCurrent)}</button><button aria-label="Augmenter le poids de 2,5 kg" onClick={() => void save({ weightCurrent: draft.weightCurrent + 2.5 })}>＋</button></div>
         </div><div className="live-entry__measure"><label>Répétitions</label><div className="live-stepper"><button aria-label="Retirer une répétition" onClick={() => void save({ repsCurrent: Math.max(0, draft.repsCurrent - 1) })}>−</button><button className="live-stepper__value" aria-label={`${draft.repsCurrent} répétitions, saisie précise`} onClick={() => setPadOpen(true)}>{draft.repsCurrent}</button><button aria-label="Ajouter une répétition" onClick={() => void save({ repsCurrent: draft.repsCurrent + 1 })}>＋</button></div></div></div>
@@ -187,6 +188,7 @@ export function ExerciseLivePage() {
       <V5Button onClick={() => void addSet()} disabled={saving || draft.repsCurrent < 1}>{saving ? 'Enregistrement…' : `Valider la série ${draft.sets.length + 1}`}</V5Button>
       <V5Button secondary onClick={() => history.push(back)}>Retour à la séance</V5Button>
       <V5Button secondary onClick={() => void finish()} disabled={saving}>Terminer</V5Button>
+      <ExerciseDemoSheet exercise={demoOpen ? { name: draft.exerciseName, gifUrl: draft.gifUrl, instructionsFr: draft.instructions } : null} onClose={() => setDemoOpen(false)} />
       <IonModal isOpen={padOpen} onDidDismiss={() => setPadOpen(false)} initialBreakpoint={0.9} breakpoints={[0, 0.5, 0.9]} className="live-sheet"><IonContent><div className="live-sheet__inner live-form">
         <h2>Saisie précise</h2><p>{draft.exerciseName} · Série {draft.sets.length + 1}</p>
         <label>Poids (kg)<input type="number" min="0" step="0.5" inputMode="decimal" value={draft.weightCurrent} onChange={event => void save({ weightCurrent: Math.max(0, Number(event.target.value)) })} /></label>

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { IonContent, IonModal } from '@ionic/react'
 import { apiRequest } from '../../api/client'
-import { V5Button, V5State } from '../../ui'
+import { ExerciseThumb, V5Button, V5State } from '../../ui'
 import dumbbellIcon from './assets/010-Dumbell.svg'
 import type { Exercise } from './liveApi'
 
@@ -55,7 +55,7 @@ export function CatalogSheet({ open, onClose, onSelect, exclude = [] }: { open: 
         <div className="live-filter"><strong>Groupe musculaire</strong><div className="live-chips"><button aria-pressed={muscle === null} className={muscle === null ? 'active' : ''} onClick={() => setMuscle(null)}>Tous</button>{groups.map((group, index) => <button key={group} aria-pressed={muscle === index} className={muscle === index ? 'active' : ''} onClick={() => setMuscle(index)}>{group}</button>)}</div></div>
         <div className="live-filter"><strong>Équipement</strong><div className="live-chips"><button aria-pressed={equipment === null} className={equipment === null ? 'active' : ''} onClick={() => setEquipment(null)}>Tous</button>{equipmentOptions.map(item => <button key={item} aria-pressed={equipment === item} className={equipment === item ? 'active' : ''} onClick={() => setEquipment(item)}>{item}</button>)}</div></div>
         <p>{matches.length} exercice{matches.length > 1 ? 's' : ''} trouvé{matches.length > 1 ? 's' : ''}</p>
-        {isPending && !data.length ? <p role="status">Chargement des exercices…</p> : error && !data.length ? <V5State title="Catalogue indisponible" error onRetry={() => void refetch()} /> : <div className="live-catalog-results">{matches.slice(0, 100).map(item => <button key={item.id} type="button" onClick={() => onSelect(item)}><span className="live-catalog-icon"><img src={dumbbellIcon} alt="" /></span><span><strong>{item.name}</strong><small>{item.muscleGroups?.map(group => groups[group]).join(' · ')}{item.equipment ? ` · ${item.equipment}` : ''}</small></span><span>＋</span></button>)}{matches.length > 100 && <p>Affichage des 100 premiers résultats. Affine ta recherche.</p>}</div>}
+        {isPending && !data.length ? <p role="status">Chargement des exercices…</p> : error && !data.length ? <V5State title="Catalogue indisponible" error onRetry={() => void refetch()} /> : <div className="live-catalog-results">{matches.slice(0, 100).map(item => <button key={item.id} type="button" onClick={() => onSelect(item)}>{item.gifUrl ? <ExerciseThumb exercise={item} size={42} /> : <span className="live-catalog-icon"><img src={dumbbellIcon} alt="" /></span>}<span><strong>{item.name}</strong><small>{item.muscleGroups?.map(group => groups[group]).join(' · ')}{item.equipment ? ` · ${item.equipment}` : ''}</small></span><span>＋</span></button>)}{matches.length > 100 && <p>Affichage des 100 premiers résultats. Affine ta recherche.</p>}</div>}
         <button type="button" className="live-create" onClick={() => setCreating(true)}>＋ Créer un exercice personnalisé</button>
       </>}
       <datalist id="live-equipment">{equipmentOptions.map(item => <option key={item} value={item} />)}</datalist>

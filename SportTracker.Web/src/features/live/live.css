@@ -1,6 +1,6 @@
 .live-page { width: min(100%, 430px); min-height: 100%; margin: 0 auto; padding: calc(48px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom)); display: grid; align-content: start; gap: 15px; color: var(--st-dark); }
 .live-head { display: grid; gap: 4px; }
-.live-head p { margin: 0; color: var(--st-text-muted); font-size: 13px; font-weight: 700; }
+.live-head p { margin: 0; color: var(--st-neon); font-size: 14px; font-weight: 700; }
 .live-head h1, .live-sheet h2 { margin: 0; font: 400 clamp(26px, 7.5vw, 32px)/1.15 var(--st-font-display); overflow-wrap: anywhere; }
 .live-intro { margin: 0; line-height: 1.5; font-size: 14px; }
 .live-summary { margin: 0; font-weight: 700; }
@@ -11,12 +11,16 @@
 .live-group { display: grid; justify-items: start; gap: 4px; }
 .live-group strong { border-radius: 20px; background: var(--st-neon); padding: 4px 9px; font: 700 9px var(--st-font-body); }
 .live-group span { color: var(--st-text-muted); font: 500 10px var(--st-font-body); }
-.live-card-link { display: grid; gap: 4px; width: 100%; min-height: 44px; border: 0; background: transparent; color: inherit; text-align: left; }
+.live-card-link { display: grid; grid-template-columns: 48px minmax(0,1fr); grid-template-rows: auto auto; column-gap: 12px; row-gap: 4px; align-items: center; width: 100%; min-height: 44px; border: 0; background: transparent; color: inherit; text-align: left; }
+.live-card-link > .v5-thumb { grid-row: 1 / 3; }
+.live-card-link > strong { align-self: end; }
+.live-card-link > span:last-child { align-self: start; }
 .live-card-link strong { font-size: 16px; }
 .live-card-link span, .live-exercise-card label { color: var(--st-text-muted); font-size: 12px; }
 .live-exercise-card label { display: flex; align-items: center; gap: 8px; }
 .live-exercise-card select { min-height: 44px; border: 1px solid #acd9db; border-radius: 9px; background: white; color: var(--st-dark); }
-.live-link { justify-self: start; min-height: 44px; border: 0; background: transparent; color: var(--st-dark); text-decoration: underline; cursor: pointer; }
+.live-link { justify-self: start; min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: #f8ffffe6; color: var(--st-dark); font: 700 14px var(--st-font-body); text-decoration: none; cursor: pointer; }
+.live-sheet .live-link { background: transparent; text-decoration: underline; }
 .live-pr { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 20px; background: var(--st-neon); }
 .live-pr img { width: 36px; height: 36px; padding: 8px; border-radius: 50%; background: #f8ffffe6; }
 .live-pr div { flex: 1; min-width: 0; display: grid; gap: 4px; }
@@ -42,7 +46,7 @@
 .live-badge--dropset { background: #c3e9e6; }
 .live-badge--failure, .live-badge--pr { background: var(--st-neon); }
 .live-set button { flex: 0 0 44px; width: 44px; height: 44px; border: 0; background: transparent; color: var(--st-text-muted); font: 600 12px var(--st-font-body); }
-.live-note { display: flex; gap: 7px; margin: 0; color: var(--st-text-muted); font: 500 10px/1.6 var(--st-font-body); white-space: pre-wrap; overflow-wrap: anywhere; }
+.live-note { display: flex; gap: 7px; margin: 0; padding: 10px 12px; border-radius: 14px; background: #f8ffffe6; color: var(--st-dark); font: 500 13px/1.5 var(--st-font-body); white-space: pre-wrap; overflow-wrap: anywhere; }
 .live-icon { width: 24px; height: 24px; margin-right: 8px; }
 .live-tile { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 14px; border: 0; border-radius: 18px; background: #f8ffffe6; color: var(--st-dark); text-decoration: none; font-weight: 700; text-align: left; }
 .live-error { color: #8d281e; font-weight: 700; }
@@ -92,3 +96,7 @@
 .live-rpe button { min-width: 44px; }
 .live-rpe button.active { background: var(--st-neon); box-shadow: none; }
 @media (max-width: 374px) { .live-entry__measurements { grid-template-columns: 1fr; } }
+.live-tile--demo { justify-content: flex-start; gap: 14px; padding: 8px 16px 8px 8px; }
+.live-tile--demo > span:last-child { margin-left: auto; }
+.live-tile__text strong, .live-tile__text small { display: block; }
+.live-tile__text small { margin-top: 2px; color: var(--st-text-muted); font-size: 12px; font-weight: 500; }

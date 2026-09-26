@@ -15,6 +15,9 @@ import './app/theme.css'
 import { AppProviders } from './app/providers'
 import { AppRoutes } from './app/routes'
 
+// Safari on iOS can still pinch-zoom despite the viewport meta; its proprietary gesture events let us refuse it.
+for (const type of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(type, event => event.preventDefault(), { passive: false })
+
 // A waiting update is applied only when the app is next opened.
 registerSW({ immediate: true })
 

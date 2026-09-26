@@ -18,7 +18,7 @@
 .v5-auth-error { padding: 10px 12px; border-radius: 14px; background: #fff0ee; color: #8a241c; font-size: 12px; font-weight: 600; }
 .v5-auth-note { margin: 0; color: var(--st-text-muted); font: 500 12px/1.5 var(--st-font-body); text-align: center; }
 .v5-not-found { width: min(100%, 430px); min-height: 100%; margin: 0 auto; padding: calc(80px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; }
-.v5-not-found h1 { margin: 0; color: var(--st-dark); font: 400 42px/1.05 var(--st-font-display); }
+.v5-not-found h1 { margin: 0; color: var(--st-dark); font: 400 clamp(28px, 8.5vw, 38px)/1.1 var(--st-font-display); overflow-wrap: normal; }
 .v5-not-found p { margin: 0; color: var(--st-text-muted); font: 500 15px/1.5 var(--st-font-body); }
 .v5-not-found .v5-button { width: 100%; }
 @media (max-width: 360px) { .v5-auth-page { padding: calc(24px + env(safe-area-inset-top)) 16px 20px; } .v5-auth-intro h2 { font-size: 27px; } }

@@ -28,7 +28,14 @@ html, body, #root {
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Pan only: no pinch-zoom and no double-tap zoom, like a native app. */
+  touch-action: pan-x pan-y;
 }
+/* iOS zooms into any field under 16px when it gets focus, and stays zoomed. */
+input, select, textarea { font-size: 16px !important; }
+button, a, ion-button, ion-tab-button { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 
 ion-content { --background: #e7f2f1 url('/backgrounds/paragon-v5.webp') center / cover no-repeat; }
 ion-tab-bar {

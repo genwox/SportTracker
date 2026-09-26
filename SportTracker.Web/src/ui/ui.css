@@ -2,17 +2,43 @@
 .v5-button:disabled { opacity: .55; cursor: not-allowed; }
 .v5-button--secondary { background: var(--st-surface); }
 .v5-card { padding: 20px; border: 1px solid #ffffff99; border-radius: 20px; background: #f8ffffe6; color: #082d45; }
-.v5-header { display: flex; align-items: center; gap: 12px; min-height: 56px; margin-bottom: 24px; }
+.v5-header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 12px; min-height: 56px;
+  margin: 0 -20px 24px; padding: calc(env(safe-area-inset-top) + 14px) 20px 12px;
+  border-bottom: 1px solid transparent;
+  transition: background-color .2s ease, border-color .2s ease, -webkit-backdrop-filter .2s ease, backdrop-filter .2s ease;
+}
+/* Once the page scrolls, the header stays put and becomes a frosted bar, like an iOS navigation bar. */
+/* Dark tint keeps the white iOS status bar text (black-translucent) readable above it. */
+.v5-header.is-scrolled { background: #315e5ecc; border-bottom-color: #ffffff1f; -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+.v5-header.is-scrolled h1 { color: #ffffff; }
 .v5-header__copy { flex: 1; min-width: 0; }
-.v5-header h1 { margin: 0; font: 400 clamp(27px, 8vw, 34px)/1.1 var(--st-font-display); color: var(--st-dark); overflow-wrap: anywhere; }
-.v5-header p { margin: 6px 0 0; color: #3a5c00; }
+/* Break between words only: a Foruner title cut mid-word reads as a bug. Long titles get a smaller size instead. */
+.v5-header h1 { margin: 0; font: 400 clamp(27px, 8vw, 34px)/1.1 var(--st-font-display); color: var(--st-dark); overflow-wrap: normal; word-break: normal; hyphens: none; transition: font-size .2s ease; }
+.v5-header h1.is-long { font-size: clamp(21px, 6.2vw, 26px); }
+.v5-header.is-scrolled h1 { font-size: 22px; }
+.v5-header p { margin: 6px 0 0; color: var(--st-neon); font-size: 14px; font-weight: 600; }
+.v5-header.is-scrolled p { display: none; }
 .v5-header__back, .v5-header__avatar { --color: #082d45; --background: #f8ffffe6; width: 44px; height: 44px; margin: 0; border-radius: 14px; }
 .v5-header__avatar { margin-left: auto; }
 .v5-header__avatar ion-icon { font-size: 28px; }
-.v5-header__avatar .v5-tab-icon { width: 28px; height: 28px; }
+.v5-header__avatar .v5-tab-icon { display: block; flex: none; width: 26px; height: 26px; }
+.v5-header__back ion-icon { font-size: 22px; }
 .v5-state { display: grid; gap: 12px; }
 .v5-state p { margin: 0; }
 .v5-state--error { border-color: #b42318; }
 .v5-loading { display: grid; gap: 12px; }
 .v5-loading__card { height: 100px; width: 100%; margin: 0; border-radius: 20px; }
 .v5-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.v5-thumb { flex: none; display: block; border-radius: 14px; object-fit: cover; background: #ffffff; }
+.v5-thumb--empty { display: grid; place-items: center; background: #e2f7f8; color: var(--st-dark); }
+.v5-thumb--empty .v5-tab-icon { width: 55%; height: 55%; }
+.v5-demo-sheet { --background: #e7f2f1; }
+.v5-demo-sheet::part(content) { border-radius: 24px 24px 0 0; }
+.v5-demo { width: min(100%, 430px); margin: 0 auto; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); display: grid; gap: 16px; color: var(--st-dark); font-family: var(--st-font-body); }
+.v5-demo header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.v5-demo h2 { margin: 0; font: 400 clamp(24px, 7vw, 30px)/1.15 var(--st-font-display); overflow-wrap: anywhere; }
+.v5-demo header button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px; background: #ffffff; color: var(--st-dark); font-size: 22px; }
+.v5-demo img { width: 100%; aspect-ratio: 1; border-radius: 20px; object-fit: contain; background: #ffffff; }
+.v5-demo p { margin: 0; color: var(--st-text-muted); font-size: 15px; line-height: 1.5; }

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { apiRequest, ApiError } from '../../api/client'
-import { V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { ExerciseThumb, V5Card, V5Header, V5Loading, V5State } from '../../ui'
 import { dayLabel, frNumber, maxOneRm, numberOf, setName, workoutVolume, type Exercise, type HistoryEntry, type Workout } from './data'
 import { Page, Refresh, NavCard, SectionTitle, detailDate, durationLabel } from './shared'
 
@@ -47,7 +47,7 @@ export function WorkoutSessionDetailPage() {
         {!workout.workoutExercises?.length ? <V5State title="Aucun exercice" message="Cette séance ne contient pas encore d'exercice." /> : <section><SectionTitle>Exercices de la séance</SectionTitle><div className="history-stack">
           {workout.workoutExercises.map((item, index) => <NavCard key={item.id ?? index} href={`/tabs/history/exercises/${item.exerciseId}`} className={item.supersetGroupId != null ? 'history-superset' : ''}>
             {item.supersetGroupId != null && <small className="history-badge">Superset {String.fromCharCode(64 + numberOf(item.supersetGroupId))}</small>}
-            <div className="history-row"><span className="history-row-icon strength" aria-hidden="true">◆</span><span className="history-row-copy"><strong>{item.exercise?.name || `Exercice #${item.exerciseId}`}</strong>
+            <div className="history-row"><ExerciseThumb exercise={item.exercise} size={48} /><span className="history-row-copy"><strong>{item.exercise?.name || `Exercice #${item.exerciseId}`}</strong>
               <small>{item.exerciseSets?.length ? item.exerciseSets.map(set => `${setName(set.setType)} ${frNumber(numberOf(set.weight))} kg × ${numberOf(set.repetitions)}${set.rpe != null ? ` · RPE ${set.rpe}` : ''}`).join(' · ') : 'Aucune série enregistrée'}</small>
               {item.notes && <small>✎ {item.notes}</small>}</span><span aria-hidden="true">›</span></div></NavCard>)}
         </div></section>}</>}

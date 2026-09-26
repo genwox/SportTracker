@@ -63,6 +63,6 @@ export function NewCardioSessionPage() {
       <div className="history-form-grid"><label>Date<input type="date" value={date} onChange={event => setDate(event.target.value)} required /></label><label>Durée (min)<input type="number" min="1" step="1" value={minutes} onChange={event => setMinutes(event.target.value)} required /></label></div>
       <div className="history-form-grid"><label>Distance (km)<input type="number" min="0" step="0.1" value={distance} onChange={event => setDistance(event.target.value)} /></label><label>Dénivelé (m)<input type="number" min="0" step="1" value={elevation} onChange={event => setElevation(event.target.value)} /></label></div></V5Card>
       {error && <V5State title="Enregistrement impossible" message={error} error />}
-      <V5Button type="submit" disabled={create.isPending}>{create.isPending ? 'Enregistrement…' : 'Enregistrer la sortie'}</V5Button><IonRouterLink routerLink="/tabs/history/cardio">Annuler</IonRouterLink></form>
+      <V5Button type="submit" disabled={create.isPending}>{create.isPending ? 'Enregistrement…' : 'Enregistrer la sortie'}</V5Button><IonRouterLink routerLink="/tabs/history/cardio" routerDirection="back" className="history-cancel">Annuler</IonRouterLink></form>
   </Page>
 }

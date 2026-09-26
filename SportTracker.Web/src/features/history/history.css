@@ -1,4 +1,4 @@
-.history-page { width: min(100%, 430px); min-height: 100%; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; color: var(--st-dark); }
+.history-page { width: min(100%, 430px); min-height: 100%; margin: 0 auto; padding: 0 20px calc(30px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; color: var(--st-dark); }
 .history-page .v5-header { margin-bottom: 4px; }
 .history-section-title { margin: 8px 0 10px 2px; color: var(--st-text-muted); font: 400 22px/1.12 var(--st-font-display); }
 .history-stack { display: grid; gap: 10px; }
@@ -74,6 +74,9 @@
 .history-section-title { margin: 4px 0 10px; color: var(--st-dark); }
 .history-link .v5-card { border-radius: 22px; padding: 15px; }
 .history-row { grid-template-columns: 48px minmax(0, 1fr) auto; min-height: 52px; }
+/* cardio rows carry a distance before the chevron */
+.history-row:has(> .history-distance) { grid-template-columns: 48px minmax(0, 1fr) auto auto; }
+.history-row > .v5-thumb { border-radius: 50%; }
 .history-row-icon { width: 48px; height: 48px; border-radius: 50%; background: #f8ffff; }
 .history-row-icon.strength { background: #f8ffff; }
 .history-row-copy strong { font-size: 16px; font-weight: 700; }
@@ -97,3 +100,4 @@
 .history-chart-caption { flex: 0 0 auto; align-self: center; margin: 0 !important; }
 .history-intro { margin: -6px 0 0; color: var(--st-neon); font-size: 13px; font-weight: 600; }
 .history-summary strong { font-size: clamp(17px, 5vw, 23px); }
+.history-cancel { align-self: center; display: grid; place-items: center; min-height: 44px; padding: 0 16px; color: var(--st-dark); font-size: 14px; font-weight: 600; text-decoration: none; }
