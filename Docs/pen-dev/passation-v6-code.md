@@ -56,7 +56,7 @@ Elles viennent du rapport V6. La recommandation par défaut est entre parenthès
 ## Plan de code conseillé
 Une session par lot, pour garder un contexte léger. Chaque lot est testé sur iPhone avant de passer au suivant.
 1. ✅ **Kit `src/ui/`** (26/09, voir `CLAUDE.md`) : V6Header (en remplacement de V5Header, en gardant le comportement collant et foncé), V6TabBar, V6Segment, V6List/V6Item/V6InputItem, V6Sheet, V6ActionSheet, V6Toast, V6SlidingRow, V6Button, V6StickyAction, V6Skeleton, V6Chip. Transitions ramenées à 350 ms (Ionic iOS pousse en 540 ms par défaut). *Fait : kit dans `src/ui/v6.tsx`, `v6Feedback.ts`, `v6Nav.ts` ; V6Header, V6Skeleton et V6TabBar branchés partout ; les autres composants s'adoptent dans les lots suivants. Page d'essai : Profil › Aide & support › Aperçu du kit V6.*
-2. **Séance live** (15, 22, 23, 27) : V6Stepper (appui long), V6Keypad (`inputmode="none"`), V6SetRow (valider au tap), minuteur en feuille, V6WheelPicker, V6Searchbar, **V6LiveMiniBar** au-dessus des onglets.
+2. ✅ **Séance live** (15, 22, 23, 27, voir `CLAUDE.md`) : V6Stepper (appui long), V6Keypad (`inputmode="none"`), V6SetRow (valider au tap), minuteur en feuille, V6WheelPicker, V6Searchbar, **V6LiveMiniBar** au-dessus des onglets. *Fait : composants dans `src/ui/v6Live.tsx` ; mini-barre dans `src/features/live/LiveMiniBar.tsx`, état `st-live-session`. La page d'aperçu du kit a une section « Séance live (lot 2) ».*
 3. **Today et Carnets** (03, 10 à 14, 24) : V6ReorderRow, V6ContextMenu (appui long), actions collantes.
 4. **Historique, Progrès et cardio** (04, 06 à 09, 16 à 18) : lignes glissables, segments de filtre.
 5. **Profil, connexion et états** (01, 02, 19, 20, 21, 25, 26) : listes inset, toggles, déconnexion en feuille d'actions.

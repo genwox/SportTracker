@@ -6,6 +6,7 @@ import {
   V6StickyAction, V6Toggle,
 } from './v6'
 import { useV6ActionSheet, useV6Toast } from './v6Feedback'
+import { V6Keypad, V6LiveMiniBar, V6Searchbar, V6SetRow, V6Stepper, V6WheelPicker } from './v6Live'
 import './kit.css'
 
 const periods = [{ value: 'week', label: 'Semaine' }, { value: 'month', label: 'Mois' }, { value: 'year', label: 'Année' }] as const
@@ -29,6 +30,12 @@ export function KitPage() {
   const [sheet, setSheet] = useState<number | null>(null)
   const [rows, setRows] = useState(sessions)
   const [saving, setSaving] = useState(false)
+  const [weight, setWeight] = useState(60)
+  const [reps, setReps] = useState(10)
+  const [pad, setPad] = useState<string | null>(null)
+  const [rest, setRest] = useState(90)
+  const [done, setDone] = useState(1)
+  const [query, setQuery] = useState('')
   const actions = useV6ActionSheet()
   const toast = useV6Toast()
 
@@ -42,7 +49,7 @@ export function KitPage() {
   return <IonPage>
     <IonContent fullscreen>
       <main className="kit-page">
-        <V6Header title="Kit V6" subtitle="Composants natifs · lot 1" backHref="/tabs/profile/help" backLabel="Aide"
+        <V6Header title="Kit V6" subtitle="Composants natifs · lots 1 et 2" backHref="/tabs/profile/help" backLabel="Aide"
           action={<V6Button variant="icon" icon={addOutline} aria-label="Ajouter" onClick={() => { void toast.success('Bouton icône') }} />} />
 
         <section className="kit-section" aria-label="Contrôles segmentés">
@@ -99,6 +106,22 @@ export function KitPage() {
           </div>
         </section>
 
+        <section className="kit-section" aria-label="Séance live">
+          <h2>Séance live (lot 2)</h2>
+          <p className="kit-hint">Touche − ou + pour un pas ; garde le doigt appuyé pour faire défiler (après 0,4 s, un pas toutes les 80 ms). Touche le chiffre pour le pavé. Touche le cercle pour valider une série, glisse une série validée vers la gauche pour la supprimer.</p>
+          <V6Stepper label="Poids (kg)" value={String(weight).replace('.', ',')} unit="kg" onStep={direction => setWeight(value => Math.max(0, value + direction * 2.5))} onOpenPad={() => setPad('weight')}
+            decreaseLabel="Diminuer le poids" increaseLabel="Augmenter le poids" valueLabel={`Poids ${weight} kg, saisie précise`} atMin={weight <= 0} />
+          <V6Stepper label="Répétitions" value={String(reps)} unit="reps" onStep={direction => setReps(value => Math.max(0, value + direction))} onOpenPad={() => setPad('reps')}
+            decreaseLabel="Retirer une répétition" increaseLabel="Ajouter une répétition" valueLabel={`${reps} répétitions, saisie précise`} atMin={reps <= 0} />
+          {Array.from({ length: done }, (_, index) => <V6SetRow key={index} number={index + 1} done onDelete={() => setDone(value => value - 1)}><strong>{String(weight).replace('.', ',')} kg × {reps}</strong></V6SetRow>)}
+          <V6SetRow key={done} number={done + 1} done={false} onValidate={() => { setDone(value => value + 1); void toast.success('Série validée') }}><strong>{String(weight).replace('.', ',')} kg × {reps}</strong></V6SetRow>
+          <V6WheelPicker label="Repos" onChange={(id, value) => setRest(current => id === 'minutes' ? value * 60 + current % 60 : Math.floor(current / 60) * 60 + value)}
+            columns={[{ id: 'minutes', label: 'Minutes', unit: 'min', value: Math.floor(rest / 60), options: Array.from({ length: 11 }, (_, value) => ({ value, text: String(value) })) },
+              { id: 'seconds', label: 'Secondes', unit: 's', value: rest % 60, options: [0, 15, 30, 45].map(value => ({ value, text: String(value).padStart(2, '0') })) }]} />
+          <V6Searchbar value={query} onChange={setQuery} placeholder="Rechercher un exercice" />
+          <V6LiveMiniBar title="Développé couché" detail={`Série ${done + 1}/4 · séance 32:15`} rest="1:12" progress={.4} onOpen={() => { void toast.success('La mini-barre rouvre la séance') }} onSkip={() => { void toast.success('Repos passé') }} />
+        </section>
+
         <section className="kit-section" aria-label="Chargement">
           <h2>Squelettes</h2>
           <V6Skeleton />
@@ -106,6 +129,11 @@ export function KitPage() {
       </main>
     </IonContent>
     <V6StickyAction><V6Button variant="secondary" onClick={() => { void toast.success('Gardé en local') }}>Garder en local</V6Button><V6Button onClick={save} loading={saving}>Réessayer</V6Button></V6StickyAction>
+    <V6Sheet isOpen={pad != null} onDismiss={() => setPad(null)} title="Saisie précise" className="live-pad-sheet">
+      <V6Keypad active={pad ?? 'weight'} onActiveChange={setPad} submitLabel="Valider" onSubmit={() => setPad(null)}
+        fields={[{ id: 'weight', label: 'Poids (kg)', value: weight, decimals: 2 }, { id: 'reps', label: 'Répétitions', value: reps, decimals: 0 }]}
+        onChange={(id, value) => id === 'weight' ? setWeight(value) : setReps(Math.floor(value))} />
+    </V6Sheet>
     <V6Sheet isOpen={sheet != null} onDismiss={() => setSheet(null)} title="Minuteur de repos"
       breakpoints={[0, 0.25, 0.5, 1]} initialBreakpoint={sheet ?? 0.5}>
       <p className="kit-sheet-text">Glisse la feuille vers le haut ou le bas pour passer d’un cran à l’autre (25, 50, 100 %), ou touche la barre grise du haut. Tout en bas : elle se ferme.</p>

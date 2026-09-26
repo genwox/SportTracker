@@ -1,5 +1,5 @@
 import { expect, test, type Page, type BrowserContext, type Route } from '@playwright/test'
-import { closeRestTimerSheet } from './helpers'
+import { addExerciseFromCatalog, closeRestTimerSheet } from './helpers'
 
 const corsHeaders = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,PUT,POST,DELETE,OPTIONS', 'access-control-allow-headers': 'authorization,content-type' }
 
@@ -67,15 +67,14 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
 
     await page.goto('/live')
     await expect(page.getByRole('heading', { name: 'Séance libre' }).last()).toBeVisible()
-    await page.getByRole('button', { name: 'Ajouter un exercice' }).last().click()
-    await page.getByRole('button', { name: /Développé couché/ }).click()
+    await addExerciseFromCatalog(page, /Développé couché/)
     await expect(page.getByRole('heading', { name: 'Développé couché' }).first()).toBeVisible()
     for (let index = 0; index < 3; index++) {
       await page.getByRole('button', { name: `Valider la série ${index + 1}` }).first().click()
       await closeRestTimerSheet(page)
     }
     await expect(page.getByText('Nouveau record personnel !')).toBeVisible()
-    await page.getByRole('button', { name: 'Retour à la séance' }).click()
+    await page.getByRole('link', { name: 'Séance', exact: true }).click()
     await expect(page.locator('.live-summary')).toContainText('3 séries')
     await page.getByRole('button', { name: 'Terminer' }).first().click()
     await expect(page).toHaveURL(/\/tabs\/today$/)
@@ -101,8 +100,7 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
 
     await login(page)
     await page.goto('/live')
-    await page.getByRole('button', { name: 'Ajouter un exercice' }).last().click()
-    await page.getByRole('button', { name: /Développé couché/ }).click()
+    await addExerciseFromCatalog(page, /Développé couché/)
     await expect(page.getByRole('heading', { name: 'Développé couché' }).first()).toBeVisible()
 
     // Coupure réseau réelle pendant la saisie (méthode Docs/qa-v5-mobile-2026-09-24.md).
@@ -112,11 +110,11 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
     expect(putCount).toBe(0)
 
     await context.setOffline(false)
-    await expect(page.getByText('Enregistré')).toBeVisible()
+    await expect(page.getByText(/^Enregistré automatiquement/)).toBeVisible()
     expect(putCount).toBe(1)
 
     await closeRestTimerSheet(page)
-    await page.getByRole('button', { name: 'Retour à la séance' }).click()
+    await page.getByRole('link', { name: 'Séance', exact: true }).click()
     await expect(page.locator('.live-summary')).toContainText('1 série')
     await page.getByRole('button', { name: 'Terminer' }).first().click()
     await expect(page).toHaveURL(/\/tabs\/today$/)

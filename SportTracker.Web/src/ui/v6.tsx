@@ -174,19 +174,20 @@ export function V6InputItem({ label, value, onChange, error, helper, ...props }:
  * Swipe left for Supprimer (system red, full swipe triggers it), swipe right for Dupliquer / Terminer.
  * The callbacks decide on confirmation (use useV6ActionSheet for a session).
  */
-export function V6SlidingRow({ children, onDelete, deleteLabel = 'Supprimer', onDuplicate, onFinish, disabled }: {
-  children: ReactNode; onDelete?: () => void; deleteLabel?: string; onDuplicate?: () => void; onFinish?: () => void; disabled?: boolean
+export function V6SlidingRow({ children, onDelete, deleteLabel = 'Supprimer', deleteAriaLabel, onDuplicate, onFinish, disabled, className = '' }: {
+  children: ReactNode; onDelete?: () => void; deleteLabel?: string; deleteAriaLabel?: string; onDuplicate?: () => void; onFinish?: () => void; disabled?: boolean; className?: string
 }) {
   const ref = useRef<HTMLIonItemSlidingElement>(null)
   const run = (action?: () => void) => { void ref.current?.close(); action?.() }
-  return <IonItemSliding ref={ref} className="v6-sliding" disabled={disabled}>
+  return <IonItemSliding ref={ref} className={`v6-sliding ${className}`} disabled={disabled}>
     {(onDuplicate || onFinish) && <IonItemOptions side="start">
       {onDuplicate && <IonItemOption className="v6-sliding__duplicate" onClick={() => run(onDuplicate)}><IonIcon slot="top" icon={copyOutline} />Dupliquer</IonItemOption>}
       {onFinish && <IonItemOption className="v6-sliding__finish" onClick={() => run(onFinish)}><IonIcon slot="top" icon={checkmarkDoneOutline} />Terminer</IonItemOption>}
     </IonItemOptions>}
     <IonItem className="v6-sliding__row" lines="none">{children}</IonItem>
     {onDelete && <IonItemOptions side="end" onIonSwipe={() => run(onDelete)}>
-      <IonItemOption color="danger" expandable className="v6-sliding__delete" onClick={() => run(onDelete)}><IonIcon slot="top" icon={trashOutline} />{deleteLabel}</IonItemOption>
+      <IonItemOption color="danger" expandable className="v6-sliding__delete" onClick={() => run(onDelete)}><IonIcon slot="top" icon={trashOutline} />
+        {deleteAriaLabel ? <><span aria-hidden="true">{deleteLabel}</span><span className="v6-visually-hidden">{deleteAriaLabel}</span></> : deleteLabel}</IonItemOption>
     </IonItemOptions>}
   </IonItemSliding>
 }
@@ -215,14 +216,17 @@ export function V6StickyAction({ children }: { children: ReactNode }) {
 /* ── Sheet ───────────────────────────────────────────────────────────────── */
 
 /** Sheet with detents (25 / 50 / 100 %): drag the sheet or tap its handle to change detent (iOS grabber), 40 % nav-ink backdrop, « Fermer » text button. */
-export function V6Sheet({ isOpen, onDismiss, title, breakpoints = [0, 0.5, 1], initialBreakpoint = 0.5, closeLabel = 'Fermer', children }: {
-  isOpen: boolean; onDismiss: () => void; title: string; breakpoints?: number[]; initialBreakpoint?: number; closeLabel?: string; children: ReactNode
+export function V6Sheet({ isOpen, onDismiss, title, subtitle, breakpoints = [0, 0.5, 1], initialBreakpoint = 0.5, backdropBreakpoint, closeLabel = 'Fermer', className = '', children }: {
+  isOpen: boolean; onDismiss: () => void; title: string; subtitle?: ReactNode; breakpoints?: number[]; initialBreakpoint?: number
+  /** From this detent up, the page behind is dimmed and inert (default: the smallest detent). */
+  backdropBreakpoint?: number; closeLabel?: string; className?: string; children: ReactNode
 }) {
   const modal = useRef<HTMLIonModalElement>(null)
-  return <IonModal ref={modal} isOpen={isOpen} onDidDismiss={onDismiss} breakpoints={breakpoints} initialBreakpoint={initialBreakpoint}
-    backdropBreakpoint={Math.min(...breakpoints.filter(b => b > 0))} handle handleBehavior="cycle" className="v6-sheet">
+  // State follows the sheet as soon as it starts closing: a didDismiss arriving after a quick reopen closed it again.
+  return <IonModal ref={modal} isOpen={isOpen} onWillDismiss={onDismiss} breakpoints={breakpoints} initialBreakpoint={initialBreakpoint}
+    backdropBreakpoint={backdropBreakpoint ?? Math.min(...breakpoints.filter(b => b > 0))} handle handleBehavior="cycle" className={`v6-sheet ${className}`}>
     <IonContent className="v6-sheet__content">
-      <header className="v6-sheet__header"><h2>{title}</h2><V6Button variant="text" onClick={() => { void modal.current?.dismiss() }}>{closeLabel}</V6Button></header>
+      <header className="v6-sheet__header"><div className="v6-sheet__title"><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><V6Button variant="text" onClick={() => { void modal.current?.dismiss() }}>{closeLabel}</V6Button></header>
       <div className="v6-sheet__body">{children}</div>
     </IonContent>
   </IonModal>

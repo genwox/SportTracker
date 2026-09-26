@@ -6,6 +6,7 @@ import { ProgramsPage, NewProgramPage, ProgramDetailPage, ProgramSessionDetailPa
 import { HistoryPage, ProgressPage, ExerciseProgressPage, WorkoutSessionDetailPage, CardioSessionsPage, CardioSessionDetailPage, NewCardioSessionPage } from '../features/history/pages'
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
+import { LiveMiniBar } from '../features/live/LiveMiniBar'
 import { AuthGate } from '../api/AuthGate'
 import { NotFoundPage } from '../ui/AuthPages'
 import { V6TabBar } from '../ui'
@@ -67,6 +68,8 @@ function Tabs() {
         <Route exact path={paths.kit} component={KitPage} />
         <Redirect exact from="/tabs" to={paths.today} />
       </IonRouterOutlet>
+      {/* Bottom slot of IonTabs, above the tab bar, while a live workout is open. */}
+      <LiveMiniBar />
       <V6TabBar />
     </IonTabs>
   )

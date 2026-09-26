@@ -50,3 +50,5 @@ export function ExerciseDemoSheet({ exercise, onClose }: { exercise: DemoExercis
     </div>}</IonContent>
   </IonModal>
 }
+
+export { V6Keypad, V6LiveMiniBar, V6Searchbar, V6SetRow, V6Stepper, V6WheelPicker, type V6KeypadField, type V6WheelColumn } from './v6Live'

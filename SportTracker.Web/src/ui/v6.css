@@ -26,6 +26,8 @@
   white-space: nowrap; text-overflow: ellipsis; opacity: 0; transform: translateY(4px); transition: opacity .2s ease, transform .2s ease;
 }
 .v6-header-bar.is-condensed .v6-header-bar__title { opacity: 1; transform: none; }
+/* Back label + text action on the right (« Terminer »): the small title is truncated rather than overlapping them. */
+.v6-header-bar:has(.v6-back):has(.v6-header-bar__end .v6-button--text) .v6-header-bar__title { max-width: calc(100vw - 210px); }
 .v6-header-bar.is-condensed .v6-back { --color: #ffffff; }
 .v6-header-large { margin-top: calc(-1 * var(--v6-gap, 0px)); padding: 2px 0 14px; }
 /* Break between words only: a Foruner title cut mid-word reads as a bug. Long titles get a smaller size instead. */
@@ -152,6 +154,9 @@ ion-button.v6-button {
 .v6-button--text { --background: transparent; --padding-start: 8px; --padding-end: 8px; height: 44px; }
 /* Pressed veil on top of the scale. */
 .v6-button--primary:active::part(native), .v6-button--secondary:active::part(native), .v6-button--icon:active::part(native) { filter: brightness(.94); }
+/* Ionic dims clear buttons inside a toolbar (0.8) and on mouse hover: the kit keeps full colour, pressed = scale + veil. */
+ion-button.v6-button::part(native) { opacity: 1; }
+ion-button.v6-button:hover { opacity: 1; }
 ion-button.v6-button.button-disabled { opacity: .5; }
 ion-button.v6-button.is-loading { opacity: .8; }
 .v6-button ion-spinner { width: 18px; height: 18px; color: var(--st-v6-ink); }
@@ -171,7 +176,9 @@ ion-modal.v6-sheet::part(content) { border-top: 1px solid var(--st-v6-line); }
 ion-modal.v6-sheet .ion-page { background: transparent; }
 .v6-sheet__content { --background: transparent; color: var(--st-v6-ink); font-family: var(--st-font-body); }
 .v6-sheet__header { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 20px; padding: 0 8px 0 20px; }
-.v6-sheet__header h2 { flex: 1; min-width: 0; margin: 0; font: 700 17px/1.25 var(--st-font-body); }
+.v6-sheet__title { flex: 1; min-width: 0; }
+.v6-sheet__header h2 { margin: 0; font: 700 17px/1.25 var(--st-font-body); }
+.v6-sheet__title p { margin: 2px 0 0; color: var(--st-v6-ink); font: 700 13px/1.3 var(--st-font-body); }
 .v6-sheet__body { display: grid; gap: 10px; padding: 4px 20px calc(24px + env(safe-area-inset-bottom)); }
 
 /* ── Action sheet (scoped component: global selectors apply) ─────────────── */

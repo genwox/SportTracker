@@ -42,7 +42,7 @@ test('sliding a session reveals Supprimer on the left swipe and Dupliquer on the
 
 test('tapping the sheet handle moves to the next detent', async ({ page }) => {
   await page.getByRole('button', { name: 'Feuille 50 %' }).click()
-  const sheet = page.locator('ion-modal.v6-sheet')
+  const sheet = page.locator('ion-modal.v6-sheet:not(.overlay-hidden)')
   await expect.poll(() => sheet.evaluate(el => (el as HTMLIonModalElement).getCurrentBreakpoint())).toBe(0.5)
   await sheet.locator('.modal-handle').click()
   await expect.poll(() => sheet.evaluate(el => (el as HTMLIonModalElement).getCurrentBreakpoint())).toBe(1)

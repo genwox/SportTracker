@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeRestTimerSheet } from './helpers'
+import { addExerciseFromCatalog, closeRestTimerSheet, swipeLeft } from './helpers'
 
 test('séance libre : trois séries, record, minuteur et fin', async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('st-auth-token', 'test-token'); localStorage.setItem('st-draft-owner', 'athlete@example.com') })
@@ -10,6 +10,7 @@ test('séance libre : trois séries, record, minuteur et fin', async ({ page }) 
     const headers = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,PUT,POST,DELETE,OPTIONS', 'access-control-allow-headers': 'authorization,content-type' }
     if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return }
     let body: unknown = null
+    if (request.method() === 'DELETE') { await route.fulfill({ status: 204, headers }); return }
     if (url.pathname === '/api/exercises') body = [{ id: 7, name: 'Développé couché', type: 0, muscleGroups: [0], equipment: 'Barre', gifUrl: null, instructionsFr: null }]
     else if (url.pathname === '/api/exercises/7') body = { id: 7, name: 'Développé couché', type: 0, muscleGroups: [0], equipment: 'Barre', gifUrl: null, instructionsFr: null }
     else if (url.pathname === '/api/exercises/7/history') body = []
@@ -23,16 +24,21 @@ test('séance libre : trois séries, record, minuteur et fin', async ({ page }) 
 
   await page.goto('/live')
   await expect(page.getByRole('heading', { name: 'Séance libre' }).last()).toBeVisible()
-  await page.getByRole('button', { name: 'Ajouter un exercice' }).last().click()
-  await page.getByRole('button', { name: /Développé couché/ }).click()
+  await addExerciseFromCatalog(page, /Développé couché/)
   await expect(page.getByRole('heading', { name: 'Développé couché' }).first()).toBeVisible()
   for (let index = 0; index < 3; index++) {
     await page.getByRole('button', { name: `Valider la série ${index + 1}` }).first().click()
     await closeRestTimerSheet(page)
   }
   await expect(page.getByText('Nouveau record personnel !')).toBeVisible()
+  // Validated sets are removed by swiping them to the left (V6SetRow).
+  await swipeLeft(page, page.locator('.v6-set-row.is-done').nth(2))
   await expect(page.getByRole('button', { name: 'Supprimer la série 3' })).toBeVisible()
-  await page.getByRole('button', { name: 'Retour à la séance' }).click()
+  await page.getByRole('button', { name: 'Supprimer la série 3' }).click()
+  await expect(page.locator('.v6-set-row.is-done')).toHaveCount(2)
+  await page.getByRole('button', { name: 'Valider la série 3' }).first().click()
+  await closeRestTimerSheet(page)
+  await page.getByRole('link', { name: 'Séance', exact: true }).click()
   await expect(page.locator('.live-summary')).toContainText('3 séries')
   await page.getByRole('button', { name: 'Terminer' }).first().click()
   await expect(page).toHaveURL(/\/tabs\/today$/)
