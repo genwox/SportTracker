@@ -26,6 +26,9 @@ Utilise les variables existantes (`$st1-v4-*`) et n'ajoute **aucune couleur ni p
 | Encre nav | (couleur V5) | `#102737` |
 | Voile clair / segment | (couleurs V5) | `#FFFFFF80` / `#FFFFFF70` |
 | Contour verre | (couleur V5) | `#123D3226` |
+| Suppression (seule exception V6) | `$st1-v6-danger` | `#FF3B30` (rouge système iOS) |
+
+- `$st1-v6-danger` est réservé aux actions de suppression (glissement, feuille d'actions, menu contextuel). Les états d'erreur n'utilisent pas de rouge : icône + texte + contour encre nav `#102737`.
 
 - **Polices** : titres `Foruner` (`$st1-v4-display`) ; textes `Plus Jakarta Sans` (`$st1-v4-body`) en 500/600/700.
 - **Verre** : fond card, contour 1 px `#123D3226`, flou d'arrière-plan 12.
