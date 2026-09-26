@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
-import { IonButton, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, IonSkeletonText } from '@ionic/react'
-import { arrowBackOutline } from 'ionicons/icons'
+import { useState, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
+import { IonContent, IonModal, IonRefresher, IonRefresherContent } from '@ionic/react'
 import './ui.css'
+
+export {
+  V6Avatar, V6BackButton, V6Button, V6Chip, V6ChipRow, V6Header, V6InputItem, V6Item, V6List, V6Segment, V6Sheet,
+  V6Skeleton, V6SlidingRow, V6StickyAction, V6TabBar, V6Toggle, type V6SegmentOption,
+} from './v6'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }
 
@@ -11,33 +15,6 @@ export function V5Button({ secondary = false, className = '', children, ...props
 
 export function V5Card({ className = '', children, ...props }: HTMLAttributes<HTMLElement>) {
   return <section className={`v5-card ${className}`} {...props}>{children}</section>
-}
-
-export function V5Header({ title, subtitle, backHref, avatar = true, extra, action }: {
-  title: string; subtitle?: string; backHref?: string; avatar?: boolean; extra?: ReactNode; action?: ReactNode
-}) {
-  const ref = useRef<HTMLElement>(null)
-  const scrolled = useContentScrolled(ref)
-  return <header ref={ref} className={`v5-header ${scrolled ? 'is-scrolled' : ''}`}>
-    {backHref && <IonButton fill="clear" routerLink={backHref} routerDirection="back" aria-label="Retour" className="v5-header__back"><IonIcon icon={arrowBackOutline} /></IonButton>}
-    <div className="v5-header__copy"><h1 className={title.length > 14 ? 'is-long' : undefined}>{title.replace(/\//g, '/\u200b')}</h1>{subtitle && <p>{subtitle}</p>}{extra}</div>
-    {action}
-    {avatar && <IonButton fill="clear" routerLink="/tabs/profile" aria-label="Profil" className="v5-header__avatar"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/047-user.svg)' } as React.CSSProperties} aria-hidden="true" /></IonButton>}
-  </header>
-}
-
-/** True once the surrounding IonContent has scrolled, so the sticky header can turn into a frosted bar. */
-function useContentScrolled(ref: React.RefObject<HTMLElement | null>) {
-  const [scrolled, setScrolled] = useState(false)
-  useEffect(() => {
-    const content = ref.current?.closest('ion-content') as HTMLIonContentElement | null
-    let scroller: HTMLElement | undefined
-    const onScroll = () => setScrolled((scroller?.scrollTop ?? 0) > 8)
-    let cancelled = false
-    void content?.getScrollElement?.().then(element => { if (cancelled) return; scroller = element; element.addEventListener('scroll', onScroll, { passive: true }); onScroll() })
-    return () => { cancelled = true; scroller?.removeEventListener('scroll', onScroll) }
-  }, [ref])
-  return scrolled
 }
 
 export function V5State({ title, message, error = false, onRetry, children }: {
@@ -51,14 +28,6 @@ export function V5State({ title, message, error = false, onRetry, children }: {
 
 export function V5Refresher({ onRefresh }: { onRefresh: () => Promise<unknown> }) {
   return <IonRefresher slot="fixed" onIonRefresh={async event => { try { await onRefresh() } finally { event.detail.complete() } }}><IonRefresherContent /></IonRefresher>
-}
-
-export function V5Loading() {
-  return <div className="v5-loading" role="status" aria-label="Chargement en cours">
-    <span className="v5-visually-hidden">Chargement en cours…</span>
-    <IonSkeletonText animated className="v5-loading__card" />
-    <IonSkeletonText animated className="v5-loading__card" />
-  </div>
 }
 
 type DemoExercise = { name?: string | null; gifUrl?: string | null; instructionsFr?: string | null }

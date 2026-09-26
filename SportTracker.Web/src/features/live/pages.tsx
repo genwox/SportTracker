@@ -7,7 +7,7 @@ import { detectPersonalRecord, estimateOneRm } from '../../domain/strengthMath'
 import { createRestTimer, pauseRestTimer, refreshRestTimer, remainingRestMs, restartRestTimer, resumeRestTimer, startRestTimer } from '../../domain/restTimer'
 import type { RestTimer } from '../../domain/restTimer'
 import type { LiveExerciseDraft, LiveSetDraft } from '../../domain/liveDraft'
-import { ExerciseDemoSheet, ExerciseThumb, V5Button, V5Card, V5Loading, V5State } from '../../ui'
+import { ExerciseDemoSheet, ExerciseThumb, V5Button, V5Card, V6Skeleton, V5State } from '../../ui'
 import { draftStore } from './drafts'
 import { CatalogSheet } from './CatalogSheet'
 import { createDraft, freeKey, liveQueue, owner, persistDraft, routineKey, sessionPrefix, setTypeName, type Exercise, type HistoryEntry, type Program, type Workout } from './liveApi'
@@ -166,7 +166,7 @@ export function ExerciseLivePage() {
     catch { setError('Impossible de terminer la séance. Réessaie.'); setSaving(false) }
   }
   return <IonPage><IonContent fullscreen><main className="live-page">
-    {loading && !draft ? <V5Loading /> : error && !draft ? <V5State title="Impossible de charger l’exercice" message={error} error onRetry={() => window.location.reload()} /> : draft && <>
+    {loading && !draft ? <V6Skeleton /> : error && !draft ? <V5State title="Impossible de charger l’exercice" message={error} error onRetry={() => window.location.reload()} /> : draft && <>
       <header className="live-head"><p>{draft.sessionName ?? 'Séance libre'}{draft.supersetGroupId ? ` · Superset ${String.fromCharCode(64 + draft.supersetGroupId)}` : ''}</p><h1>{draft.exerciseName}</h1><button className="live-link" onClick={() => history.push(back)}>‹ Séance</button></header>
       {notice && <div className="live-pr" role="status"><img src={medalIcon} alt="" /><div><strong>Nouveau record personnel !</strong><span>{notice}</span></div><small className="live-badge live-badge--pr">PR</small></div>}
       <SyncStatus draft={draft} />

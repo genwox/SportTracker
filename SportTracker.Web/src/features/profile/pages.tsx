@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import {
   appsOutline,
   chevronForwardOutline,
+  colorPaletteOutline,
   helpCircleOutline,
   lockClosedOutline,
   notificationsOutline,
@@ -13,7 +14,7 @@ import {
 } from 'ionicons/icons'
 import { apiRequest } from '../../api/client'
 import { useAuth } from '../../api/auth'
-import { V5Button, V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { V5Button, V5Card, V6Header, V6Item, V6List, V6Skeleton, V5State } from '../../ui'
 import { getGoalEmail, getWeeklyGoal, isGoalAvailable, setWeeklyGoal } from '../today/weeklyGoal'
 import type { Cardio, Workout } from '../today/todayData'
 import { summarizeProfile } from './profileStats'
@@ -50,9 +51,9 @@ export function ProfilePage() {
   return <IonPage>
     <IonContent>
       <main className="profile-page">
-        <V5Header title="Ton profil" avatar={false} />
+        <V6Header title="Ton profil" avatar={false} />
 
-        {!query.data && query.isPending && <V5Loading />}
+        {!query.data && query.isPending && <V6Skeleton />}
         {!query.data && query.isError && <V5State title="Impossible de charger ton profil"
           message="Impossible de récupérer tes séances." error onRetry={() => { void query.refetch() }} />}
 
@@ -160,9 +161,9 @@ export function ProfilePreferencesPage() {
   return <IonPage>
     <IonContent>
       <main className="pp-page">
-        <V5Header title="Objectifs & préférences" backHref="/tabs/profile" avatar={false} />
+        <V6Header title="Objectifs & préférences" backHref="/tabs/profile" avatar={false} />
 
-        {!query.data && query.isPending && <V5Loading />}
+        {!query.data && query.isPending && <V6Skeleton />}
         {query.data && !query.data.available && <V5State title="Préférences indisponibles"
           message="Identité ou stockage impossibles à confirmer : l'objectif par défaut est utilisé et ne peut pas être enregistré pour le moment."
           onRetry={() => { void query.refetch() }} />}
@@ -177,7 +178,7 @@ export function HelpPage() {
   return <IonPage>
     <IonContent>
       <main className="hlp-page">
-        <V5Header title="Aide & support" backHref="/tabs/profile" avatar={false} />
+        <V6Header title="Aide & support" backHref="/tabs/profile" avatar={false} />
 
         <V5Card><div className="hlp-item">
           <strong>Créer une séance</strong>
@@ -193,6 +194,11 @@ export function HelpPage() {
           <strong>Objectif hebdomadaire</strong>
           <p>Le nombre de séances visées chaque semaine se règle depuis Profil → Objectifs &amp; préférences. Il est utilisé sur les pages Profil et Progrès.</p>
         </div></V5Card>
+
+        {/* Temporary entry while V6 is being built: lets Damien try the new native kit on his iPhone. */}
+        <V6List header="Nouvelle interface" note="Aperçu des composants V6 en cours d’intégration.">
+          <V6Item icon={colorPaletteOutline} title="Aperçu du kit V6" detail="Boutons, listes, feuilles, glissements" routerLink="/tabs/profile/kit" />
+        </V6List>
 
         <V5Card><div className="hlp-item">
           <strong>Rubriques à venir</strong>

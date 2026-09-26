@@ -6,7 +6,7 @@ import { apiRequest } from '../../api/client'
 import { getDraftOwner } from '../../api/tokenStore'
 import { muscleCounts } from '../history/data'
 import { draftStore } from '../live/drafts'
-import { V5Button, V5Card, V5Header, V5Loading, V5Refresher, V5State } from '../../ui'
+import { V5Button, V5Card, V6Header, V6Skeleton, V5Refresher, V5State } from '../../ui'
 import { durationMinutes, summarizeToday } from './todayData'
 import type { TodayData, Workout, Cardio } from './todayData'
 import './today.css'
@@ -56,9 +56,9 @@ export function TodayPage() {
     <IonContent>
       <V5Refresher onRefresh={() => query.refetch()} />
       <main className="today-page">
-        <V5Header title={greeting} subtitle={capitalize(dateFr.format(new Date()))} extra={summary && <span className="t-streak">{summary.streak} j d’affilée</span>} />
+        <V6Header title={greeting} subtitle={capitalize(dateFr.format(new Date()))} extra={summary && <span className="t-streak">{summary.streak} j d’affilée</span>} />
         <p className="t-sync" role="status"><span aria-hidden="true" />{syncLabel}</p>
-        {!query.data && query.isPending && <div className="t-loading"><V5Loading /><div className="t-loading__stats">{[0, 1, 2].map(item => <div key={item} className="t-loading__stat" />)}</div><div className="t-loading__chart" /></div>}
+        {!query.data && query.isPending && <div className="t-loading"><V6Skeleton /><div className="t-loading__stats">{[0, 1, 2].map(item => <div key={item} className="t-loading__stat" />)}</div><div className="t-loading__chart" /></div>}
         {!query.data && query.isError && <V5State title="Impossible de charger ta journée"
           message="Impossible de récupérer tes séances. Vérifie ta connexion, puis réessaie."
           error onRetry={() => { void query.refetch() }} />}

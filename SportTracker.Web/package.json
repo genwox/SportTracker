@@ -14,6 +14,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ionic/core": "^8.8.19",
     "@ionic/react": "^8.8.19",
     "@ionic/react-router": "^8.8.19",
     "@tanstack/react-query": "^5.103.2",

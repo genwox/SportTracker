@@ -3,15 +3,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { IonRouterLink, IonSelect, IonSelectOption } from '@ionic/react'
 import { useHistory, useParams } from 'react-router-dom'
 import { apiRequest, ApiError } from '../../api/client'
-import { V5Button, V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { V5Button, V5Card, V6Header, V6Skeleton, V5State } from '../../ui'
 import { cardioKey, cardioName, durationMinutes, frNumber, numberOf, useCardio, type Cardio } from './data'
 import { Page, Refresh, NavCard, detailDate, durationLabel, today } from './shared'
 
 export function CardioSessionsPage() {
   const cardio = useCardio()
-  return <Page><Refresh onRefresh={() => cardio.refetch()} /><V5Header title="Ton cardio" subtitle="Chaque sortie compte" backHref="/tabs/history" />
+  return <Page><Refresh onRefresh={() => cardio.refetch()} /><V6Header title="Ton cardio" subtitle="Chaque sortie compte" backHref="/tabs/history" />
     <IonRouterLink routerLink="/tabs/history/cardio/new" className="history-action">+ Nouvelle sortie</IonRouterLink>
-    {!cardio.data && cardio.isPending ? <V5Loading /> : cardio.isError && !cardio.data ? <V5State title="Impossible de charger tes sorties" message="Vérifie ta connexion, puis réessaie." error onRetry={() => void cardio.refetch()} />
+    {!cardio.data && cardio.isPending ? <V6Skeleton /> : cardio.isError && !cardio.data ? <V5State title="Impossible de charger tes sorties" message="Vérifie ta connexion, puis réessaie." error onRetry={() => void cardio.refetch()} />
       : !cardio.data?.length ? <V5State title="Première sortie" message="Enregistre ta première sortie cardio." />
         : <div className="history-stack">{[...cardio.data].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')).map(session => <NavCard key={session.id} href={`/tabs/history/cardio/${session.id}`}>
           <div className="history-row"><span className="history-row-icon" aria-hidden="true">↗</span><span className="history-row-copy"><strong>{session.name || cardioName(session.type)}</strong><small>{detailDate(session.date)} · {durationLabel(session.duration)}</small></span>
@@ -31,8 +31,8 @@ function CardioDetail({ sessionId }: { sessionId: string }) {
   const cardio = session.data
   const seconds = cardio && numberOf(cardio.distance) > 0 ? Math.floor(durationMinutes(cardio.duration) * 60 / numberOf(cardio.distance)) : 0
   const message = session.error instanceof ApiError && session.error.status === 404 ? 'Cette sortie est introuvable ou inaccessible.' : 'Vérifie ta connexion, puis réessaie.'
-  return <Page><Refresh onRefresh={() => session.refetch()} /><V5Header title={cardio?.name || cardioName(cardio?.type)} subtitle={detailDate(cardio?.date)} backHref="/tabs/history/cardio" />
-    {!cardio && session.isPending ? <V5Loading /> : session.isError && !cardio ? <V5State title="Impossible de charger la sortie" message={message} error onRetry={() => void session.refetch()} />
+  return <Page><Refresh onRefresh={() => session.refetch()} /><V6Header title={cardio?.name || cardioName(cardio?.type)} subtitle={detailDate(cardio?.date)} backHref="/tabs/history/cardio" />
+    {!cardio && session.isPending ? <V6Skeleton /> : session.isError && !cardio ? <V5State title="Impossible de charger la sortie" message={message} error onRetry={() => void session.refetch()} />
       : cardio && <><V5Card className="history-cardio-hero"><span>{cardioName(cardio.type)}</span><strong>{frNumber(numberOf(cardio.distance))}</strong><small>kilomètres</small></V5Card>
         <div className="history-cardio-stats"><V5Card><strong>{durationLabel(cardio.duration)}</strong><span>durée</span></V5Card>
           {Number.isFinite(seconds) && seconds > 0 && <V5Card><strong>{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}</strong><span>allure /km</span></V5Card>}
@@ -57,7 +57,7 @@ export function NewCardioSessionPage() {
     const duration = `${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
     create.mutate({ name: name.trim(), type, date: `${date}T00:00:00`, duration, distance: km, elevationGain: climb }, { onError: () => setError('Vérifie ta connexion, puis réessaie : tes valeurs sont conservées.') })
   }
-  return <Page><V5Header title="Nouvelle sortie" subtitle="Cardio" backHref="/tabs/history/cardio" />
+  return <Page><V6Header title="Nouvelle sortie" subtitle="Cardio" backHref="/tabs/history/cardio" />
     <form className="history-form" onSubmit={submit}><V5Card><label>Nom<input value={name} onChange={event => setName(event.target.value)} placeholder="Ex. Run matinal" /></label>
       <label>Activité<IonSelect interface="action-sheet" value={type} onIonChange={event => setType(Number(event.detail.value))}>{[0, 1, 2, 3].map(value => <IonSelectOption key={value} value={value}>{cardioName(value)}</IonSelectOption>)}</IonSelect></label>
       <div className="history-form-grid"><label>Date<input type="date" value={date} onChange={event => setDate(event.target.value)} required /></label><label>Durée (min)<input type="number" min="1" step="1" value={minutes} onChange={event => setMinutes(event.target.value)} required /></label></div>

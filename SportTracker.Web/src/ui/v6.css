@@ -1,0 +1,209 @@
+/* V6 kit · app native. Same V5 identity (colours, fonts, radii, glass); only the controls become native.
+   Tokens live in src/app/theme.css (--st-v6-*). */
+
+.v6-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+/* Pressed state shared by every tappable kit control: scale 0.97 in 100 ms, back in 150 ms. */
+.v6-button::part(native), .v6-chip > span, .v6-back::part(native), .v6-avatar::part(native) { transition: transform 150ms ease-out, background-color 150ms ease-out; }
+.v6-button:active::part(native), .v6-chip:active > span, .v6-back:active::part(native), .v6-avatar:active::part(native) { transform: scale(.97); transition-duration: 100ms; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+/* The page containers (flex/grid with a gap) set --v6-gutter and --v6-gap so the bar bleeds edge to edge
+   and the large title sits right under it. */
+.v6-header-bar {
+  position: sticky; top: 0; z-index: 20;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center;
+  min-height: 44px; margin: 0 calc(-1 * var(--v6-gutter, 20px)); padding: env(safe-area-inset-top) 8px 0;
+  border-bottom: 1px solid transparent;
+  transition: background-color .2s ease, border-color .2s ease, -webkit-backdrop-filter .2s ease, backdrop-filter .2s ease;
+}
+/* Condensed: dark frosted strip (validated on iPhone: the white status bar text stays readable), small white title. */
+.v6-header-bar.is-condensed { background: var(--st-v6-collapsed); border-bottom-color: #ffffff1f; -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+.v6-header-bar__start, .v6-header-bar__end { display: flex; align-items: center; min-height: 44px; min-width: 0; }
+.v6-header-bar__end { justify-content: flex-end; gap: 4px; }
+.v6-header-bar__title {
+  max-width: min(260px, calc(100vw - 130px)); overflow: hidden; color: #ffffff; font: 400 17px/1.2 var(--st-font-display); text-align: center;
+  white-space: nowrap; text-overflow: ellipsis; opacity: 0; transform: translateY(4px); transition: opacity .2s ease, transform .2s ease;
+}
+.v6-header-bar.is-condensed .v6-header-bar__title { opacity: 1; transform: none; }
+.v6-header-bar.is-condensed .v6-back { --color: #ffffff; }
+.v6-header-large { margin-top: calc(-1 * var(--v6-gap, 0px)); padding: 2px 0 14px; }
+/* Break between words only: a Foruner title cut mid-word reads as a bug. Long titles get a smaller size instead. */
+.v6-header-large h1 { margin: 0; font: 400 clamp(27px, 8.7vw, 34px)/1.1 var(--st-font-display); color: var(--st-v6-ink); overflow-wrap: normal; word-break: normal; hyphens: none; }
+.v6-header-large h1.is-long { font-size: clamp(21px, 6.2vw, 26px); }
+.v6-header-large p { margin: 4px 0 0; color: var(--st-v6-action); font: 600 13px/1.35 var(--st-font-body); }
+
+.v6-back { --color: var(--st-v6-ink); --padding-start: 2px; --padding-end: 10px; height: 44px; margin: 0; font: 600 15px var(--st-font-body); letter-spacing: 0; text-transform: none; }
+.v6-back ion-icon { font-size: 26px; margin-inline-end: 2px; }
+.v6-back span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.v6-avatar { --padding-start: 0; --padding-end: 0; width: 44px; height: 44px; margin: 0; }
+.v6-avatar__disc { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 17px; background: var(--st-v6-nav); color: var(--st-v6-action); font: 700 14px var(--st-font-body); }
+.v6-avatar__disc ion-icon { font-size: 18px; }
+.v6-header-bar.is-condensed .v6-avatar__disc { box-shadow: 0 0 0 1px #ffffff33; }
+
+/* ── Tab bar ────────────────────────────────────────────────────────────── */
+ion-tab-bar.v6-tab-bar {
+  --background: var(--st-v6-card); --border: 1px solid var(--st-v6-line); --color: var(--st-v6-muted); --color-selected: var(--st-v6-ink);
+  /* Ionic's tab bar is content-box and already pads the home-indicator safe area below these 49 pt. */
+  height: 49px; padding-left: calc(8px + var(--ion-safe-area-left, 0px)); padding-right: calc(8px + var(--ion-safe-area-right, 0px));
+  -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4);
+}
+.v6-tab-bar ion-tab-button { --background: transparent; --background-focused: transparent; --padding-top: 5px; --padding-bottom: 0; justify-content: flex-start; gap: 2px; }
+.v6-tab-bar ion-tab-button.tab-selected { --background: transparent; margin: 0; border-radius: 0; }
+.v6-tab-bar__pill { display: grid; place-items: center; width: 56px; height: 28px; border-radius: 14px; transition: background-color .2s ease; }
+.v6-tab-bar__pill ion-icon { font-size: 22px; }
+.v6-tab-bar ion-tab-button.tab-selected .v6-tab-bar__pill { background: var(--st-v6-action); }
+.v6-tab-bar__label { font: 600 10px/1.2 var(--st-font-body); letter-spacing: 0; }
+.v6-tab-bar ion-tab-button.tab-selected .v6-tab-bar__label { font-weight: 700; }
+
+/* ── Segmented control ──────────────────────────────────────────────────── */
+/* The whole 44 pt row is tappable; the #102737 pill is inset 4 pt inside it (rapport V6, point 7). */
+ion-segment.v6-segment { --background: var(--st-v6-segment); min-height: 44px; padding: 0; border-radius: 14px; }
+.v6-segment ion-segment-button {
+  --indicator-color: var(--st-v6-nav); --indicator-box-shadow: none; --color: var(--st-v6-muted); --color-checked: var(--st-v6-card-solid);
+  --border-radius: 11px; --border-width: 0; --padding-start: 8px; --padding-end: 8px;
+  min-width: 0; min-height: 44px; margin: 0; font: 600 13px var(--st-font-body); letter-spacing: 0; text-transform: none;
+}
+.v6-segment ion-segment-button::before { display: none; }
+.v6-segment ion-segment-button::part(indicator) { padding: 4px; }
+.v6-segment ion-segment-button::part(indicator-background) { border-radius: 11px; }
+.v6-segment ion-segment-button.segment-button-checked { font-weight: 700; }
+.v6-segment ion-segment-button span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ── Chips ──────────────────────────────────────────────────────────────── */
+.v6-chip-row { display: flex; gap: 8px; margin: 0 calc(-1 * var(--v6-gutter, 20px)); padding: 0 var(--v6-gutter, 20px); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.v6-chip-row::-webkit-scrollbar { display: none; }
+.v6-chip { flex: none; display: grid; align-items: center; min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; cursor: default; }
+.v6-chip > span { display: flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 12px; background: var(--st-v6-segment); color: var(--st-v6-muted); font: 600 13px var(--st-font-body); white-space: nowrap; }
+.v6-chip.is-selected > span { background: var(--st-v6-action); color: var(--st-v6-ink); font-weight: 700; }
+
+/* ── Toggle ─────────────────────────────────────────────────────────────── */
+ion-toggle.v6-toggle {
+  --track-background: var(--st-v6-line); --track-background-checked: var(--st-v6-action);
+  --handle-background: var(--st-v6-card-solid); --handle-background-checked: var(--st-v6-card-solid);
+  --handle-box-shadow: 0 2px 6px var(--st-v6-line);
+}
+
+/* ── Inset grouped list ─────────────────────────────────────────────────── */
+.v6-list-group { display: grid; gap: 6px; }
+.v6-list-group__header { margin: 0; padding: 0 16px; color: var(--st-v6-card-solid); font: 600 12px var(--st-font-body); letter-spacing: .4px; text-transform: uppercase; }
+.v6-list-group__note { margin: 0; padding: 0 16px; color: var(--st-v6-card-solid); font: 500 12px/1.4 var(--st-font-body); }
+/* Beats Ionic's scoped .list-ios.list-inset margin (16 px) so the card spans the page like the design. */
+.v6-list-group ion-list.v6-list {
+  --ion-item-background: transparent; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--st-v6-line); border-radius: 16px;
+  background: var(--st-v6-card); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+ion-item.v6-item {
+  --background: transparent; --background-activated: var(--st-v6-line); --background-activated-opacity: 1; --background-hover: transparent;
+  --min-height: 52px; --padding-start: 16px; --inner-padding-end: 16px; --border-color: var(--st-v6-line); --color: var(--st-v6-ink);
+  --detail-icon-color: var(--st-v6-muted); --detail-icon-opacity: 1; --highlight-color-focused: var(--st-v6-nav); --highlight-color-invalid: var(--st-v6-nav);
+  font-family: var(--st-font-body);
+}
+.v6-list ion-item.v6-item:last-child { --border-width: 0; --inner-border-width: 0; }
+.v6-item__tile { display: grid; place-items: center; width: 30px; height: 30px; margin: 0 12px 0 0; border-radius: 8px; background: var(--st-v6-surface); color: var(--st-v6-ink); }
+.v6-item__tile ion-icon { font-size: 17px; }
+.v6-item__text { display: grid; gap: 2px; min-width: 0; padding: 8px 0; }
+.v6-item__text strong { color: var(--st-v6-ink); font: 600 15px/1.3 var(--st-font-body); }
+.v6-item__text small { color: var(--st-v6-muted); font: 500 12px/1.35 var(--st-font-body); }
+.v6-item__value { margin: 0 0 0 8px; color: var(--st-v6-muted); font: 500 14px var(--st-font-body); }
+.v6-item__alert { margin-inline-start: 8px; color: var(--st-v6-nav); font-size: 20px; }
+.v6-item__end { display: flex; align-items: center; margin-inline-start: 8px; }
+
+/* Form rows: fixed label column, errors in ink under the field (never red). */
+ion-input.v6-input {
+  --color: var(--st-v6-ink); --placeholder-color: var(--st-v6-muted); --placeholder-opacity: 1;
+  --highlight-color-focused: var(--st-v6-nav); --highlight-color-valid: var(--st-v6-nav); --highlight-color-invalid: var(--st-v6-nav);
+  min-height: 52px; font: 500 16px var(--st-font-body);
+}
+/* ion-input is a scoped component (no shadow DOM): its inner classes are styled directly. */
+ion-input.v6-input .label-text-wrapper { flex: 0 0 112px; width: 112px; min-width: 112px; max-width: 112px; }
+ion-input.v6-input .label-text { color: var(--st-v6-ink); font: 600 15px var(--st-font-body); }
+ion-input.v6-input .input-highlight { display: none; }
+ion-input.v6-input .input-bottom { padding: 0 0 8px; border: 0; }
+ion-input.v6-input .error-text, ion-input.v6-input .helper-text { color: var(--st-v6-ink); font: 600 12px/1.35 var(--st-font-body); }
+ion-input.v6-input .helper-text { color: var(--st-v6-muted); font-weight: 500; }
+ion-input.v6-input .error-text::before { content: '⚠︎ '; }
+.v6-input-item { --inner-padding-end: 8px; }
+
+/* ── Sliding row ────────────────────────────────────────────────────────── */
+ion-item-sliding.v6-sliding { overflow: hidden; border-radius: 16px; }
+.v6-sliding__row { --background: var(--st-v6-card); --padding-start: 0; --inner-padding-end: 0; --min-height: 72px; --border-radius: 16px; border: 1px solid var(--st-v6-line); border-radius: 16px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-sliding ion-item-options { border: 0; }
+.v6-sliding ion-item-options[side='end'] { padding-left: 8px; }
+.v6-sliding ion-item-options[side='start'] { gap: 8px; padding-right: 8px; }
+.v6-sliding ion-item-option { min-width: 80px; border-radius: 16px; font: 700 11px var(--st-font-body); letter-spacing: 0; text-transform: none; }
+.v6-sliding ion-item-option ion-icon { margin-bottom: 4px; font-size: 20px; }
+.v6-sliding__delete { --background: var(--st-v6-danger); --color: var(--st-v6-card-solid); }
+.v6-sliding__duplicate { --background: var(--st-v6-action); --color: var(--st-v6-ink); }
+.v6-sliding__finish { --background: #17384c; --color: var(--st-v6-card-solid); }
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+ion-button.v6-button {
+  --color: var(--st-v6-ink); --border-radius: 14px; --box-shadow: none; --background-activated: transparent; --background-focused: transparent; --background-hover: transparent;
+  margin: 0; font: 700 15px var(--st-font-body); letter-spacing: 0; text-transform: none;
+}
+.v6-button--primary, .v6-button--secondary { --padding-start: 16px; --padding-end: 16px; height: 50px; min-height: 50px; width: 100%; }
+.v6-button--primary { --background: var(--st-v6-action); }
+.v6-button--secondary, .v6-button--icon { --background: var(--st-v6-veil); }
+.v6-button--icon { --padding-start: 0; --padding-end: 0; width: 44px; height: 44px; }
+.v6-button--icon ion-icon { font-size: 22px; }
+.v6-button--text { --background: transparent; --padding-start: 8px; --padding-end: 8px; height: 44px; }
+/* Pressed veil on top of the scale. */
+.v6-button--primary:active::part(native), .v6-button--secondary:active::part(native), .v6-button--icon:active::part(native) { filter: brightness(.94); }
+ion-button.v6-button.button-disabled { opacity: .5; }
+ion-button.v6-button.is-loading { opacity: .8; }
+.v6-button ion-spinner { width: 18px; height: 18px; color: var(--st-v6-ink); }
+.v6-button ion-icon[slot='start'], .v6-button ion-spinner[slot='start'] { margin-inline-end: 8px; font-size: 18px; }
+
+/* Sticky action: glass footer, content scrolls under it. Ionic adds the home-indicator safe area when there is no tab bar. */
+ion-footer.v6-sticky { -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); }
+.v6-sticky ion-toolbar { --background: var(--st-v6-card); --border-color: var(--st-v6-line); --border-width: 1px 0 0; --padding-top: 12px; --padding-bottom: 12px; --padding-start: 20px; --padding-end: 20px; }
+.v6-sticky__row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; width: min(100%, 390px); margin: 0 auto; }
+
+/* ── Sheet ──────────────────────────────────────────────────────────────── */
+ion-modal.v6-sheet { --background: var(--st-v6-sheet); --border-radius: 20px; --backdrop-opacity: .4; }
+ion-modal.v6-sheet::part(backdrop) { background: var(--st-v6-nav); }
+ion-modal.v6-sheet::part(handle) { width: 36px; height: 5px; background: var(--st-v6-muted); opacity: .5; }
+ion-modal.v6-sheet::part(content) { border-top: 1px solid var(--st-v6-line); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* The global Paragon backdrop targets every .ion-page, including the modal's wrapper: the sheet keeps its glass. */
+ion-modal.v6-sheet .ion-page { background: transparent; }
+.v6-sheet__content { --background: transparent; color: var(--st-v6-ink); font-family: var(--st-font-body); }
+.v6-sheet__header { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 20px; padding: 0 8px 0 20px; }
+.v6-sheet__header h2 { flex: 1; min-width: 0; margin: 0; font: 700 17px/1.25 var(--st-font-body); }
+.v6-sheet__body { display: grid; gap: 10px; padding: 4px 20px calc(24px + env(safe-area-inset-bottom)); }
+
+/* ── Action sheet (scoped component: global selectors apply) ─────────────── */
+ion-action-sheet.v6-action-sheet {
+  --background: var(--st-v6-sheet); --backdrop-opacity: .4; --button-color: var(--st-v6-ink); --button-background-selected: var(--st-v6-sheet);
+  --button-background-activated: var(--st-v6-line); --button-background-activated-opacity: 1; --color: var(--st-v6-muted);
+  font-family: var(--st-font-body);
+}
+ion-action-sheet.v6-action-sheet ion-backdrop { background: var(--st-v6-nav); }
+.v6-action-sheet .action-sheet-group { border: 1px solid var(--st-v6-line); border-radius: 14px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-action-sheet .action-sheet-title { padding: 14px 16px; color: var(--st-v6-muted); font: 700 13px/1.35 var(--st-font-body); }
+.v6-action-sheet .action-sheet-sub-title { padding-top: 4px; font: 500 12px/1.4 var(--st-font-body); }
+.v6-action-sheet .action-sheet-button { min-height: 56px; border-top: 1px solid var(--st-v6-line); font: 600 15px var(--st-font-body); }
+.v6-action-sheet .action-sheet-button-inner { justify-content: center; gap: 8px; }
+.v6-action-sheet .action-sheet-icon { margin: 0; font-size: 18px; }
+.v6-action-sheet .action-sheet-destructive, .v6-action-sheet .action-sheet-destructive .action-sheet-icon { color: var(--st-v6-danger); font-weight: 700; }
+.v6-action-sheet .action-sheet-cancel { border-top: 0; font-weight: 700; }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+ion-toast.v6-toast {
+  --background: var(--st-v6-nav); --color: var(--st-v6-card-solid); --border-radius: 14px; --box-shadow: 0 6px 18px var(--st-v6-line);
+  --button-color: var(--st-v6-action); --start: 16px; --end: 16px; font-family: var(--st-font-body);
+}
+ion-toast.v6-toast::part(container) { gap: 10px; padding: 12px 14px; }
+ion-toast.v6-toast::part(icon) { margin: 0; color: var(--st-v6-action); font-size: 20px; }
+ion-toast.v6-toast::part(header) { font: 700 13px/1.3 var(--st-font-body); }
+ion-toast.v6-toast::part(message) { font: 500 12px/1.35 var(--st-font-body); opacity: .8; }
+ion-toast.v6-toast:not(.toast-has-header)::part(message) { font-weight: 700; font-size: 13px; opacity: 1; }
+ion-toast.v6-toast::part(button) { min-height: 44px; font: 700 13px var(--st-font-body); letter-spacing: 0; text-transform: none; }
+
+/* ── Skeleton ───────────────────────────────────────────────────────────── */
+.v6-skeleton { display: grid; gap: 12px; }
+.v6-skeleton__card { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--st-v6-line); border-radius: 20px; background: var(--st-v6-card); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.v6-skeleton__bar { --background: var(--st-v6-line); --background-rgb: 18, 61, 50; width: 80%; height: 10px; margin: 0; border-radius: 5px; }
+.v6-skeleton__bar--title { width: 52%; height: 14px; border-radius: 7px; }
+.v6-skeleton__bar--short { width: 35%; }

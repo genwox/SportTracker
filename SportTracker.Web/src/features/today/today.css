@@ -1,6 +1,5 @@
 .today-page { width:min(100%,430px); margin:auto; padding:0 20px calc(env(safe-area-inset-bottom) + 32px); display:flex; flex-direction:column; gap:14px; color:var(--st-dark) }
-.today-page .v5-header { margin-bottom:2px }
-.today-page .v5-header p { color:var(--st-neon); font-size:13px; font-weight:600 }
+.today-page { --v6-gap:14px; --v6-gutter:20px }
 .t-streak { display:inline-block; margin-top:8px; border-radius:100px; background:var(--st-neon); padding:7px 10px; font-size:9px; font-weight:700; white-space:nowrap }
 .t-sync { display:flex; align-items:center; gap:8px; margin:0 0 2px; padding:9px 11px; border-radius:100px; background:#e8ffff9c; color:var(--st-text-muted); font-size:10px; font-weight:600 }
 .t-sync span { flex:none; width:8px; height:8px; border-radius:50%; background:var(--st-neon) }
@@ -37,11 +36,8 @@
 .t-resume { display:flex; align-items:center; justify-content:space-between; gap:12px }
 .t-resume__name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .t-resume>span { flex:none; font-size:26px; color:var(--st-text-muted) }
-.t-loading .v5-loading { gap:12px }
-.t-loading .v5-loading__card:first-of-type { height:148px }
-.t-loading .v5-loading__card:last-of-type { height:95px }
 .t-loading__stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px }
 .t-loading__stat,.t-loading__chart { border-radius:20px; background:#f8ffffb8 }
 .t-loading__stat { height:70px }
 .t-loading__chart { height:115px; margin-top:12px }
-@media(max-width:360px) { .today-page { padding-inline:16px } .t-hero__actions .v5-button { font-size:11px } }
+@media(max-width:360px) { .today-page { padding-inline:16px; --v6-gutter:16px } .t-hero__actions .v5-button { font-size:11px } }

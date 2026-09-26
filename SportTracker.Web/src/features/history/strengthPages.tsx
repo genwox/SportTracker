@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { apiRequest, ApiError } from '../../api/client'
-import { ExerciseThumb, V5Card, V5Header, V5Loading, V5State } from '../../ui'
+import { ExerciseThumb, V5Card, V6Header, V6Skeleton, V5State } from '../../ui'
 import { dayLabel, frNumber, maxOneRm, numberOf, setName, workoutVolume, type Exercise, type HistoryEntry, type Workout } from './data'
 import { Page, Refresh, NavCard, SectionTitle, detailDate, durationLabel } from './shared'
 
@@ -21,8 +21,8 @@ export function ExerciseProgressPage() {
   const record = Math.max(0, ...entries.map(maxOneRm))
   const bestWeight = Math.max(0, ...entries.flatMap(entry => entry.sets.map(set => numberOf(set.weight))))
   const totalVolume = entries.reduce((sum, entry) => sum + numberOf(entry.totalVolume), 0)
-  return <Page><Refresh onRefresh={() => Promise.all([history.refetch(), exercise.refetch()])} /><V5Header title={exercise.data?.name || 'Exercice'} backHref="/tabs/history" />
-    {!history.data && history.isPending ? <V5Loading /> : history.isError && !history.data ? <V5State title="Erreur de chargement" message="Impossible de récupérer l'historique." error onRetry={() => void history.refetch()} />
+  return <Page><Refresh onRefresh={() => Promise.all([history.refetch(), exercise.refetch()])} /><V6Header title={exercise.data?.name || 'Exercice'} backHref="/tabs/history" />
+    {!history.data && history.isPending ? <V6Skeleton /> : history.isError && !history.data ? <V5State title="Erreur de chargement" message="Impossible de récupérer l'historique." error onRetry={() => void history.refetch()} />
       : entries.length === 0 ? <V5State title="Aucun historique" message="Les données apparaîtront après ta première séance." /> : <>
         <p className="history-intro">{entries.length} séances enregistrées</p>
         <div className="history-summary"><V5Card><strong>{frNumber(record)} kg</strong><span>1RM estimé</span></V5Card><V5Card><strong>{frNumber(bestWeight)} kg</strong><span>poids max</span></V5Card><V5Card><strong>{frNumber(totalVolume)} kg</strong><span>volume cumulé</span></V5Card></div>
@@ -41,8 +41,8 @@ export function WorkoutSessionDetailPage() {
   const session = useQuery({ queryKey: ['history', 'workout', sessionId], queryFn: () => apiRequest<Workout>(`api/workoutsessions/${sessionId}`) })
   const workout = session.data
   const message = session.error instanceof ApiError && session.error.status === 404 ? 'Cette séance est introuvable ou inaccessible.' : 'Vérifie ta connexion, puis réessaie.'
-  return <Page><Refresh onRefresh={() => session.refetch()} /><V5Header title={workout?.name || 'Détail de la séance'} subtitle={detailDate(workout?.date)} backHref="/tabs/history" />
-    {!workout && session.isPending ? <V5Loading /> : session.isError && !workout ? <V5State title="Impossible de charger la séance" message={message} error onRetry={() => void session.refetch()} />
+  return <Page><Refresh onRefresh={() => session.refetch()} /><V6Header title={workout?.name || 'Détail de la séance'} subtitle={detailDate(workout?.date)} backHref="/tabs/history" />
+    {!workout && session.isPending ? <V6Skeleton /> : session.isError && !workout ? <V5State title="Impossible de charger la séance" message={message} error onRetry={() => void session.refetch()} />
       : workout && <><div className="history-summary"><V5Card><strong>{durationLabel(workout.duration)}</strong><span>durée</span></V5Card><V5Card><strong>{frNumber(workoutVolume(workout))} kg</strong><span>volume</span></V5Card><V5Card><strong>{workout.workoutExercises?.length ?? 0}</strong><span>exercices</span></V5Card></div>
         {!workout.workoutExercises?.length ? <V5State title="Aucun exercice" message="Cette séance ne contient pas encore d'exercice." /> : <section><SectionTitle>Exercices de la séance</SectionTitle><div className="history-stack">
           {workout.workoutExercises.map((item, index) => <NavCard key={item.id ?? index} href={`/tabs/history/exercises/${item.exerciseId}`} className={item.supersetGroupId != null ? 'history-superset' : ''}>

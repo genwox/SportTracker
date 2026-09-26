@@ -1,0 +1,13 @@
+.kit-page { --v6-gap: 20px; --v6-gutter: 20px; width: min(100%, 430px); margin: 0 auto; padding: 0 20px calc(40px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 20px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
+.kit-section { display: grid; gap: 10px; }
+.kit-section h2 { margin: 0; padding: 0 4px; color: var(--st-v6-action); font: 600 13px var(--st-font-body); }
+.kit-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 18px; }
+.kit-row__text { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.kit-row__text strong { font: 600 16px var(--st-font-body); }
+.kit-row__text small { color: var(--st-v6-muted); font: 500 13px var(--st-font-body); }
+.kit-row b { font: 700 15px var(--st-font-body); }
+.kit-inline { display: flex; align-items: center; gap: 12px; }
+.kit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kit-grid .v6-button { font-size: 14px; }
+.kit-sheet-text { margin: 0; color: var(--st-v6-muted); font: 500 13px/1.45 var(--st-font-body); }
+@media (max-width: 360px) { .kit-page { padding-inline: 16px; --v6-gutter: 16px; } }

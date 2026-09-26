@@ -81,7 +81,7 @@ test.describe('QA mobile — parcours complet (WebKit 390×844)', () => {
     await expect(page).toHaveURL(/\/tabs\/today$/)
     expect(putSnapshots.at(-1)?.sets).toHaveLength(3)
 
-    await page.getByRole('tab', { name: 'Historique/Progrès' }).click()
+    await page.getByRole('tab', { name: 'Historique' }).click()
     await expect(page).toHaveURL(/\/tabs\/history$/)
     await expect(page.getByRole('heading', { name: 'Historique/Progrès' })).toBeVisible()
     await expect(page.locator('.history-stack').getByText('Séance musculation')).toBeVisible()
@@ -133,7 +133,7 @@ test.describe('QA mobile — contrôles transverses (WebKit 390×844)', () => {
     })
     await login(page)
 
-    for (const [href, name] of [['/tabs/today', 'Today'], ['/tabs/programs', 'Programmes'], ['/tabs/history', 'Historique/Progrès']] as const) {
+    for (const [href, name] of [['/tabs/today', 'Aujourd’hui'], ['/tabs/programs', 'Programmes'], ['/tabs/history', 'Historique']] as const) {
       await page.goto(href)
       await expect(page.getByRole('tab', { name })).toBeVisible()
       const undersized = await page.evaluate(() => {

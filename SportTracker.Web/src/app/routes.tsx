@@ -1,4 +1,4 @@
-import { IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/react'
+import { IonRouterOutlet, IonTabs } from '@ionic/react'
 import { IonReactRouter } from '@ionic/react-router'
 import { Redirect, Route } from 'react-router-dom'
 import { TodayPage } from '../features/today/pages'
@@ -8,6 +8,8 @@ import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage 
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
 import { AuthGate } from '../api/AuthGate'
 import { NotFoundPage } from '../ui/AuthPages'
+import { V6TabBar } from '../ui'
+import { KitPage } from '../ui/KitPage'
 
 // Paths stay here with their Route declarations so feature lots need not edit the router.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -30,6 +32,7 @@ export const paths = {
   profile: '/tabs/profile',
   preferences: '/tabs/profile/preferences',
   help: '/tabs/profile/help',
+  kit: '/tabs/profile/kit',
   login: '/login',
   register: '/register',
   live: '/live',
@@ -61,13 +64,10 @@ function Tabs() {
         <Route exact path={paths.profile} component={ProfilePage} />
         <Route exact path={paths.preferences} component={ProfilePreferencesPage} />
         <Route exact path={paths.help} component={HelpPage} />
+        <Route exact path={paths.kit} component={KitPage} />
         <Redirect exact from="/tabs" to={paths.today} />
       </IonRouterOutlet>
-      <IonTabBar slot="bottom">
-        <IonTabButton tab="today" href={paths.today} aria-label="Today"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/021-goal.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Today</span></IonTabButton>
-        <IonTabButton tab="programs" href={paths.programs} aria-label="Programmes"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/018-bookmark.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Programmes</span></IonTabButton>
-        <IonTabButton tab="history" href={paths.history} aria-label="Historique/Progrès"><span className="v5-tab-icon" style={{ '--v5-icon': 'url(/icons/027-ranking.svg)' } as React.CSSProperties} aria-hidden="true" /><span>Historique/Progrès</span></IonTabButton>
-      </IonTabBar>
+      <V6TabBar />
     </IonTabs>
   )
 }

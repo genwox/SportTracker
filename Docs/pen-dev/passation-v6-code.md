@@ -45,6 +45,7 @@ Règles de design : `Docs/pen-dev/sporttracker-native/SKILL.md`.
 - **Icône et écrans de lancement** : `scripts/pwa-assets.mjs` les régénère. **Bandeau d'installation** : `src/ui/InstallHint.tsx`.
 
 ## Décisions à trancher avec Damien avant de coder
+**Tranchées le 26/09/2026 : Damien a retenu les cinq recommandations entre parenthèses.**
 Elles viennent du rapport V6. La recommandation par défaut est entre parenthèses.
 1. **Couleur de l'en-tête replié.** Le kit V6 le dessine clair (verre card). Or l'heure est blanche en plein écran : elle deviendrait illisible. (Garder la barre foncée `#315E5ECC` validée sur iPhone, avec un titre blanc.)
 2. **Contenu des écrans 10 à 14 différent de V5** : noms de carnets, statuts Fait / À faire, badges de type et superset A. (Garder les données et fonctions V5 : V6 change la forme, pas le produit.)
@@ -54,7 +55,7 @@ Elles viennent du rapport V6. La recommandation par défaut est entre parenthès
 
 ## Plan de code conseillé
 Une session par lot, pour garder un contexte léger. Chaque lot est testé sur iPhone avant de passer au suivant.
-1. **Kit `src/ui/`** : V6Header (en remplacement de V5Header, en gardant le comportement collant et foncé), V6TabBar, V6Segment, V6List/V6Item/V6InputItem, V6Sheet, V6ActionSheet, V6Toast, V6SlidingRow, V6Button, V6StickyAction, V6Skeleton, V6Chip. Transitions ramenées à 350 ms (Ionic iOS pousse en 540 ms par défaut).
+1. ✅ **Kit `src/ui/`** (26/09, voir `CLAUDE.md`) : V6Header (en remplacement de V5Header, en gardant le comportement collant et foncé), V6TabBar, V6Segment, V6List/V6Item/V6InputItem, V6Sheet, V6ActionSheet, V6Toast, V6SlidingRow, V6Button, V6StickyAction, V6Skeleton, V6Chip. Transitions ramenées à 350 ms (Ionic iOS pousse en 540 ms par défaut). *Fait : kit dans `src/ui/v6.tsx`, `v6Feedback.ts`, `v6Nav.ts` ; V6Header, V6Skeleton et V6TabBar branchés partout ; les autres composants s'adoptent dans les lots suivants. Page d'essai : Profil › Aide & support › Aperçu du kit V6.*
 2. **Séance live** (15, 22, 23, 27) : V6Stepper (appui long), V6Keypad (`inputmode="none"`), V6SetRow (valider au tap), minuteur en feuille, V6WheelPicker, V6Searchbar, **V6LiveMiniBar** au-dessus des onglets.
 3. **Today et Carnets** (03, 10 à 14, 24) : V6ReorderRow, V6ContextMenu (appui long), actions collantes.
 4. **Historique, Progrès et cardio** (04, 06 à 09, 16 à 18) : lignes glissables, segments de filtre.
