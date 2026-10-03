@@ -42,4 +42,10 @@ Chaque session Claude (cloud ou locale) qui modifie le projet laisse ici un comp
 
 | Fichier | Reversé le |
 |---|---|
-| | |
+| `2026-09-26-ios-natif-et-preparation-v6.md` | 2026-10-03 |
+| `2026-09-26-pen-dev-v6-ecrans-et-harmonisation.md` (reconstitué) | 2026-10-03 |
+| `2026-09-26-v6-lot-1-kit.md` | 2026-10-03 |
+| `2026-09-26-v6-lot-2-seance-live.md` | 2026-10-03 |
+| `2026-09-26-v6-lot-3-aujourdhui-et-carnets.md` | 2026-10-03 |
+| `2026-09-26-v6-lot-4-historique-progres-cardio.md` | 2026-10-03 |
+| `2026-09-26-v6-lot-5-connexion-profil-etats.md` | 2026-10-03 |
