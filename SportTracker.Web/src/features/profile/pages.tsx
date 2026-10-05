@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { IonContent, IonPage, useIonRouter } from '@ionic/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  barbellOutline, calendarOutline, flagOutline, helpCircleOutline, lockClosedOutline, logOutOutline, readerOutline, speedometerOutline, syncOutline,
+  barbellOutline, calendarOutline, flagOutline, helpCircleOutline, lockClosedOutline, logOutOutline, readerOutline, speedometerOutline, syncOutline, volumeHighOutline, scaleOutline, walkOutline,
 } from 'ionicons/icons'
 import { apiRequest } from '../../api/client'
 import { useAuth } from '../../api/auth'
@@ -15,7 +15,8 @@ import { useOnline, useV6BackHref } from '../../ui/v6Hooks'
 import { draftStore } from '../live/drafts'
 import { getGoalEmail, getWeeklyGoal, isGoalAvailable, setWeeklyGoal } from '../today/weeklyGoal'
 import type { Cardio, Workout } from '../today/todayData'
-import { useShowRpe } from './preferences'
+import { useShowRpe, useRestSound } from './preferences'
+import { unlockRestAudio, playRestSound } from '../live/restSound'
 import { summarizeProfile } from './profileStats'
 import './profile.css'
 
@@ -73,6 +74,8 @@ export function ProfilePage() {
   const backHref = useV6BackHref('/tabs/today')
   const online = useOnline(), pending = usePendingDrafts(online)
   const [showRpe, setShowRpe] = useShowRpe()
+  const [restSound, setRestSound] = useRestSound()
+  const toast = useV6Toast()
   const [remember, setRemember] = useState(isTokenRemembered)
   const summary = query.data ? summarizeProfile(query.data) : null
   const email = query.data?.email ?? getDraftOwner()
@@ -112,6 +115,19 @@ export function ProfilePage() {
       <V6Item icon={flagOutline} title="Objectif hebdomadaire" detail="Séances visées chaque semaine" value={goal != null ? `${goal} séances` : undefined} routerLink="/tabs/profile/preferences" />
       <V6Item icon={speedometerOutline} title="Afficher le RPE" detail="Sur chaque série en direct" end={<V6Toggle label="Afficher le RPE" checked={showRpe} onChange={setShowRpe} />} />
       <V6Item icon={syncOutline} title="Synchronisation" detail={sync} />
+    </V6List>
+
+    <V6List header="Mon suivi">
+      <V6Item icon={scaleOutline} title="Mon poids" detail="Pesées, courbe et évolution" routerLink="/tabs/profile/weight" />
+      <V6Item icon={walkOutline} title="Mes pas" detail="Podomètre et relevés quotidiens" routerLink="/tabs/profile/steps" />
+    </V6List>
+
+    <V6List header="Minuteur" note="Le son fonctionne quand l’app est ouverte. Sur iPhone, une alerte écran verrouillé n’est pas garantie ; vérifie le volume du téléphone.">
+      <V6Item icon={volumeHighOutline} title="Son de fin de repos" end={<V6Toggle label="Son de fin de repos" checked={restSound} onChange={value => { if (value) unlockRestAudio(); setRestSound(value) }} />} />
+      <V6Item title="Tester le son" onClick={() => {
+        unlockRestAudio()
+        window.setTimeout(() => { if (!playRestSound()) void toast.error('Son indisponible', 'Vérifie les réglages audio du navigateur puis réessaie.') }, 100)
+      }} />
     </V6List>
 
     <V6List header="Compte">

@@ -16,4 +16,13 @@
 /* Help rows carry a sentence: let it wrap. */
 .hlp-page .v6-item__text small { white-space: normal; }
 
+.health-page { width: min(100%, 430px); margin: 0 auto; padding: 0 20px 32px; display: flex; flex-direction: column; gap: 14px; color: var(--st-v6-ink); font-family: var(--st-font-body); }
+.health-page .v6-list-group ion-list.v6-list { margin: 0; }
+.health-page .v6-item__text small, .profile-page .v6-list-group__note { white-space: normal; }
+.health-page .v6-chart-card p { font-size: 13px; line-height: 1.6; }
+.health-weight-chart { width: 100%; height: auto; color: var(--st-v6-ink); }
+.health-weight-chart circle { fill: var(--st-v6-action); stroke: var(--st-v6-ink); stroke-width: 2px; }
+.health-counter strong { font: 400 38px var(--st-font-display); }
+.health-page ion-button[aria-label^="Supprimer"] { color: var(--ion-color-danger); }
+
 @media (max-width: 360px) { .profile-page, .pp-page, .hlp-page { padding-inline: 16px; --v6-gutter: 16px; } }

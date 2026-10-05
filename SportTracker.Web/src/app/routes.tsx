@@ -8,8 +8,10 @@ import {
   NewCardioSessionPage, EditCardioSessionPage, EditWorkoutSessionPage,
 } from '../features/history/pages'
 import { ProfilePage, ProfilePreferencesPage, HelpPage, LoginPage, RegisterPage } from '../features/profile/pages'
+import { WeightPage, StepsPage } from '../features/profile/HealthPage'
 import { LiveWorkoutPage, ExerciseLivePage } from '../features/live/pages'
 import { LiveMiniBar } from '../features/live/LiveMiniBar'
+import { RestTimerAlert } from '../features/live/RestTimerAlert'
 import { AuthGate } from '../api/AuthGate'
 import { NotFoundPage } from '../ui/AuthPages'
 import { V6TabBar } from '../ui'
@@ -38,6 +40,8 @@ export const paths = {
   cardioEdit: '/tabs/history/cardio/:sessionId/edit',
   profile: '/tabs/profile',
   preferences: '/tabs/profile/preferences',
+  weight: '/tabs/profile/weight',
+  steps: '/tabs/profile/steps',
   help: '/tabs/profile/help',
   login: '/login',
   register: '/register',
@@ -73,6 +77,8 @@ function Tabs() {
         <Route exact path={paths.cardioEdit} component={EditCardioSessionPage} />
         <Route exact path={paths.profile} component={ProfilePage} />
         <Route exact path={paths.preferences} component={ProfilePreferencesPage} />
+        <Route exact path={paths.weight} component={WeightPage} />
+        <Route exact path={paths.steps} component={StepsPage} />
         <Route exact path={paths.help} component={HelpPage} />
         <Redirect exact from="/tabs" to={paths.today} />
         {/* No path: Ionic uses it only when nothing else matches (20 · Page introuvable, tab bar kept). */}
@@ -88,6 +94,7 @@ function Tabs() {
 export function AppRoutes() {
   return (
     <IonReactRouter>
+      <RestTimerAlert />
       <AuthGate><IonRouterOutlet ref={(outlet) => { if (outlet) (outlet as HTMLIonRouterOutletElement & { swipeGesture: boolean }).swipeGesture = false }}>
         <Route exact path={paths.login} component={LoginPage} />
         <Route exact path={paths.register} component={RegisterPage} />

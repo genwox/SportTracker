@@ -762,6 +762,169 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/healthmetrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DailyHealthMetric"][];
+                        "application/json": components["schemas"]["DailyHealthMetric"][];
+                        "text/json": components["schemas"]["DailyHealthMetric"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/healthmetrics/weight/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    date: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["WeightInput"];
+                    "text/json": components["schemas"]["WeightInput"];
+                    "application/*+json": components["schemas"]["WeightInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DailyHealthMetric"];
+                        "application/json": components["schemas"]["DailyHealthMetric"];
+                        "text/json": components["schemas"]["DailyHealthMetric"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/healthmetrics/steps/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    date: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StepsInput"];
+                    "text/json": components["schemas"]["StepsInput"];
+                    "application/*+json": components["schemas"]["StepsInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DailyHealthMetric"];
+                        "application/json": components["schemas"]["DailyHealthMetric"];
+                        "text/json": components["schemas"]["DailyHealthMetric"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/healthmetrics/{kind}/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    kind: string;
+                    date: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workoutsessions/live/{draftId}/exercises/{exerciseId}": {
         parameters: {
             query?: never;
@@ -1135,6 +1298,15 @@ export interface components {
             userId?: string;
         };
         CardioType: number;
+        DailyHealthMetric: {
+            userId?: string;
+            /** Format: date */
+            date?: string;
+            /** Format: double */
+            weightKg?: null | number | string;
+            /** Format: int32 */
+            steps?: null | number | string;
+        };
         Exercise: {
             /** Format: int32 */
             id?: number | string;
@@ -1230,6 +1402,10 @@ export interface components {
         };
         /** @default 1 */
         SetType: number;
+        StepsInput: {
+            /** Format: int32 */
+            value: null | number | string;
+        };
         SyncExerciseRequest: {
             /** Format: int32 */
             workoutProgramSessionId: null | number | string;
@@ -1257,6 +1433,10 @@ export interface components {
             recoveryCodes?: null | string[];
             isTwoFactorEnabled: boolean;
             isMachineRemembered: boolean;
+        };
+        WeightInput: {
+            /** Format: double */
+            value: null | number | string;
         };
         WorkoutExercise: {
             /** Format: int32 */

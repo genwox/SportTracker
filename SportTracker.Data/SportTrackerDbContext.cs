@@ -29,10 +29,18 @@ public class SportTrackerDbContext :  IdentityDbContext<ApplicationUser>
     public DbSet<WorkoutProgramSession> WorkoutProgramSessions { get; set; }
     public DbSet<WorkoutProgramExercise> WorkoutProgramExercises { get; set; }
     public DbSet<ExerciseExternalMapping> ExerciseExternalMappings { get; set; }
+    public DbSet<DailyHealthMetric> HealthMetrics { get; set; }
 
     protected override void  OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<DailyHealthMetric>().HasKey(m => new { m.UserId, m.Date });
+        modelBuilder.Entity<DailyHealthMetric>().HasQueryFilter(m => m.UserId == _currentUser.UserId);
+        modelBuilder.Entity<DailyHealthMetric>().ToTable(t =>
+        {
+            t.HasCheckConstraint("CK_HealthMetrics_Weight", "WeightKg IS NULL OR (CAST(WeightKg AS REAL) >= 1 AND CAST(WeightKg AS REAL) <= 500)");
+            t.HasCheckConstraint("CK_HealthMetrics_Steps", "Steps IS NULL OR (Steps >= 0 AND Steps <= 200000)");
+        });
         var converter = new ValueConverter<List<MuscleGroup>, string>(
             v => string.Join(',', v),
             v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)

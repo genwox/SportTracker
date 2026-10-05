@@ -28,6 +28,7 @@ builder.Services.AddDbContext<SportTrackerDbContext>(
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IHealthMetricRepository, HealthMetricRepository>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()

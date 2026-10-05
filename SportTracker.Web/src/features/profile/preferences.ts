@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react'
 /* Session preferences of the Profil (V6 · 19), kept on this device. */
 
 const SHOW_RPE = 'st-pref:v1:show-rpe'
+const REST_SOUND = 'st-pref:v1:rest-sound'
 const EVENT = 'sporttracker:preferences'
 
 function read(key: string, fallback: boolean): boolean {
@@ -24,4 +25,10 @@ function subscribe(listener: () => void) {
 export function useShowRpe(): [boolean, (value: boolean) => void] {
   const value = useSyncExternalStore(subscribe, () => read(SHOW_RPE, true))
   return [value, next => write(SHOW_RPE, next)]
+}
+
+export const isRestSoundEnabled = () => read(REST_SOUND, true)
+export function useRestSound(): [boolean, (value: boolean) => void] {
+  const value = useSyncExternalStore(subscribe, isRestSoundEnabled)
+  return [value, next => write(REST_SOUND, next)]
 }
