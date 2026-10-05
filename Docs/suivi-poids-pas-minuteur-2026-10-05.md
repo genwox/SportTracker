@@ -55,4 +55,19 @@ Pour une lecture quotidienne automatique du total iPhone / Apple Watch : version
 4. Tester le son dans Profil, lancer un repos, aller dans un onglet : une seule alerte lorsque l'app reste au premier plan. Tester le mode silencieux et le volume réel.
 5. Ajouter deux pesées, vérifier la courbe, corriger/supprimer, puis changer de compte : aucune donnée du premier compte affichée.
 
-Aucun déploiement effectué pendant cette session. Frontend Blazor gelé inchangé.
+## Déploiement effectué le 5 octobre 2026
+
+Autorisation directe de Damien : « aide moi à faire tout ça », après les instructions de commit/push et déploiement API + web.
+
+- Commit applicatif `2ba13045f0baa22088e100e45c8ea7b22a8c8d6d`, publié sans force-push sur `origin/master` et `origin/codex/suivi-poids-pas-minuteur`.
+- VPS : checkout propre `/root/SportTracker`, branche `master`, passé de `52d0875` à `2ba1304` par `git pull --ff-only`.
+- Sauvegardes cohérentes SQLite (API de backup SQLite, contrôle d'intégrité OK), métadonnées et clés Data Protection dans `/root/sporttracker-backups/20261005-2ba1304/`. Fichiers `sporttracker.db` (avant build), `sporttracker-prestart.db` (juste avant redémarrage), `dp-keys.tar.gz`, `git-before.txt`, `images-before.txt` ; dossier/fichiers créés avec `umask 077`.
+- Images précédentes conservées sous `sporttracker-api:rollback-20261005-2ba1304` et `sporttracker-web:rollback-20261005-2ba1304`.
+- Build Docker réel `docker compose build api web` réussi sur le VPS, puis `docker compose up -d --no-build api web`. Blazor reste sur `app.` ; la nouvelle UI est sur **https://beta.fmon-vps-n8n.fr**. Aucun redémarrage de Traefik nécessaire.
+- Migration `20261005080954_AddDailyHealthMetrics` appliquée au démarrage ; colonnes de `HealthMetrics` vérifiées et `PRAGMA integrity_check` OK.
+- Avant/après : 2 comptes, 98 séances musculation, 0 sorties cardio, 8 carnets, 1 324 exercices ; effectifs identiques. Volumes SQLite et clés conservés.
+- HTTPS : bêta 200, app Blazor 200, nouvelle route `GET /api/healthmetrics` 401 sans jeton (route présente et protégée).
+- Vérification réelle WebKit de la bêta : redirection de la page poids vers la connexion avec `returnUrl`, écran visible, aucune erreur JavaScript ; bundle `/assets/index-CMsmiwpU.js` contenant les trois nouvelles fonctions et l'URL API production ; service worker 200 et `Cache-Control: no-cache`.
+- Aucun compte de test créé en production et aucun accès aux données utilisateur pour les tests navigateur. Enregistrement connecté, mouvements physiques et sortie sonore à vérifier par Damien sur iPhone.
+
+Pour recevoir la nouvelle version installée sur iPhone : terminer la séance live si elle est en cours, puis fermer/réouvrir la bêta. Le mécanisme PWA attend la fin du live pour appliquer une mise à jour.
