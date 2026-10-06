@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { apiRequest } from '../../api/client'
 import type { components } from '../../api/schema'
 import { estimateOneRm } from '../../domain/strengthMath'
@@ -15,6 +15,10 @@ export const workoutsKey = ['history', 'workouts'] as const
 export const cardioKey = ['history', 'cardio'] as const
 export const workoutsQuery = () => apiRequest<Workout[]>('api/workoutsessions')
 export const cardioQuery = () => apiRequest<Cardio[]>('api/cardiosessions')
+// The session lists are heavy (every exercise and set): Aujourd’hui, Profil and the live screen read them through
+// the same cache entries as Historique, so one download is shared (and in-flight requests are deduplicated).
+export const fetchWorkouts = (cache: QueryClient) => cache.fetchQuery({ queryKey: workoutsKey, queryFn: workoutsQuery, staleTime: 30_000 })
+export const fetchCardio = (cache: QueryClient) => cache.fetchQuery({ queryKey: cardioKey, queryFn: cardioQuery, staleTime: 30_000 })
 export const useWorkouts = () => useQuery({ queryKey: workoutsKey, queryFn: workoutsQuery })
 export const useCardio = () => useQuery({ queryKey: cardioKey, queryFn: cardioQuery })
 

@@ -1,10 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { IonContent, IonPage, useIonRouter } from '@ionic/react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   barbellOutline, calendarOutline, flagOutline, helpCircleOutline, lockClosedOutline, logOutOutline, readerOutline, speedometerOutline, syncOutline, volumeHighOutline, scaleOutline, walkOutline,
 } from 'ionicons/icons'
-import { apiRequest } from '../../api/client'
 import { useAuth } from '../../api/auth'
 import { getDraftOwner, isTokenRemembered, setTokenRemembered } from '../../api/tokenStore'
 import {
@@ -13,6 +12,7 @@ import {
 import { useV6ActionSheet, useV6Toast } from '../../ui/v6Feedback'
 import { useOnline, useV6BackHref } from '../../ui/v6Hooks'
 import { draftStore } from '../live/drafts'
+import { fetchCardio, fetchWorkouts } from '../history/data'
 import { getGoalEmail, getWeeklyGoal, isGoalAvailable, setWeeklyGoal } from '../today/weeklyGoal'
 import type { Cardio, Workout } from '../today/todayData'
 import { useShowRpe, useRestSound } from './preferences'
@@ -28,14 +28,9 @@ const time = (value: number) => new Date(value).toLocaleTimeString('fr-FR', { ho
 
 type ProfileLoad = { workouts: Workout[]; cardio: Cardio[]; email: string | null; goal: number }
 
-async function loadProfile(): Promise<ProfileLoad> {
-  const [workouts, cardio, email, goal] = await Promise.all([
-    apiRequest<Workout[]>('api/workoutsessions'),
-    apiRequest<Cardio[]>('api/cardiosessions'),
-    getGoalEmail(),
-    getWeeklyGoal(),
-  ])
-  return { workouts: workouts || [], cardio: cardio || [], email, goal }
+async function loadProfile(cache: QueryClient): Promise<ProfileLoad> {
+  const [workouts, cardio, email, goal] = await Promise.all([fetchWorkouts(cache), fetchCardio(cache), getGoalEmail(), getWeeklyGoal()])
+  return { workouts: (workouts || []) as Workout[], cardio: (cardio || []) as Cardio[], email, goal }
 }
 
 function Page({ title, subtitle, backHref, refresh, footer, className, children }: {
@@ -69,8 +64,8 @@ function usePendingDrafts(online: boolean) {
 /* ── 19 · Profil ─────────────────────────────────────────────────────────── */
 
 export function ProfilePage() {
-  const router = useIonRouter(), actions = useV6ActionSheet(), { logout } = useAuth()
-  const query = useQuery({ queryKey: ['profile', 'summary'], queryFn: loadProfile, staleTime: 0 })
+  const router = useIonRouter(), actions = useV6ActionSheet(), { logout } = useAuth(), cache = useQueryClient()
+  const query = useQuery({ queryKey: ['profile', 'summary'], queryFn: () => loadProfile(cache), staleTime: 0 })
   const backHref = useV6BackHref('/tabs/today')
   const online = useOnline(), pending = usePendingDrafts(online)
   const [showRpe, setShowRpe] = useShowRpe()

@@ -25,8 +25,22 @@ export interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
   auth?: boolean
 }
 
+/** A read that gets no answer (weak network, server restarting) fails after this delay instead of spinning forever. */
+export const GET_TIMEOUT_MS = 30_000
+
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const { body, auth = true, headers: suppliedHeaders, ...init } = options
+  // Only reads time out: aborting a write could hide one the server already applied.
+  const reading = (init.method ?? 'GET').toUpperCase() === 'GET'
+  const timeout = reading ? new AbortController() : null
+  const timer = timeout ? setTimeout(() => timeout.abort(), GET_TIMEOUT_MS) : undefined
+  const callerSignal = init.signal
+  if (timeout && callerSignal) callerSignal.addEventListener('abort', () => timeout.abort(), { once: true })
+  if (timeout) init.signal = timeout.signal
+  try { return await send<T>(path, init, body, auth, suppliedHeaders) } finally { clearTimeout(timer) }
+}
+
+async function send<T>(path: string, init: RequestInit, body: unknown, auth: boolean, suppliedHeaders?: HeadersInit): Promise<T> {
   const token = auth ? getToken() : null
   const headers = new Headers(suppliedHeaders)
   if (body !== undefined && !(body instanceof FormData)) headers.set('Content-Type', 'application/json')

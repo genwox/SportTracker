@@ -18,6 +18,9 @@ services:
       - "traefik.http.routers.sporttracker-api.entrypoints=websecure"
       - "traefik.http.routers.sporttracker-api.tls.certresolver=mytlschallenge"
       - "traefik.http.services.sporttracker-api.loadbalancer.server.port=8080"
+      # JSON lists (sessions, exercise catalogue) compress ~10x.
+      - "traefik.http.middlewares.sporttracker-compress.compress=true"
+      - "traefik.http.routers.sporttracker-api.middlewares=sporttracker-compress"
 
   app:
     build:

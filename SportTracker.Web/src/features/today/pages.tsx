@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { IonContent, IonIcon, IonPage, useIonRouter } from '@ionic/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { addOutline, barbellOutline, checkmarkCircleOutline, cloudOfflineOutline, playOutline, syncOutline } from 'ionicons/icons'
-import { apiRequest } from '../../api/client'
 import { getDraftOwner } from '../../api/tokenStore'
-import { muscleCounts } from '../history/data'
+import { fetchCardio, fetchWorkouts, muscleCounts } from '../history/data'
 import { draftStore } from '../live/drafts'
 import { CatalogSheet } from '../live/CatalogSheet'
 import { usePrograms, useProgramDetails, useProgramsSettled } from '../programs/programQueries'
@@ -20,16 +19,14 @@ const shortDateFr = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'l
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 const plural = (count: number, word: string) => `${count} ${word}${count > 1 ? 's' : ''}`
 
-async function loadToday(): Promise<TodayData> {
-  const [workouts, cardio] = await Promise.all([
-    apiRequest<Workout[]>('api/workoutsessions'), apiRequest<Cardio[]>('api/cardiosessions'),
-  ])
-  return { workouts: workouts || [], cardio: cardio || [] }
+async function loadToday(cache: QueryClient): Promise<TodayData> {
+  const [workouts, cardio] = await Promise.all([fetchWorkouts(cache), fetchCardio(cache)])
+  return { workouts: (workouts || []) as Workout[], cardio: (cardio || []) as Cardio[] }
 }
 
 export function TodayPage() {
-  const router = useIonRouter(), toast = useV6Toast()
-  const query = useQuery({ queryKey: ['today', 'sessions'], queryFn: loadToday, staleTime: 0 })
+  const router = useIonRouter(), toast = useV6Toast(), cache = useQueryClient()
+  const query = useQuery({ queryKey: ['today', 'sessions'], queryFn: () => loadToday(cache), staleTime: 0 })
   const programsQuery = usePrograms()
   const programs = useProgramDetails(programsQuery.data)
   const programsSettled = useProgramsSettled()

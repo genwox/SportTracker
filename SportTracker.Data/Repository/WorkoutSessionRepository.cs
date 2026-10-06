@@ -19,6 +19,7 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
                 .ThenInclude(we => we.Exercise)
             .Include(ws => ws.WorkoutExercises)!
                 .ThenInclude(we => we.ExerciseSets)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(ws => ws.Id == id);
     }
 
@@ -29,6 +30,8 @@ public class WorkoutSessionRepository : IRepository<WorkoutSession>
                 .ThenInclude(we => we.Exercise)
             .Include(ws => ws.WorkoutExercises)!
                 .ThenInclude(we => we.ExerciseSets)
+            // One joined query would repeat each exercise (name, instructions, GIF) on every set row.
+            .AsSplitQuery()
             .ToListAsync();
     }
 

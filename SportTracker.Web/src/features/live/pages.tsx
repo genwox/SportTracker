@@ -151,7 +151,7 @@ export function ExerciseLivePage() {
   const exerciseQuery = useQuery({ queryKey: ['live', 'exercise', exerciseId], queryFn: () => apiRequest<Exercise>(`api/exercises/${exerciseId}`), enabled: Number.isInteger(exerciseId) })
   const historyQuery = useQuery({ queryKey: ['live', 'history', exerciseId], queryFn: () => apiRequest<HistoryEntry[]>(`api/exercises/${exerciseId}/history`), enabled: Number.isInteger(exerciseId) })
   const programQuery = useQuery({ queryKey: ['live', 'program', params.programId], queryFn: () => apiRequest<Program>(`api/programs/${params.programId}`), enabled: !free })
-  const workoutsQuery = useQuery({ queryKey: ['live', 'workouts'], queryFn: () => apiRequest<Workout[]>('api/workoutsessions'), enabled: !free })
+  const workoutsQuery = useQuery({ queryKey: ['history', 'workouts'], queryFn: () => apiRequest<Workout[]>('api/workoutsessions'), enabled: !free })
   const programSession = programQuery.data?.sessions.find(item => Number(item.id) === sessionId)
   const programExercise = programSession?.exercises.find(item => Number(item.exerciseId) === exerciseId)
   useEffect(() => {
